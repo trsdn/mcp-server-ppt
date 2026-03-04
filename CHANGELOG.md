@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- **30 PowerPoint MCP tools with 117 operations** for comprehensive PowerPoint automation via COM interop
+- **30 PowerPoint MCP tools with 125 operations** for comprehensive PowerPoint automation via COM interop
 - **Slide management** (7 ops) — list, read, create, duplicate, move, delete, apply-layout
 - **Shape operations** (17 ops) — add, move, resize, fill, line, shadow, rotation, z-order, grouping, copy between slides, connectors, merge shapes (union/combine/fragment/intersect/subtract)
 - **Text editing** (6 ops) — get/set text, find, replace, format (font, size, bold, italic, color, alignment)

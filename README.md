@@ -7,7 +7,7 @@
 
 **Automate PowerPoint with AI — A Model Context Protocol (MCP) server for comprehensive PowerPoint automation through conversational AI.**
 
-**MCP Server for PowerPoint** enables AI assistants (GitHub Copilot, Claude, ChatGPT) to automate PowerPoint through natural language commands. Manage slides, shapes, text, charts, tables, animations, transitions, VBA macros, and more (20 tools with 84 operations).
+**MCP Server for PowerPoint** enables AI assistants (GitHub Copilot, Claude, ChatGPT) to automate PowerPoint through natural language commands. Manage slides, shapes, text, charts, tables, animations, transitions, VBA macros, and more (30 tools with 125 operations).
 
 **🛡️ 100% Safe — Uses PowerPoint's Native COM API** — Zero risk of file corruption. Uses PowerPoint's official COM API ensuring complete safety and compatibility.
 
@@ -20,31 +20,31 @@
 
 ## 🎯 What You Can Do
 
-**30 specialized tools with 117 operations:**
+**30 specialized tools with 125 operations:**
 
-- 📄 **Slides** (1 tool, 7 ops) — Create, duplicate, move, delete, apply layouts
-- 🔷 **Shapes** (1 tool, 17 ops) — Add, move, resize, fill, line, shadow, rotation, z-order, grouping, copy, connectors, merge
-- 📝 **Text** (1 tool, 6 ops) — Get/set text, find, replace, format (font, size, bold, italic, color, alignment)
+- 📄 **Slides** (1 tool, 8 ops) — Create, duplicate, move, delete, apply layouts, set name
+- 🔷 **Shapes** (1 tool, 19 ops) — Add, move, resize, fill, line, shadow, rotation, z-order, grouping, copy, connectors, merge, flip, duplicate
+- 📝 **Text** (1 tool, 5 ops) — Get/set text, find, replace, format
 - 📊 **Charts** (1 tool, 5 ops) — Create charts, set title, type, get info, delete
-- 📋 **Slide Tables** (1 tool, 9 ops) — Create, read, write cells, add/delete rows and columns
-- 🎬 **Animations** (1 tool, 4 ops) — List, add, remove animation effects
-- 🔄 **Transitions** (1 tool, 3 ops) — Get, set, remove slide transitions
+- 📋 **Slide Tables** (1 tool, 8 ops) — Create, read, write cells, add/delete rows and columns, merge cells
+- 🎬 **Animations** (1 tool, 4 ops) — List, add, remove, clear animation effects
+- 🔄 **Transitions** (1 tool, 4 ops) — Get, set, remove, copy to all slides
 - 🎨 **Design/Themes** (1 tool, 4 ops) — List designs, apply themes, get theme colors, list color schemes
 - 🖼️ **Images** (1 tool, 1 op) — Insert images with position and size control
-- 📝 **Notes** (1 tool, 3 ops) — Get, set, delete speaker notes
+- 📝 **Notes** (1 tool, 4 ops) — Get, set, clear, append speaker notes
 - 🏷️ **Sections** (1 tool, 4 ops) — List, add, rename, delete presentation sections
 - 🔗 **Hyperlinks** (1 tool, 4 ops) — Add, read, list, remove hyperlinks
 - 📺 **Slideshow** (1 tool, 4 ops) — Start, stop, navigate, get status
 - 🎭 **Slide Masters** (1 tool, 1 op) — List masters and layouts
-- 📤 **Export** (1 tool, 4 ops) — Export to PDF, slides as images, video (MP4), print
+- 📤 **Export** (1 tool, 5 ops) — PDF, slide images, video (MP4), print, save-as (7 formats)
 - 📝 **VBA** (1 tool, 5 ops) — List, view, import, delete, run macros
 - 🎥 **Media** (1 tool, 3 ops) — Insert audio/video, get media info
-- 🪟 **Window** (1 tool, 4 ops) — Show/hide, minimize, maximize, get window info
+- 🪟 **Window** (1 tool, 5 ops) — Get info, minimize, restore, maximize, set zoom
 - 📁 **Files** (1 tool, 1 op) — File validation and info
 - 📑 **Document Properties** (1 tool, 2 ops) — Get/set title, author, subject, etc.
 - 💬 **Comments** (1 tool, 4 ops) — Add, list, delete, clear slide comments
 - 📌 **Placeholders** (1 tool, 2 ops) — List placeholders, set placeholder text
-- 🎨 **Slide Background** (1 tool, 3 ops) — Get info, set solid color, reset to master
+- 🎨 **Slide Background** (1 tool, 4 ops) — Get info, set solid color, set image, reset to master
 - 📋 **Headers & Footers** (1 tool, 2 ops) — Get/set footer text, slide numbers, date
 - 🧩 **SmartArt** (1 tool, 2 ops) — Get diagram info, add nodes
 - 📐 **Shape Alignment** (1 tool, 2 ops) — Align and distribute shapes on slides
@@ -53,7 +53,7 @@
 - 📥 **Slide Import** (1 tool, 1 op) — Import slides from another .pptx file
 - 🏷️ **Tags** (1 tool, 3 ops) — Custom metadata on slides and shapes
 
-📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 117 operations
+📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 125 operations
 
 
 ## 💬 Example Prompts
