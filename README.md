@@ -20,7 +20,7 @@
 
 ## 🎯 What You Can Do
 
-**26 specialized tools with 101 operations:**
+**30 specialized tools with 110 operations:**
 
 - 📄 **Slides** (1 tool, 7 ops) — Create, duplicate, move, delete, apply layouts
 - 🔷 **Shapes** (1 tool, 13 ops) — Add textboxes/shapes, move, resize, fill, line, rotation, z-order, grouping
@@ -48,8 +48,12 @@
 - 📋 **Headers & Footers** (1 tool, 2 ops) — Get/set footer text, slide numbers, date
 - 🧩 **SmartArt** (1 tool, 2 ops) — Get diagram info, add nodes
 - 📐 **Shape Alignment** (1 tool, 2 ops) — Align and distribute shapes on slides
+- 🎪 **Custom Shows** (1 tool, 3 ops) — Create, list, delete custom slide shows
+- 📏 **Page Setup** (1 tool, 2 ops) — Get/set slide size and orientation
+- 📥 **Slide Import** (1 tool, 1 op) — Import slides from another .pptx file
+- 🏷️ **Tags** (1 tool, 3 ops) — Custom metadata on slides and shapes
 
-📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 101 operations
+📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 110 operations
 
 
 ## 💬 Example Prompts

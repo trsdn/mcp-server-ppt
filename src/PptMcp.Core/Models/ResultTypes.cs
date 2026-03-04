@@ -497,3 +497,46 @@ public class SmartArtNodeInfo
     public string Text { get; set; } = string.Empty;
     public int Level { get; set; }
 }
+
+// ── Custom Show ──────────────────────────────────────────
+
+public class CustomShowListResult : ResultBase
+{
+    public List<CustomShowInfo> Shows { get; set; } = [];
+}
+
+public class CustomShowInfo
+{
+    public int Index { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int SlideCount { get; set; }
+    public List<int> SlideIds { get; set; } = [];
+}
+
+// ── Page Setup ───────────────────────────────────────────
+
+public class PageSetupResult : ResultBase
+{
+    public float SlideWidth { get; set; }
+    public float SlideHeight { get; set; }
+    public int SlideOrientation { get; set; }
+    public int NotesOrientation { get; set; }
+}
+
+// ── Tags ─────────────────────────────────────────────────
+
+public class TagListResult : ResultBase
+{
+    public int SlideIndex { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ShapeName { get; set; }
+
+    public List<TagInfo> Tags { get; set; } = [];
+}
+
+public class TagInfo
+{
+    public string Name { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+}

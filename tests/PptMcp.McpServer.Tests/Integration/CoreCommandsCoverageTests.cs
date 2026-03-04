@@ -5,6 +5,7 @@ using PptMcp.Core.Commands.Animation;
 using PptMcp.Core.Commands.Background;
 using PptMcp.Core.Commands.Chart;
 using PptMcp.Core.Commands.Comment;
+using PptMcp.Core.Commands.CustomShow;
 using PptMcp.Core.Commands.Design;
 using PptMcp.Core.Commands.DocumentProperty;
 using PptMcp.Core.Commands.Export;
@@ -15,14 +16,17 @@ using PptMcp.Core.Commands.Image;
 using PptMcp.Core.Commands.Master;
 using PptMcp.Core.Commands.Media;
 using PptMcp.Core.Commands.Notes;
+using PptMcp.Core.Commands.PageSetup;
 using PptMcp.Core.Commands.Placeholder;
 using PptMcp.Core.Commands.Section;
 using PptMcp.Core.Commands.Shape;
 using PptMcp.Core.Commands.ShapeAlign;
 using PptMcp.Core.Commands.Slide;
+using PptMcp.Core.Commands.SlideImport;
 using PptMcp.Core.Commands.Slideshow;
 using PptMcp.Core.Commands.SlideTable;
 using PptMcp.Core.Commands.SmartArt;
+using PptMcp.Core.Commands.Tag;
 using PptMcp.Core.Commands.Text;
 using PptMcp.Core.Commands.Transition;
 using PptMcp.Core.Commands.Vba;
@@ -275,6 +279,42 @@ public class CoreCommandsCoverageTests
         var enumValueCount = Enum.GetValues<ShapealignAction>().Length;
         Assert.True(enumValueCount >= coreMethodCount,
             $"IShapeAlignCommands has {coreMethodCount} [ServiceAction] methods but ShapealignAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void ICustomShowCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(ICustomShowCommands));
+        var enumValueCount = Enum.GetValues<CustomshowAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"ICustomShowCommands has {coreMethodCount} [ServiceAction] methods but CustomshowAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void IPageSetupCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(IPageSetupCommands));
+        var enumValueCount = Enum.GetValues<PagesetupAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"IPageSetupCommands has {coreMethodCount} [ServiceAction] methods but PagesetupAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void ISlideImportCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(ISlideImportCommands));
+        var enumValueCount = Enum.GetValues<SlideimportAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"ISlideImportCommands has {coreMethodCount} [ServiceAction] methods but SlideimportAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void ITagCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(ITagCommands));
+        var enumValueCount = Enum.GetValues<TagAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"ITagCommands has {coreMethodCount} [ServiceAction] methods but TagAction has only {enumValueCount} enum values.");
     }
 
     // ── Existing mapping tests ───────────────────────────────
@@ -567,6 +607,50 @@ public class CoreCommandsCoverageTests
             var exception = Record.Exception(() => ServiceRegistry.Shapealign.ToActionString(action));
             Assert.Null(exception);
             Assert.NotEmpty(ServiceRegistry.Shapealign.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void CustomshowAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<CustomshowAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Customshow.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Customshow.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void PagesetupAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<PagesetupAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Pagesetup.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Pagesetup.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void SlideimportAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<SlideimportAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Slideimport.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Slideimport.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void TagAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<TagAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Tag.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Tag.ToActionString(action));
         }
     }
 
