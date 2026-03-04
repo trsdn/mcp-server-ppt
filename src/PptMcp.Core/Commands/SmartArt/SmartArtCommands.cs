@@ -90,11 +90,13 @@ public class SmartArtCommands : ISmartArtCommands
                 if (Convert.ToInt32(shape.HasSmartArt) == 0)
                     throw new InvalidOperationException($"Shape '{shapeName}' is not a SmartArt diagram.");
 
-                dynamic smartArt = shape.SmartArt;
-                dynamic nodes = smartArt.AllNodes;
+                dynamic? smartArt = null;
+                dynamic? nodes = null;
                 dynamic? newNode = null;
                 try
                 {
+                    smartArt = shape.SmartArt;
+                    nodes = smartArt.AllNodes;
                     // AddNode() adds after the last node
                     newNode = nodes.Add();
                     newNode.TextFrame2.TextRange.Text = text;
@@ -110,8 +112,8 @@ public class SmartArtCommands : ISmartArtCommands
                 finally
                 {
                     if (newNode != null) ComUtilities.Release(ref newNode!);
-                    ComUtilities.Release(ref nodes!);
-                    ComUtilities.Release(ref smartArt!);
+                    if (nodes != null) ComUtilities.Release(ref nodes!);
+                    if (smartArt != null) ComUtilities.Release(ref smartArt!);
                 }
             }
             finally

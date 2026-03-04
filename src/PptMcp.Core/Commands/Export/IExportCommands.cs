@@ -67,4 +67,22 @@ public interface IExportCommands
     /// <param name="height">Image height in pixels (default: 1080)</param>
     [ServiceAction("all-slides-to-images")]
     ExportResult AllSlidesToImages(IPptBatch batch, string destinationDirectory, int width, int height);
+
+    /// <summary>
+    /// Extract all text from the presentation to a text file.
+    /// Iterates all slides and shapes, writing text with slide headers.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="destinationPath">Output text file path</param>
+    [ServiceAction("extract-text")]
+    OperationResult ExtractText(IPptBatch batch, string destinationPath);
+
+    /// <summary>
+    /// Extract all images (pictures) from the presentation as PNG files.
+    /// Exports shapes of type Picture (13) or LinkedPicture (11).
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="destinationDirectory">Directory to save extracted images</param>
+    [ServiceAction("extract-images")]
+    OperationResult ExtractImages(IPptBatch batch, string destinationDirectory);
 }

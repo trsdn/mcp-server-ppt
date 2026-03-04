@@ -9,7 +9,7 @@ param(
     [Parameter(Mandatory=$true)]
     [string]$GithubRunnerToken,
 
-    [string]$RunnerName = "azure-excel-runner",
+    [string]$RunnerName = "azure-ppt-runner",
     [string]$RunnerVersion = "2.321.0"
 )
 
@@ -86,7 +86,7 @@ try {
         "--url", $GithubRepoUrl,
         "--token", $GithubRunnerToken,
         "--name", $RunnerName,
-        "--labels", "self-hosted,windows,excel",
+        "--labels", "self-hosted,windows,powerpoint",
         "--runnergroup", "Default",
         "--work", "_work",
         "--unattended"

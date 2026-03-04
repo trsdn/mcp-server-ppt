@@ -687,6 +687,42 @@ public class ShapeCommands : IShapeCommands
         });
     }
 
+    public OperationResult SetTextFrame(IPptBatch batch, int slideIndex, string shapeName, float? marginLeft, float? marginRight, float? marginTop, float? marginBottom, bool? wordWrap, int? autoSize)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? textFrame = null;
+            try
+            {
+                textFrame = shape.TextFrame;
+                if (marginLeft.HasValue) textFrame.MarginLeft = marginLeft.Value;
+                if (marginRight.HasValue) textFrame.MarginRight = marginRight.Value;
+                if (marginTop.HasValue) textFrame.MarginTop = marginTop.Value;
+                if (marginBottom.HasValue) textFrame.MarginBottom = marginBottom.Value;
+                if (wordWrap.HasValue) textFrame.WordWrap = wordWrap.Value ? -1 : 0; // msoTrue=-1, msoFalse=0
+                if (autoSize.HasValue) textFrame.AutoSize = autoSize.Value; // ppAutoSizeNone=0, ppAutoSizeShapeToFitText=1, ppAutoSizeTextToFitShape=2
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-text-frame",
+                    Message = $"Updated text frame properties of shape '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (textFrame != null) ComUtilities.Release(ref textFrame!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static int HexToOleColor(string hex)
     {
         hex = hex.TrimStart('#');
@@ -696,5 +732,125 @@ public class ShapeCommands : IShapeCommands
         int g = Convert.ToInt32(hex[2..4], 16);
         int b = Convert.ToInt32(hex[4..6], 16);
         return r | (g << 8) | (b << 16);
+    }
+
+    public OperationResult SetGradientFill(IPptBatch batch, int slideIndex, string shapeName, string color1, string color2, int gradientStyle)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(color1);
+        ArgumentException.ThrowIfNullOrWhiteSpace(color2);
+
+        if (gradientStyle < 1 || gradientStyle > 6)
+            throw new ArgumentOutOfRangeException(nameof(gradientStyle), "gradientStyle must be 1-6 (1=Horizontal, 2=Vertical, 3=DiagonalUp, 4=DiagonalDown, 5=FromCorner, 6=FromCenter)");
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                // TwoColorGradient(style, variant) - variant 1 is default direction
+                shape.Fill.TwoColorGradient(gradientStyle, 1);
+                shape.Fill.ForeColor.RGB = HexToOleColor(color1);
+                shape.Fill.BackColor.RGB = HexToOleColor(color2);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-gradient-fill",
+                    Message = $"Set gradient fill on shape '{shapeName}' from '{color1}' to '{color2}' (style {gradientStyle}) on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult SetGlow(IPptBatch batch, int slideIndex, string shapeName, float radius, string colorHex)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(colorHex);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                dynamic glow = shape.Glow;
+                try
+                {
+                    glow.Radius = radius;
+                    if (radius > 0)
+                    {
+                        glow.Color.RGB = HexToOleColor(colorHex);
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref glow!);
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-glow",
+                    Message = radius > 0
+                        ? $"Set glow on shape '{shapeName}' with radius {radius}pt and color '{colorHex}' on slide {slideIndex}"
+                        : $"Removed glow from shape '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult SetReflection(IPptBatch batch, int slideIndex, string shapeName, int reflectionType)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        if (reflectionType < 0 || reflectionType > 9)
+            throw new ArgumentOutOfRangeException(nameof(reflectionType), "reflectionType must be 0-9 (0=None, 1-9=msoReflectionType1 through msoReflectionType9)");
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                dynamic reflection = shape.Reflection;
+                try
+                {
+                    reflection.Type = reflectionType;
+                }
+                finally
+                {
+                    ComUtilities.Release(ref reflection!);
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-reflection",
+                    Message = reflectionType > 0
+                        ? $"Set reflection type {reflectionType} on shape '{shapeName}' on slide {slideIndex}"
+                        : $"Removed reflection from shape '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
     }
 }

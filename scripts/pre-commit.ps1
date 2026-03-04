@@ -179,9 +179,9 @@ try {
     # Auto-stage all of them so developers never have to think about it.
     $skillPaths = @(
         "skills/ppt-mcp/SKILL.md",
-        "skills/excel-cli/SKILL.md",
+        "skills/ppt-cli/SKILL.md",
         "skills/ppt-mcp/references/",
-        "skills/excel-cli/references/"
+        "skills/ppt-cli/references/"
     )
     $skillDiff = git diff --name-only -- @skillPaths 2>&1
     $untrackedSkills = git ls-files --others --exclude-standard -- @skillPaths 2>&1

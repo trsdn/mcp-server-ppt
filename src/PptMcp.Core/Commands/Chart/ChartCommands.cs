@@ -242,7 +242,7 @@ public class ChartCommands : IChartCommands
                     }
                 }
 
-                workbook.Close(false);
+                try { workbook.Close(false); } catch { /* best-effort close */ }
 
                 return new OperationResult
                 {

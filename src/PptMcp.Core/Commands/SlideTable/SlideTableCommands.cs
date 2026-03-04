@@ -332,11 +332,18 @@ public class SlideTableCommands : ISlideTableCommands
 
                 if (!string.IsNullOrEmpty(fillColor))
                 {
-                    dynamic fill = cell.Shape.Fill;
-                    fill.Visible = -1;
-                    fill.Solid();
-                    fill.ForeColor.RGB = HexToOleColor(fillColor);
-                    ComUtilities.Release(ref fill!);
+                    dynamic? fill = null;
+                    try
+                    {
+                        fill = cell.Shape.Fill;
+                        fill.Visible = -1;
+                        fill.Solid();
+                        fill.ForeColor.RGB = HexToOleColor(fillColor);
+                    }
+                    finally
+                    {
+                        if (fill != null) ComUtilities.Release(ref fill!);
+                    }
                 }
 
                 if (fontBold.HasValue || fontSize > 0)

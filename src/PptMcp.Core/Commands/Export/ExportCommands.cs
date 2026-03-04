@@ -188,26 +188,31 @@ public class ExportCommands : IExportCommands
                 Directory.CreateDirectory(fullDir);
 
             dynamic slides = ((dynamic)ctx.Presentation).Slides;
-            int count = (int)slides.Count;
-            int w = width > 0 ? width : 1920;
-            int h = height > 0 ? height : 1080;
-
-            for (int i = 1; i <= count; i++)
+            try
             {
-                dynamic slide = slides.Item(i);
-                try
+                int count = (int)slides.Count;
+                int w = width > 0 ? width : 1920;
+                int h = height > 0 ? height : 1080;
+
+                for (int i = 1; i <= count; i++)
                 {
-                    string fileName = $"slide_{i:D3}.png";
-                    string filePath = Path.Combine(fullDir, fileName);
-                    slide.Export(filePath, "PNG", w, h);
-                }
-                finally
-                {
-                    ComUtilities.Release(ref slide!);
+                    dynamic slide = slides.Item(i);
+                    try
+                    {
+                        string fileName = $"slide_{i:D3}.png";
+                        string filePath = Path.Combine(fullDir, fileName);
+                        slide.Export(filePath, "PNG", w, h);
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref slide!);
+                    }
                 }
             }
-
-            ComUtilities.Release(ref slides!);
+            finally
+            {
+                ComUtilities.Release(ref slides!);
+            }
 
             return new ExportResult
             {
@@ -215,6 +220,151 @@ public class ExportCommands : IExportCommands
                 FilePath = ctx.PresentationPath,
                 OutputPath = fullDir,
                 Format = "PNG"
+            };
+        });
+    }
+
+    public OperationResult ExtractText(IPptBatch batch, string destinationPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            string fullPath = Path.GetFullPath(destinationPath);
+            string? directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
+            dynamic slides = ((dynamic)ctx.Presentation).Slides;
+            try
+            {
+                int slideCount = (int)slides.Count;
+                using var writer = new StreamWriter(fullPath, false, System.Text.Encoding.UTF8);
+
+                for (int i = 1; i <= slideCount; i++)
+                {
+                    dynamic slide = slides.Item(i);
+                    dynamic shapes = slide.Shapes;
+                    try
+                    {
+                        writer.WriteLine($"=== Slide {i} ===");
+                        int shapeCount = (int)shapes.Count;
+
+                        for (int j = 1; j <= shapeCount; j++)
+                        {
+                            dynamic shape = shapes.Item(j);
+                            try
+                            {
+                                if ((bool)shape.HasTextFrame)
+                                {
+                                    dynamic textFrame = shape.TextFrame;
+                                    dynamic textRange = textFrame.TextRange;
+                                    try
+                                    {
+                                        string text = textRange.Text?.ToString() ?? "";
+                                        if (!string.IsNullOrWhiteSpace(text))
+                                            writer.WriteLine(text);
+                                    }
+                                    finally
+                                    {
+                                        ComUtilities.Release(ref textRange!);
+                                        ComUtilities.Release(ref textFrame!);
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                ComUtilities.Release(ref shape!);
+                            }
+                        }
+
+                        writer.WriteLine();
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref shapes!);
+                        ComUtilities.Release(ref slide!);
+                    }
+                }
+            }
+            finally
+            {
+                ComUtilities.Release(ref slides!);
+            }
+
+            return new OperationResult
+            {
+                Success = true,
+                Action = "extract-text",
+                Message = $"Extracted text to '{fullPath}'",
+                FilePath = ctx.PresentationPath
+            };
+        });
+    }
+
+    public OperationResult ExtractImages(IPptBatch batch, string destinationDirectory)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationDirectory);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            string fullDir = Path.GetFullPath(destinationDirectory);
+            if (!Directory.Exists(fullDir))
+                Directory.CreateDirectory(fullDir);
+
+            dynamic slides = ((dynamic)ctx.Presentation).Slides;
+            try
+            {
+                int slideCount = (int)slides.Count;
+                int imageCount = 0;
+
+                for (int i = 1; i <= slideCount; i++)
+                {
+                    dynamic slide = slides.Item(i);
+                    dynamic shapes = slide.Shapes;
+                    try
+                    {
+                        int shapeCount = (int)shapes.Count;
+                        for (int j = 1; j <= shapeCount; j++)
+                        {
+                            dynamic shape = shapes.Item(j);
+                            try
+                            {
+                                int shapeType = Convert.ToInt32(shape.Type);
+                                // msoPicture=13, msoLinkedPicture=11
+                                if (shapeType == 13 || shapeType == 11)
+                                {
+                                    imageCount++;
+                                    string fileName = $"slide{i:D3}_image{imageCount:D3}.png";
+                                    string filePath = Path.Combine(fullDir, fileName);
+                                    // ppShapeFormatPNG = 2
+                                    shape.Export(filePath, 2);
+                                }
+                            }
+                            finally
+                            {
+                                ComUtilities.Release(ref shape!);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref shapes!);
+                        ComUtilities.Release(ref slide!);
+                    }
+                }
+            }
+            finally
+            {
+                ComUtilities.Release(ref slides!);
+            }
+
+            return new OperationResult
+            {
+                Success = true,
+                Action = "extract-images",
+                Message = $"Extracted images to '{fullDir}'",
+                FilePath = ctx.PresentationPath
             };
         });
     }

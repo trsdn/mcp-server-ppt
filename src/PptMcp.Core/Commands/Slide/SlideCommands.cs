@@ -310,7 +310,7 @@ public class SlideCommands : ISlideCommands
                                 dynamic shape = shapes.Item(i);
                                 try
                                 {
-                                    if ((bool)shape.HasTextFrame)
+                                    if (Convert.ToInt32(shape.HasTextFrame) != 0)
                                     {
                                         dynamic textFrame = shape.TextFrame;
                                         dynamic textRange = textFrame.TextRange;

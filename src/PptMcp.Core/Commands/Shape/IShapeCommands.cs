@@ -180,4 +180,53 @@ public interface IShapeCommands
     /// <param name="flipType">0=Horizontal, 1=Vertical</param>
     [ServiceAction("flip")]
     OperationResult Flip(IPptBatch batch, int slideIndex, string shapeName, int flipType);
+
+    /// <summary>
+    /// Set TextFrame properties of a shape (margins, word wrap, auto size).
+    /// Margins are in points. Pass null to leave a property unchanged.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    /// <param name="marginLeft">Left margin in points (null = don't change)</param>
+    /// <param name="marginRight">Right margin in points (null = don't change)</param>
+    /// <param name="marginTop">Top margin in points (null = don't change)</param>
+    /// <param name="marginBottom">Bottom margin in points (null = don't change)</param>
+    /// <param name="wordWrap">Enable/disable word wrap (null = don't change)</param>
+    /// <param name="autoSize">0=None, 1=ShapeToFitText, 2=TextToFitShape (null = don't change)</param>
+    [ServiceAction("set-text-frame")]
+    OperationResult SetTextFrame(IPptBatch batch, int slideIndex, string shapeName, float? marginLeft, float? marginRight, float? marginTop, float? marginBottom, bool? wordWrap, int? autoSize);
+
+    /// <summary>
+    /// Apply a two-color gradient fill to a shape.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    /// <param name="color1">First gradient color as hex (#RRGGBB)</param>
+    /// <param name="color2">Second gradient color as hex (#RRGGBB)</param>
+    /// <param name="gradientStyle">1=Horizontal, 2=Vertical, 3=DiagonalUp, 4=DiagonalDown, 5=FromCorner, 6=FromCenter</param>
+    [ServiceAction("set-gradient-fill")]
+    OperationResult SetGradientFill(IPptBatch batch, int slideIndex, string shapeName, string color1, string color2, int gradientStyle);
+
+    /// <summary>
+    /// Set glow effect on a shape. Use radius=0 to remove glow.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    /// <param name="radius">Glow radius in points (0 = remove glow)</param>
+    /// <param name="colorHex">Glow color as hex (#RRGGBB)</param>
+    [ServiceAction("set-glow")]
+    OperationResult SetGlow(IPptBatch batch, int slideIndex, string shapeName, float radius, string colorHex);
+
+    /// <summary>
+    /// Set reflection effect on a shape. Use reflectionType=0 to remove reflection.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    /// <param name="reflectionType">0=None, 1-9=msoReflectionType1 through msoReflectionType9</param>
+    [ServiceAction("set-reflection")]
+    OperationResult SetReflection(IPptBatch batch, int slideIndex, string shapeName, int reflectionType);
 }

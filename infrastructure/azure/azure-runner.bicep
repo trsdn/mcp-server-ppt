@@ -14,12 +14,12 @@ param adminUsername string = 'azureuser'
 @secure()
 param adminPassword string
 
-var vmName = 'vm-excel-runner'
+var vmName = 'vm-ppt-runner'
 var nicName = '${vmName}-nic'
 var nsgName = '${vmName}-nsg'
 var bastionPublicIpName = 'bastion-ip'
-var bastionName = 'bastion-excel-runner'
-var vnetName = 'vnet-excel-runner'
+var bastionName = 'bastion-ppt-runner'
+var vnetName = 'vnet-ppt-runner'
 var subnetName = 'subnet-default'
 var bastionSubnetName = 'AzureBastionSubnet' // Required name for Bastion
 var osDiskName = '${vmName}-osdisk'

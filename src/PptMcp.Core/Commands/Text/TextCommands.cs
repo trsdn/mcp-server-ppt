@@ -686,6 +686,136 @@ public class TextCommands : ITextCommands
         });
     }
 
+    public OperationResult SetSpacing(IPptBatch batch, int slideIndex, string shapeName, float? lineSpacing, float? spaceBefore, float? spaceAfter, float? characterSpacing)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                if (Convert.ToInt32(shape.HasTextFrame) == 0)
+                    throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
+
+                dynamic textFrame = shape.TextFrame;
+                dynamic textRange = textFrame.TextRange;
+                try
+                {
+                    // Paragraph-level spacing
+                    dynamic paragraphFormat = textRange.ParagraphFormat;
+                    try
+                    {
+                        if (lineSpacing.HasValue) paragraphFormat.SpaceWithin = lineSpacing.Value;
+                        if (spaceBefore.HasValue) paragraphFormat.SpaceBefore = spaceBefore.Value;
+                        if (spaceAfter.HasValue) paragraphFormat.SpaceAfter = spaceAfter.Value;
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref paragraphFormat!);
+                    }
+
+                    // Character-level spacing
+                    if (characterSpacing.HasValue)
+                    {
+                        dynamic font = textRange.Font;
+                        try
+                        {
+                            font.Spacing = characterSpacing.Value;
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref font!);
+                        }
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref textRange!);
+                    ComUtilities.Release(ref textFrame!);
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-spacing",
+                    Message = $"Set spacing on shape '{shapeName}' (slide {slideIndex})",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult SetBullets(IPptBatch batch, int slideIndex, string shapeName, int bulletType, string? bulletCharacter, int indentLevel)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                if (Convert.ToInt32(shape.HasTextFrame) == 0)
+                    throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
+
+                dynamic textFrame = shape.TextFrame;
+                dynamic textRange = textFrame.TextRange;
+                try
+                {
+                    dynamic paragraphFormat = textRange.ParagraphFormat;
+                    try
+                    {
+                        // ppBulletNone=0, ppBulletUnnumbered=1, ppBulletNumbered=2
+                        dynamic bullet = paragraphFormat.Bullet;
+                        try
+                        {
+                            bullet.Type = bulletType;
+
+                            if (bulletType == 1 && !string.IsNullOrEmpty(bulletCharacter))
+                                bullet.Character = Convert.ToInt32(bulletCharacter[0]);
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref bullet!);
+                        }
+
+                        // ParagraphFormat.Level is 1-based (1-5)
+                        paragraphFormat.Level = indentLevel + 1;
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref paragraphFormat!);
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref textRange!);
+                    ComUtilities.Release(ref textFrame!);
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-bullets",
+                    Message = $"Set bullets on shape '{shapeName}' (slide {slideIndex})",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     /// <summary>
     /// Read paragraph and run details from a COM TextRange into the provided list.
     /// </summary>

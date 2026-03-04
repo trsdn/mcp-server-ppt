@@ -130,8 +130,16 @@ public class TagCommands : ITagCommands
             return slide.Tags;
 
         dynamic shape = slide.Shapes.Item(shapeName);
-        dynamic tags = shape.Tags;
-        ComUtilities.Release(ref shape!);
-        return tags;
+        try
+        {
+            dynamic tags = shape.Tags;
+            ComUtilities.Release(ref shape!);
+            return tags;
+        }
+        catch
+        {
+            ComUtilities.Release(ref shape!);
+            throw;
+        }
     }
 }

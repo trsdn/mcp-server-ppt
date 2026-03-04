@@ -86,4 +86,29 @@ public interface ITextCommands
     /// <param name="slideIndex">0 for all slides, or specific 1-based index</param>
     [ServiceAction("empty-placeholder-audit")]
     OperationResult EmptyPlaceholderAudit(IPptBatch batch, int slideIndex);
+
+    /// <summary>
+    /// Set paragraph and character spacing for text in a shape.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    /// <param name="lineSpacing">Line spacing in points (null = don't change)</param>
+    /// <param name="spaceBefore">Space before paragraph in points (null = don't change)</param>
+    /// <param name="spaceAfter">Space after paragraph in points (null = don't change)</param>
+    /// <param name="characterSpacing">Character spacing in points (null = don't change)</param>
+    [ServiceAction("set-spacing")]
+    OperationResult SetSpacing(IPptBatch batch, int slideIndex, string shapeName, float? lineSpacing, float? spaceBefore, float? spaceAfter, float? characterSpacing);
+
+    /// <summary>
+    /// Set bullet point style for text in a shape.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    /// <param name="bulletType">0=None, 1=Unnumbered (bullets), 2=Numbered</param>
+    /// <param name="bulletCharacter">Custom bullet character (e.g. "•", "→") - only used when bulletType is 1</param>
+    /// <param name="indentLevel">Indent level 0-4</param>
+    [ServiceAction("set-bullets")]
+    OperationResult SetBullets(IPptBatch batch, int slideIndex, string shapeName, int bulletType, string? bulletCharacter, int indentLevel);
 }
