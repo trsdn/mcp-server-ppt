@@ -4,11 +4,11 @@ applyTo: "vscode-extension/**"
 
 # VS Code Extension Development Instructions
 
-> **Instructions for developing the ExcelMcp VS Code Extension**
+> **Instructions for developing the PptMcp VS Code Extension**
 
 ## Extension Overview
 
-The ExcelMcp VS Code Extension provides one-click installation of the ExcelMcp MCP server for Visual Studio Code, enabling AI assistants like GitHub Copilot to automate Microsoft Excel.
+The PptMcp VS Code Extension provides one-click installation of the PptMcp MCP server for Visual Studio Code, enabling AI assistants like GitHub Copilot to automate Microsoft PowerPoint.
 
 **Key Files:**
 - `package.json` - Extension manifest (metadata, dependencies, version)
@@ -162,9 +162,9 @@ npm version major   # 1.0.0 → 2.0.0
 
 ### Correct Command Syntax
 
-**The extension uses**: `dotnet tool run mcp-excel`
+**The extension uses**: `dotnet tool run mcp-ppt`
 
-**NOT**: `dnx Sbroenne.ExcelMcp.McpServer --yes` (this is incorrect)
+**NOT**: `dnx PptMcp.McpServer --yes` (this is incorrect)
 
 ### Where Commands Are Referenced
 
@@ -184,7 +184,7 @@ Before committing, search for outdated command references:
 grep -r "dnx" vscode-extension/
 
 # Should only find references in documentation explaining the NuGet approach
-# Actual command should be: dotnet tool run mcp-excel
+# Actual command should be: dotnet tool run mcp-ppt
 ```
 
 ---
@@ -258,7 +258,7 @@ npx @vscode/vsce publish
    - Workflow updates it automatically from tag
    
 2. **Don't use dnx commands in documentation**
-   - Extension uses `dotnet tool run mcp-excel`
+   - Extension uses `dotnet tool run mcp-ppt`
    
 3. **Don't forget to update CHANGELOG.md**
    - Marketplace shows changelog - keep it current
@@ -269,7 +269,7 @@ npx @vscode/vsce publish
 ### ✅ Do This
 
 1. **Keep CHANGELOG.md updated** as you develop
-2. **Use correct command syntax** (`dotnet tool run mcp-excel`)
+2. **Use correct command syntax** (`dotnet tool run mcp-ppt`)
 3. **Let workflow manage versions** via git tags
 4. **Test locally** before pushing tags
 5. **Update README.md** when features change
@@ -280,7 +280,7 @@ npx @vscode/vsce publish
 
 1. **CHANGELOG.md is always ready** - Top entry is for next release
 2. **Workflow manages versions** - Don't manually edit package.json
-3. **Correct command syntax** - `dotnet tool run mcp-excel` (not dnx)
+3. **Correct command syntax** - `dotnet tool run mcp-ppt` (not dnx)
 4. **Marketplace accuracy** - README.md and CHANGELOG.md must be current
 5. **Test before release** - Use F5 or local VSIX install
 

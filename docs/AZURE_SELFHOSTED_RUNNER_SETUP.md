@@ -1,8 +1,8 @@
-# Azure Self-Hosted Runner Setup for Excel Integration Testing
+# Azure Self-Hosted Runner Setup for PowerPoint Integration Testing
 
 > **⚠️ STATUS: DISABLED** - The Azure self-hosted runner has been undeployed and the integration tests workflow is currently disabled. The workflows `integration-tests.yml` and `deploy-azure-runner.yml` have been renamed to `.disabled` extension. To re-enable, rename them back to `.yml` and redeploy the Azure runner infrastructure.
 
-> **Purpose:** Enable full Excel COM integration testing in CI/CD using Azure-hosted Windows VM with Microsoft Excel
+> **Purpose:** Enable full PowerPoint COM integration testing in CI/CD using Azure-hosted Windows VM with Microsoft PowerPoint
 
 ## Quick Navigation
 
@@ -10,8 +10,8 @@
 
 | Scenario | Guide | Time |
 |----------|-------|------|
-| **🚀 New setup (no VM)** | [Automated Deployment](#automated-deployment-recommended) | 5 min + 30 min Excel |
-| **🔧 Manual setup (existing VM)** | [Manual Installation](#manual-installation) | 15 min + 30 min Excel |
+| **🚀 New setup (no VM)** | [Automated Deployment](#automated-deployment-recommended) | 5 min + 30 min PowerPoint |
+| **🔧 Manual setup (existing VM)** | [Manual Installation](#manual-installation) | 15 min + 30 min PowerPoint |
 | **📖 Infrastructure details** | [`infrastructure/azure/GITHUB_ACTIONS_DEPLOYMENT.md`](../infrastructure/azure/GITHUB_ACTIONS_DEPLOYMENT.md) | Reference |
 | **🔍 Infrastructure code** | [`infrastructure/azure/README.md`](../infrastructure/azure/README.md) | Reference |
 
@@ -19,7 +19,7 @@
 
 ## Overview
 
-ExcelMcp requires Microsoft Excel for integration testing. GitHub-hosted runners don't include Excel, so integration tests are currently skipped in CI/CD. This guide shows how to set up an Azure Windows VM with Excel as a GitHub Actions self-hosted runner.
+PptMcp requires Microsoft PowerPoint for integration testing. GitHub-hosted runners don't include PowerPoint, so integration tests are currently skipped in CI/CD. This guide shows how to set up an Azure Windows VM with PowerPoint as a GitHub Actions self-hosted runner.
 
 ## Architecture
 
@@ -29,7 +29,7 @@ ExcelMcp requires Microsoft Excel for integration testing. GitHub-hosted runners
 │                                                          │
 │  ┌──────────────────────────────────────────┐          │
 │  │ .github/workflows/integration-tests.yml  │          │
-│  │ runs-on: [self-hosted, windows, excel]   │          │
+│  │ runs-on: [self-hosted, windows, powerpoint]   │          │
 │  └────────────────┬─────────────────────────┘          │
 └───────────────────┼──────────────────────────────────────┘
                     │
@@ -41,7 +41,7 @@ ExcelMcp requires Microsoft Excel for integration testing. GitHub-hosted runners
 │  │ GitHub Actions Runner Service            │          │
 │  │ - Windows Server 2022                    │          │
 │  │ - .NET 10 SDK                            │          │
-│  │ - Microsoft Excel (Office 365)           │          │
+│  │ - Microsoft PowerPoint (Office 365)           │          │
 │  │ - Self-hosted runner agent               │          │
 │  └──────────────────────────────────────────┘          │
 └─────────────────────────────────────────────────────────┘
@@ -51,14 +51,14 @@ ExcelMcp requires Microsoft Excel for integration testing. GitHub-hosted runners
 
 ## Automated Deployment (Recommended)
 
-**✨ Fastest way to deploy - only manual step is installing Excel!**
+**✨ Fastest way to deploy - only manual step is installing PowerPoint!**
 
 **What gets automated:**
 - ✅ VM provisioning (Standard_B2s, 4GB RAM - cheapest suitable option)
 - ✅ .NET 10 SDK installation
 - ✅ GitHub Actions runner installation & configuration
 - ✅ Network security configuration
-- ⏭️ **Manual:** Office 365 Excel installation (you must do this via RDP)
+- ⏭️ **Manual:** Office 365 PowerPoint installation (you must do this via RDP)
 
 **Complete guide:** [`infrastructure/azure/GITHUB_ACTIONS_DEPLOYMENT.md`](../infrastructure/azure/GITHUB_ACTIONS_DEPLOYMENT.md)
 
@@ -78,7 +78,7 @@ ExcelMcp requires Microsoft Excel for integration testing. GitHub-hosted runners
 - Windows Server 2022 or Windows 10/11 VM (Azure or on-premises)
 - Administrator access to the VM via RDP
 - VM has internet connectivity
-- Office 365 subscription with Excel license
+- Office 365 subscription with PowerPoint license
 
 ### Installation Steps
 
@@ -110,7 +110,7 @@ dotnet --version
 
 **Important:** Tokens expire after 1 hour!
 
-1. Go to repository: `https://github.com/sbroenne/mcp-server-excel`
+1. Go to repository: `https://github.com/trsdn/mcp-server-ppt`
 2. Navigate to **Settings** → **Actions** → **Runners**
 3. Click **New self-hosted runner**
 4. Select **Windows**
@@ -134,9 +134,9 @@ Expand-Archive -Path actions-runner.zip -DestinationPath . -Force
 
 # Configure (replace with your token from Step 3)
 $githubToken = "PASTE_YOUR_TOKEN_HERE"
-$repoUrl = "https://github.com/sbroenne/mcp-server-excel"
+$repoUrl = "https://github.com/trsdn/mcp-server-ppt"
 
-.\config.cmd --url $repoUrl --token $githubToken --name "azure-excel-runner" --labels "self-hosted,windows,excel" --runnergroup Default --work _work --unattended
+.\config.cmd --url $repoUrl --token $githubToken --name "azure-ppt-runner" --labels "self-hosted,windows,powerpoint" --runnergroup Default --work _work --unattended
 ```
 
 #### 5. Install Runner as Windows Service
@@ -153,43 +153,43 @@ Get-Service actions.runner.*
 # Should show: Running
 ```
 
-#### 6. Install Office 365 Excel
+#### 6. Install Office 365 PowerPoint
 
 **Manual installation required:**
 
 1. Open browser on VM → `https://portal.office.com`
 2. Sign in with Office 365 account
 3. Click **Install Office** → **Office 365 apps**
-4. During installation, select **Excel only**
+4. During installation, select **PowerPoint only**
 5. Complete installation (~15-30 minutes)
-6. Open Excel once to activate (File → Account → verify activation)
+6. Open PowerPoint once to activate (File → Account → verify activation)
 
-#### 7. Verify Excel COM Access
+#### 7. Verify PowerPoint COM Access
 
 ```powershell
 try {
-    $excel = New-Object -ComObject Excel.Application
-    $version = $excel.Version
-    Write-Host "✅ Excel Version: $version" -ForegroundColor Green
-    $excel.Quit()
-    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) | Out-Null
+    $ppt = New-Object -ComObject PowerPoint.Application
+    $version = $ppt.Version
+    Write-Host "✅ PowerPoint Version: $version" -ForegroundColor Green
+    $ppt.Quit()
+    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($ppt) | Out-Null
 } catch {
-    Write-Host "❌ Excel not accessible: $_" -ForegroundColor Red
+    Write-Host "❌ PowerPoint not accessible: $_" -ForegroundColor Red
 }
 ```
 
-Expected: `✅ Excel Version: 16.0`
+Expected: `✅ PowerPoint Version: 16.0`
 
 #### 8. Verify Runner Registration
 
-Check `https://github.com/sbroenne/mcp-server-excel/settings/actions/runners`:
-- **Name:** azure-excel-runner
+Check `https://github.com/trsdn/mcp-server-ppt/settings/actions/runners`:
+- **Name:** azure-ppt-runner
 - **Status:** Idle (green circle)
-- **Labels:** self-hosted, windows, excel
+- **Labels:** self-hosted, windows, powerpoint
 
 #### 9. Test Integration Tests
 
-1. Go to **Actions** tab → **Integration Tests (Excel)**
+1. Go to **Actions** tab → **Integration Tests (PowerPoint)**
 2. Click **Run workflow** → select `main` branch
 3. Monitor the run - should complete successfully
 
@@ -206,9 +206,9 @@ Get-EventLog -LogName Application -Source actions.runner.* -Newest 20
 # Then reconfigure with Step 4 commands
 ```
 
-**Excel COM test fails:**
-- Verify Excel is installed and activated
-- Kill background processes: `Get-Process excel | Stop-Process -Force`
+**PowerPoint COM test fails:**
+- Verify PowerPoint is installed and activated
+- Kill background processes: `Get-Process powerpnt | Stop-Process -Force`
 
 **Runner token expired:**
 - Generate new token (Step 3) and reconfigure
@@ -251,8 +251,8 @@ If you prefer using Azure Portal instead of automation:
 1. Sign in to https://portal.azure.com
 2. Create a resource → Virtual Machine
 3. Configure:
-   - Resource Group: `rg-excel-runner`
-   - VM Name: `vm-excel-runner-01`
+   - Resource Group: `rg-ppt-runner`
+   - VM Name: `vm-ppt-runner-01`
    - Region: East US (cheapest)
    - Image: Windows Server 2022 Datacenter
    - Size: Standard_B2s (2 vCPUs, 4 GB RAM)
@@ -307,15 +307,15 @@ Rename-Item "actions-runner-new.zip" "actions-runner.zip"
 .\svc.cmd start
 ```
 
-### Cleanup Excel Processes
+### Cleanup PowerPoint Processes
 
 **After failed tests:**
 ```powershell
-# Kill all Excel processes
-Get-Process excel -ErrorAction SilentlyContinue | Stop-Process -Force
+# Kill all PowerPoint processes
+Get-Process powerpnt -ErrorAction SilentlyContinue | Stop-Process -Force
 
 # Verify no orphan processes
-Get-Process | Where-Object { $_.ProcessName -like "*excel*" -or $_.ProcessName -like "*dotnet*" }
+Get-Process | Where-Object { $_.ProcessName -like "*powerpnt*" -or $_.ProcessName -like "*dotnet*" }
 ```
 
 ### Auto-Shutdown Schedule
@@ -326,7 +326,7 @@ Get-Process | Where-Object { $_.ProcessName -like "*excel*" -or $_.ProcessName -
 # VM → Auto-shutdown → Change time → Save
 
 # Azure CLI
-az vm auto-shutdown --resource-group rg-excel-runner --name vm-excel-runner-01 --time 1900  # 7 PM
+az vm auto-shutdown --resource-group rg-ppt-runner --name vm-ppt-runner-01 --time 1900  # 7 PM
 ```
 
 ### Backup Runner Configuration
@@ -385,30 +385,30 @@ gh api --method POST \
 
 **Solutions:**
 
-1. **Excel not activated:**
+1. **PowerPoint not activated:**
    ```powershell
-   # Launch Excel manually once
-   Start-Process excel -Wait
+   # Launch PowerPoint manually once
+   Start-Process powerpnt -Wait
    # Sign in with Office 365 account
    ```
 
 2. **VBA trust not enabled:**
    ```powershell
    # Set VBA trust registry key
-   Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Excel\Security" -Name "AccessVBOM" -Value 1
+   Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\PowerPoint\Security" -Name "AccessVBOM" -Value 1
    ```
 
 3. **Protected view blocking files:**
    ```powershell
    # Disable protected view
-   $pvPath = "HKCU:\Software\Microsoft\Office\16.0\Excel\Security\ProtectedView"
+   $pvPath = "HKCU:\Software\Microsoft\Office\16.0\PowerPoint\Security\ProtectedView"
    Set-ItemProperty -Path $pvPath -Name "DisableInternetFilesInPV" -Value 1
    ```
 
-4. **Excel processes not cleaned up:**
+4. **PowerPoint processes not cleaned up:**
    ```powershell
    # Add cleanup step to workflow
-   Get-Process excel -ErrorAction SilentlyContinue | Stop-Process -Force
+   Get-Process powerpnt -ErrorAction SilentlyContinue | Stop-Process -Force
    ```
 
 ### RDP Connection Issues
@@ -417,23 +417,23 @@ gh api --method POST \
 
 1. **Check VM is running:**
    ```powershell
-   az vm get-instance-view --resource-group rg-excel-runner --name vm-excel-runner-01 --query "instanceView.statuses[?starts_with(code, 'PowerState/')].displayStatus" -o tsv
+   az vm get-instance-view --resource-group rg-ppt-runner --name vm-ppt-runner-01 --query "instanceView.statuses[?starts_with(code, 'PowerState/')].displayStatus" -o tsv
    ```
 
 2. **Start VM if stopped:**
    ```powershell
-   az vm start --resource-group rg-excel-runner --name vm-excel-runner-01
+   az vm start --resource-group rg-ppt-runner --name vm-ppt-runner-01
    ```
 
 3. **Verify NSG rules allow your IP:**
    ```powershell
-   az network nsg rule list --resource-group rg-excel-runner --nsg-name vm-excel-runner-01NSG --query "[?name=='RDP'].{Name:name,Priority:priority,SourceAddressPrefix:sourceAddressPrefix}" -o table
+   az network nsg rule list --resource-group rg-ppt-runner --nsg-name vm-ppt-runner-01NSG --query "[?name=='RDP'].{Name:name,Priority:priority,SourceAddressPrefix:sourceAddressPrefix}" -o table
    ```
 
 4. **Update NSG rule to allow your current IP:**
    ```powershell
    MY_IP=$(curl -s https://api.ipify.org)
-   az network nsg rule update --resource-group rg-excel-runner --nsg-name vm-excel-runner-01NSG --name RDP --source-address-prefix "$MY_IP/32"
+   az network nsg rule update --resource-group rg-ppt-runner --nsg-name vm-ppt-runner-01NSG --name RDP --source-address-prefix "$MY_IP/32"
    ```
 
 ### High Azure Costs
@@ -446,22 +446,22 @@ gh api --method POST \
 
 2. **Verify auto-shutdown working:**
    ```powershell
-   az vm show --resource-group rg-excel-runner --name vm-excel-runner-01 --query "autoShutdownConfiguration"
+   az vm show --resource-group rg-ppt-runner --name vm-ppt-runner-01 --query "autoShutdownConfiguration"
    ```
 
 3. **Stop VM completely when not needed:**
    ```powershell
-   az vm stop --resource-group rg-excel-runner --name vm-excel-runner-01
-   az vm deallocate --resource-group rg-excel-runner --name vm-excel-runner-01  # Important: Deallocate to stop compute billing
+   az vm stop --resource-group rg-ppt-runner --name vm-ppt-runner-01
+   az vm deallocate --resource-group rg-ppt-runner --name vm-ppt-runner-01  # Important: Deallocate to stop compute billing
    ```
 
 4. **Downgrade VM size if underutilized:**
    ```powershell
    # Resize to B2s (cheapest)
-   az vm resize --resource-group rg-excel-runner --name vm-excel-runner-01 --size Standard_B2s
+   az vm resize --resource-group rg-ppt-runner --name vm-ppt-runner-01 --size Standard_B2s
    ```
 
-### Excel Automation Errors
+### PowerPoint Automation Errors
 
 **Tests failing with COM errors:**
 
@@ -469,11 +469,11 @@ gh api --method POST \
    ```powershell
    # Run as Administrator
    dcomcnfg
-   # Component Services → Computers → My Computer → DCOM Config → Microsoft Excel Application
+   # Component Services → Computers → My Computer → DCOM Config → Microsoft PowerPoint Application
    # Right-click → Properties → Identity → The interactive user
    ```
 
-2. **Excel hanging:**
+2. **PowerPoint hanging:**
    ```powershell
    # Add timeout to test configuration
    # In test code: Disable background save, disable add-ins
@@ -481,8 +481,8 @@ gh api --method POST \
 
 3. **File locks:**
    ```powershell
-   # Ensure tests dispose Excel objects properly
-   # Check for orphan Excel processes: Get-Process excel
+   # Ensure tests dispose PowerPoint objects properly
+   # Check for orphan PowerPoint processes: Get-Process powerpnt
    ```
 
 ---
@@ -510,12 +510,12 @@ gh api --method POST \
 **Remove all infrastructure:**
 ```powershell
 # Delete resource group (removes VM, disk, network, etc.)
-az group delete --name rg-excel-runner --yes --no-wait
+az group delete --name rg-ppt-runner --yes --no-wait
 ```
 
 **Verify deletion:**
 ```powershell
-az group list --query "[?name=='rg-excel-runner']" -o table
+az group list --query "[?name=='rg-ppt-runner']" -o table
 ```
 
 ### Cost After Deletion
@@ -582,7 +582,7 @@ If you only stop VM: **~$5/month** (storage costs remain)
 **PowerShell script (local machine):**
 ```powershell
 # start-runner.ps1
-az vm start --resource-group rg-excel-runner --name vm-excel-runner-01
+az vm start --resource-group rg-ppt-runner --name vm-ppt-runner-01
 
 # Wait for VM to start
 Start-Sleep -Seconds 60
@@ -591,8 +591,8 @@ Start-Sleep -Seconds 60
 # ...
 
 # stop-runner.ps1 (after tests complete)
-az vm stop --resource-group rg-excel-runner --name vm-excel-runner-01
-az vm deallocate --resource-group rg-excel-runner --name vm-excel-runner-01
+az vm stop --resource-group rg-ppt-runner --name vm-ppt-runner-01
+az vm deallocate --resource-group rg-ppt-runner --name vm-ppt-runner-01
 ```
 
 **Best for:** Infrequent test runs, CI/CD pipelines
@@ -602,8 +602,8 @@ az vm deallocate --resource-group rg-excel-runner --name vm-excel-runner-01
 **Lower cost but VM can be evicted:**
 ```powershell
 az vm create \
-  --resource-group rg-excel-runner \
-  --name vm-excel-runner-spot \
+  --resource-group rg-ppt-runner \
+  --name vm-ppt-runner-spot \
   --priority Spot \
   --max-price 0.05 \
   --eviction-policy Deallocate \
@@ -617,10 +617,10 @@ az vm create \
 **Scale up for heavy workloads:**
 ```powershell
 # Before intensive tests
-az vm resize --resource-group rg-excel-runner --name vm-excel-runner-01 --size Standard_D2s_v3
+az vm resize --resource-group rg-ppt-runner --name vm-ppt-runner-01 --size Standard_D2s_v3
 
 # After tests complete
-az vm resize --resource-group rg-excel-runner --name vm-excel-runner-01 --size Standard_B2s
+az vm resize --resource-group rg-ppt-runner --name vm-ppt-runner-01 --size Standard_B2s
 ```
 
 **Best for:** Occasional heavy workloads, cost-sensitive projects
@@ -631,7 +631,7 @@ az vm resize --resource-group rg-excel-runner --name vm-excel-runner-01 --size S
 
 - [GitHub Actions Self-Hosted Runners](https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners)
 - [Azure Windows VMs Pricing](https://azure.microsoft.com/en-us/pricing/details/virtual-machines/windows/)
-- [Excel COM Automation](https://docs.microsoft.com/en-us/office/vba/api/overview/excel)
+- [PowerPoint COM Automation](https://docs.microsoft.com/en-us/office/vba/api/overview/powerpoint)
 - [Azure Auto-Shutdown](https://docs.microsoft.com/en-us/azure/virtual-machines/auto-shutdown-vm)
 
 ---
@@ -640,9 +640,9 @@ az vm resize --resource-group rg-excel-runner --name vm-excel-runner-01 --size S
 
 **Start/Stop VM:**
 ```powershell
-az vm start --resource-group rg-excel-runner --name vm-excel-runner-01
-az vm stop --resource-group rg-excel-runner --name vm-excel-runner-01
-az vm deallocate --resource-group rg-excel-runner --name vm-excel-runner-01
+az vm start --resource-group rg-ppt-runner --name vm-ppt-runner-01
+az vm stop --resource-group rg-ppt-runner --name vm-ppt-runner-01
+az vm deallocate --resource-group rg-ppt-runner --name vm-ppt-runner-01
 ```
 
 **Check runner status:**
@@ -660,14 +660,14 @@ Get-Service actions.runner.*
 Get-Content "C:\actions-runner\_diag\Runner_*.log" -Tail 50
 ```
 
-**Kill Excel processes:**
+**Kill PowerPoint processes:**
 ```powershell
-Get-Process excel -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process powerpnt -ErrorAction SilentlyContinue | Stop-Process -Force
 ```
 
 **Check Azure costs:**
 ```powershell
-az consumption usage list --resource-group rg-excel-runner --query "[].{Resource:instanceName,Cost:pretaxCost}" -o table
+az consumption usage list --resource-group rg-ppt-runner --query "[].{Resource:instanceName,Cost:pretaxCost}" -o table
 ```
 
 ### Start/Stop VM
@@ -678,10 +678,10 @@ az consumption usage list --resource-group rg-excel-runner --query "[].{Resource
 **Azure CLI:**
 ```powershell
 # Stop VM (deallocate to save costs)
-az vm deallocate --resource-group rg-excel-runner --name vm-excel-runner-01
+az vm deallocate --resource-group rg-ppt-runner --name vm-ppt-runner-01
 
 # Start VM
-az vm start --resource-group rg-excel-runner --name vm-excel-runner-01
+az vm start --resource-group rg-ppt-runner --name vm-ppt-runner-01
 ```
 
 ### Auto-Shutdown Schedule
@@ -746,17 +746,17 @@ Restart-Service actions.runner.*
 Test-NetConnection -ComputerName github.com -Port 443
 ```
 
-### Excel COM Errors in Tests
+### PowerPoint COM Errors in Tests
 
-**Verify Excel is installed:**
+**Verify PowerPoint is installed:**
 ```powershell
-Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "*Excel*" }
+Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like "*PowerPoint*" }
 ```
 
-**Check Excel process cleanup:**
+**Check PowerPoint process cleanup:**
 ```powershell
-# Kill orphaned Excel processes
-Get-Process excel -ErrorAction SilentlyContinue | Stop-Process -Force
+# Kill orphaned PowerPoint processes
+Get-Process powerpnt -ErrorAction SilentlyContinue | Stop-Process -Force
 ```
 
 ### Tests Timeout
@@ -768,9 +768,9 @@ Get-Process excel -ErrorAction SilentlyContinue | Stop-Process -Force
 ### Licensing Issues
 
 - Ensure Office 365 license is active
-- Re-activate Excel if needed:
+- Re-activate PowerPoint if needed:
   ```powershell
-  Start-Process excel
+  Start-Process powerpnt
   # Sign in interactively via RDP
   ```
 
@@ -787,7 +787,7 @@ Get-Process excel -ErrorAction SilentlyContinue | Stop-Process -Force
 3. **Regular Updates**
    - Enable Windows Update
    - Update runner agent monthly
-   - Update Excel/Office monthly
+   - Update PowerPoint/Office monthly
 
 4. **Secrets Management**
    - Never hardcode credentials in workflows
@@ -803,7 +803,7 @@ Get-Process excel -ErrorAction SilentlyContinue | Stop-Process -Force
 
 ### Option 1: Azure Container Apps (Future)
 
-Microsoft is developing container-based CI/CD runners that could potentially support Windows containers with Excel. Monitor [this announcement](https://learn.microsoft.com/en-us/azure/container-apps/tutorial-ci-cd-runners-jobs).
+Microsoft is developing container-based CI/CD runners that could potentially support Windows containers with PowerPoint. Monitor [this announcement](https://learn.microsoft.com/en-us/azure/container-apps/tutorial-ci-cd-runners-jobs).
 
 ### Option 2: Azure Virtual Desktop Multi-Session
 
@@ -859,5 +859,5 @@ After setup:
 ## Support
 
 For issues or questions:
-- GitHub Issues: https://github.com/sbroenne/mcp-server-excel/issues
+- GitHub Issues: https://github.com/trsdn/mcp-server-ppt/issues
 - Documentation: [DEVELOPMENT.md](DEVELOPMENT.md)

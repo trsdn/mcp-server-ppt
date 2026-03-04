@@ -205,14 +205,14 @@ public static class PptToolsBase
         }
 
         // Use .NET's built-in check for fully qualified Windows paths
-        // Returns false for Unix paths like /home/user/file.xlsx, relative paths like ./file.xlsx
+        // Returns false for Unix paths like /home/user/file.pptx, relative paths like ./file.pptx
         if (!Path.IsPathFullyQualified(path))
         {
             // Extract filename from the invalid path (works for both Unix and Windows separators)
             var fileName = Path.GetFileName(path.Replace('/', Path.DirectorySeparatorChar));
             if (string.IsNullOrEmpty(fileName))
             {
-                fileName = "workbook.xlsx";
+                fileName = "presentation.pptx";
             }
 
             // Get user's actual Documents folder to provide a valid suggestion

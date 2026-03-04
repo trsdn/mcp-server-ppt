@@ -606,11 +606,11 @@ internal sealed class PptBatch : IPptBatch
                 callingThread, _powerPointProcessId.Value, Path.GetFileName(_presentationPath));
             try
             {
-                using var excelProcess = System.Diagnostics.Process.GetProcessById(_powerPointProcessId.Value);
-                if (!excelProcess.HasExited)
+                using var pptProcess = System.Diagnostics.Process.GetProcessById(_powerPointProcessId.Value);
+                if (!pptProcess.HasExited)
                 {
-                    excelProcess.Kill();
-                    excelProcess.WaitForExit(5000);
+                    pptProcess.Kill();
+                    pptProcess.WaitForExit(5000);
                     _logger.LogInformation(
                         "[Thread {CallingThread}] Force-killed _pptApp process {ProcessId} (pre-emptive, before STA join)",
                         callingThread, _powerPointProcessId.Value);
@@ -656,13 +656,13 @@ internal sealed class PptBatch : IPptBatch
                 {
                     try
                     {
-                        using var excelProcess = System.Diagnostics.Process.GetProcessById(_powerPointProcessId.Value);
+                        using var pptProcess = System.Diagnostics.Process.GetProcessById(_powerPointProcessId.Value);
                         _logger.LogWarning(
                             "[Thread {CallingThread}] Force-killing _pptApp process {ProcessId} for {FileName}",
                             callingThread, _powerPointProcessId.Value, Path.GetFileName(_presentationPath));
 
-                        excelProcess.Kill();
-                        excelProcess.WaitForExit(5000); // Wait up to 5 seconds for process to die
+                        pptProcess.Kill();
+                        pptProcess.WaitForExit(5000); // Wait up to 5 seconds for process to die
 
                         _logger.LogInformation(
                             "[Thread {CallingThread}] Successfully force-killed _pptApp process {ProcessId}",
@@ -713,14 +713,14 @@ internal sealed class PptBatch : IPptBatch
         {
             try
             {
-                using var excelProc = System.Diagnostics.Process.GetProcessById(_powerPointProcessId.Value);
-                if (!excelProc.HasExited)
+                using var pptProcess = System.Diagnostics.Process.GetProcessById(_powerPointProcessId.Value);
+                if (!pptProcess.HasExited)
                 {
                     _logger.LogDebug(
                         "[Thread {CallingThread}] Waiting for _pptApp process {ProcessId} to exit for {FileName}",
                         callingThread, _powerPointProcessId.Value, Path.GetFileName(_presentationPath));
 
-                    if (!excelProc.WaitForExit(5000))
+                    if (!pptProcess.WaitForExit(5000))
                     {
                         _logger.LogWarning(
                             "[Thread {CallingThread}] _pptApp process {ProcessId} did not exit within 5s for {FileName}. Force-killing to prevent zombie accumulation.",
@@ -730,8 +730,8 @@ internal sealed class PptBatch : IPptBatch
                         // A process still running after 5s is hung and will leak desktop resources.
                         try
                         {
-                            excelProc.Kill();
-                            excelProc.WaitForExit(3000);
+                            pptProcess.Kill();
+                            pptProcess.WaitForExit(3000);
                             _logger.LogInformation(
                                 "[Thread {CallingThread}] Force-killed lingering _pptApp process {ProcessId} for {FileName}",
                                 callingThread, _powerPointProcessId.Value, Path.GetFileName(_presentationPath));

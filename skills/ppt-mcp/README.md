@@ -13,7 +13,7 @@ Agent Skill for AI assistants using the PowerPoint MCP Server via the Model Cont
 
 ### GitHub Copilot
 
-The [PowerPoint MCP Server VS Code extension](https://marketplace.visualstudio.com/items?itemName=sbroenne.ppt-mcp) installs this skill automatically to `~/.copilot/skills/ppt-mcp/`.
+The [PowerPoint MCP Server VS Code extension](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp) installs this skill automatically to `~/.copilot/skills/ppt-mcp/`.
 
 Enable skills in VS Code settings:
 ```json
@@ -39,10 +39,10 @@ Extract to your AI assistant's skills directory:
 Or use npx:
 ```bash
 # Interactive - prompts to select ppt-cli, ppt-mcp, or both
-npx skills add sbroenne/mcp-server-ppt
+npx skills add trsdn/mcp-server-ppt
 
 # Or specify directly
-npx skills add sbroenne/mcp-server-ppt --skill ppt-mcp
+npx skills add trsdn/mcp-server-ppt --skill ppt-mcp
 ```
 
 ## Contents
@@ -73,6 +73,6 @@ The skill works with the PowerPoint MCP Server. See [Installation Guide](https:/
 
 ## Related
 
-- [PowerPoint CLI Skill](https://github.com/sbroenne/mcp-server-ppt/releases) - For coding agents preferring CLI tools
+- [PowerPoint CLI Skill](https://github.com/trsdn/mcp-server-ppt/releases) - For coding agents preferring CLI tools
 - [Documentation](https://PptMcpserver.dev/)
-- [GitHub Repository](https://github.com/sbroenne/mcp-server-ppt)
+- [GitHub Repository](https://github.com/trsdn/mcp-server-ppt)

@@ -1,7 +1,7 @@
 {
   "mcpServers": {
-    "excel-mcp": {
-      "command": "mcp-excel",
+    "ppt-mcp": {
+      "command": "mcp-ppt",
       "args": [],
       "env": {}
     }

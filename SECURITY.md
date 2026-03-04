@@ -88,7 +88,7 @@ Report security vulnerabilities using one of these methods:
 
 **Alternative: GitHub Direct Message**
 
-Contact the maintainer via GitHub: [@sbroenne](https://github.com/sbroenne)
+Contact the maintainer via GitHub: [@trsdn](https://github.com/trsdn)
 
 Subject: `[SECURITY] PptMcp Vulnerability Report`
 
@@ -207,7 +207,7 @@ Subscribe to repository notifications to receive security alerts.
 ## Security Contacts
 
 - **GitHub Security**: <https://github.com/trsdn/mcp-server-ppt/security>
-- **Maintainer**: @sbroenne
+- **Maintainer**: @trsdn
 
 ## Additional Resources
 

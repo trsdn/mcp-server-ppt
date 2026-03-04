@@ -1,4 +1,4 @@
-# Test Naming Standard - ExcelMcp
+# Test Naming Standard - PptMcp
 
 ## Overview
 
@@ -31,7 +31,7 @@ MethodName_StateUnderTest_ExpectedBehavior
 ```csharp
 // CRUD Operations
 [Fact]
-public async Task List_EmptyWorkbook_ReturnsEmptyList()
+public async Task List_EmptyPresentation_ReturnsEmptyList()
 
 [Fact]
 public async Task Create_ValidName_ReturnsSuccess()
@@ -85,7 +85,7 @@ public async Task TestCreate()  // ❌ No state or expectation
 
 // Method suffix included
 [Fact]
-public async Task ListAsync_EmptyWorkbook_ReturnsEmptyList()  // ❌ Remove "Async"
+public async Task ListAsync_EmptyPresentation_ReturnsEmptyList()  // ❌ Remove "Async"
 ```
 
 ## Pattern Catalog
@@ -94,7 +94,7 @@ public async Task ListAsync_EmptyWorkbook_ReturnsEmptyList()  // ❌ Remove "Asy
 
 | Operation | Pattern | Example |
 |-----------|---------|---------|
-| **List** | `List_<State>_Returns<Result>` | `List_EmptyWorkbook_ReturnsEmptyList` |
+| **List** | `List_<State>_Returns<Result>` | `List_EmptyPresentation_ReturnsEmptyList` |
 | **Create** | `Create_<Input>_<Outcome>` | `Create_ValidName_ReturnsSuccess` |
 | **View/Get** | `View_<Item>_Returns<Data>` | `View_ExistingTable_ReturnsMetadata` |
 | **Update** | `Update_<Item>_<Outcome>` | `Update_ExistingQuery_ReturnsSuccess` |
@@ -121,9 +121,9 @@ public async Task ListAsync_EmptyWorkbook_ReturnsEmptyList()  // ❌ Remove "Asy
 
 | State | Pattern | Example |
 |-------|---------|---------|
-| **Empty** | `<Method>_EmptyWorkbook_<Outcome>` | `List_EmptyWorkbook_ReturnsEmptyList` |
-| **With Data** | `<Method>_WorkbookWithData_<Outcome>` | `Refresh_WorkbookWithData_UpdatesValues` |
-| **Multiple Items** | `<Method>_MultipleItems_<Outcome>` | `Delete_WorkbookWithMultipleSheets_RemovesTargetOnly` |
+| **Empty** | `<Method>_EmptyPresentation_<Outcome>` | `List_EmptyPresentation_ReturnsEmptyList` |
+| **With Data** | `<Method>_PresentationWithData_<Outcome>` | `Refresh_PresentationWithData_UpdatesValues` |
+| **Multiple Items** | `<Method>_MultipleItems_<Outcome>` | `Delete_PresentationWithMultipleSlides_RemovesTargetOnly` |
 
 ## Feature-Specific Guidelines
 
@@ -134,7 +134,7 @@ public async Task ListAsync_EmptyWorkbook_ReturnsEmptyList()  // ❌ Remove "Asy
 ### PowerQuery Tests
 - **Fixture-based**: `<Method>_<FixtureQuery>_<Outcome>` or `<Method>_<UniqueQuery>_<Outcome>`
 - Example: `View_BasicQuery_ReturnsMCode`
-- Example: `Import_NewQuery_AddsToWorkbook`
+- Example: `Import_NewQuery_AddsToPresentation`
 
 ### VBA Tests
 - **Trust required**: `<Method>_WithTrustEnabled_<Outcome>`
@@ -172,8 +172,8 @@ Before committing test code, verify each test name:
 List_WithValidFile_ReturnsSuccessResult
 
 // ✅ AFTER
-List_EmptyWorkbook_ReturnsEmptyList
-List_WorkbookWithQueries_ReturnsList
+List_EmptyPresentation_ReturnsEmptyList
+List_PresentationWithQueries_ReturnsList
 ```
 
 ### 2. Missing Expected Behavior
@@ -200,10 +200,10 @@ Import_ValidMCode_ReturnsSuccess
 
 ```csharp
 // ❌ BEFORE
-ListAsync_EmptyWorkbook_ReturnsEmptyList
+ListAsync_EmptyPresentation_ReturnsEmptyList
 
 // ✅ AFTER
-List_EmptyWorkbook_ReturnsEmptyList
+List_EmptyPresentation_ReturnsEmptyList
 ```
 
 ### 5. Workflow Tests Not Clear

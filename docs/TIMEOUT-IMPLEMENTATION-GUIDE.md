@@ -4,7 +4,7 @@
 
 ## Overview
 
-Excel batch operations now have timeout protection to prevent indefinite hangs when Excel becomes unresponsive (modal dialogs, data source issues, COM deadlocks).
+PowerPoint batch operations now have timeout protection to prevent indefinite hangs when PowerPoint becomes unresponsive (modal dialogs, data source issues, COM deadlocks).
 
 **Key Features:**
 - Default 2-minute timeout for all operations
@@ -17,11 +17,11 @@ Excel batch operations now have timeout protection to prevent indefinite hangs w
 
 ## Core Implementation
 
-### Constants (ExcelBatch.cs)
+### Constants (PptBatch.cs)
 
 ```csharp
 /// <summary>
-/// Default timeout for Excel operations (2 minutes)
+/// Default timeout for PowerPoint operations (2 minutes)
 /// </summary>
 private static readonly TimeSpan DefaultOperationTimeout = TimeSpan.FromMinutes(2);
 
@@ -31,16 +31,16 @@ private static readonly TimeSpan DefaultOperationTimeout = TimeSpan.FromMinutes(
 private static readonly TimeSpan MaxOperationTimeout = TimeSpan.FromMinutes(5);
 ```
 
-### IExcelBatch Interface
+### IPptBatch Interface
 
 ```csharp
 Task<T> Execute<T>(
-    Func<ExcelContext, CancellationToken, T> operation,
+    Func<PptContext, CancellationToken, T> operation,
     CancellationToken cancellationToken = default,
     TimeSpan? timeout = null);  // ← NEW: Optional timeout parameter
 
 Task<T> ExecuteAsync<T>(
-    Func<ExcelContext, CancellationToken, Task<T>> operation,
+    Func<PptContext, CancellationToken, Task<T>> operation,
     CancellationToken cancellationToken = default,
     TimeSpan? timeout = null);  // ← NEW: Optional timeout parameter
 ```
@@ -69,13 +69,13 @@ catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !
     var duration = DateTime.UtcNow - startTime;
     var usedMaxTimeout = effectiveTimeout >= MaxOperationTimeout;
 
-    Console.Error.WriteLine($"[EXCEL-BATCH] TIMEOUT after {duration.TotalSeconds:F1}s (limit: {effectiveTimeout.TotalMinutes:F1}min, max: {usedMaxTimeout})");
+    Console.Error.WriteLine($"[PPT-BATCH] TIMEOUT after {duration.TotalSeconds:F1}s (limit: {effectiveTimeout.TotalMinutes:F1}min, max: {usedMaxTimeout})");
 
     var message = usedMaxTimeout
-        ? $"Excel operation exceeded maximum timeout of {MaxOperationTimeout.TotalMinutes} minutes (actual: {duration.TotalMinutes:F1} min). " +
-          "This indicates Excel is hung, unresponsive, or the operation is too complex. " +
-          "Check if Excel is showing a dialog or consider breaking the operation into smaller steps."
-        : $"Excel operation timed out after {effectiveTimeout.TotalMinutes} minutes (actual: {duration.TotalMinutes:F1} min). " +
+        ? $"PowerPoint operation exceeded maximum timeout of {MaxOperationTimeout.TotalMinutes} minutes (actual: {duration.TotalMinutes:F1} min). " +
+          "This indicates PowerPoint is hung, unresponsive, or the operation is too complex. " +
+          "Check if PowerPoint is showing a dialog or consider breaking the operation into smaller steps."
+        : $"PowerPoint operation timed out after {effectiveTimeout.TotalMinutes} minutes (actual: {duration.TotalMinutes:F1} min). " +
           $"For large datasets or complex operations, more time may be needed (maximum: {MaxOperationTimeout.TotalMinutes} min).";
 
     throw new TimeoutException(message);
@@ -115,7 +115,7 @@ For operations that typically take longer (refresh, data loading), Core commands
 
 ```csharp
 // In PowerQueryCommands.cs
-public async Task<PowerQueryRefreshResult> RefreshAsync(IExcelBatch batch, string queryName)
+public async Task<PowerQueryRefreshResult> RefreshAsync(IPptBatch batch, string queryName)
 {
     // Heavy operation: request extended timeout (5 minutes)
     return await batch.Execute<PowerQueryRefreshResult>(
@@ -133,18 +133,18 @@ public async Task<PowerQueryRefreshResult> RefreshAsync(IExcelBatch batch, strin
 MCP tools should catch `TimeoutException` and enrich with operation-specific guidance:
 
 ```csharp
-// In ExcelPowerQueryTool.cs
+// In PptPowerQueryTool.cs
 private static async Task<string> RefreshPowerQueryAsync(...)
 {
     try
     {
-        var result = await ExcelToolsBase.WithBatchAsync(
+        var result = await PptToolsBase.WithBatchAsync(
             batchId,
-            excelPath,
+            presentationPath,
             save: true,
             async (batch) => await commands.RefreshAsync(batch, queryName));
 
-        return JsonSerializer.Serialize(result, ExcelToolsBase.JsonOptions);
+        return JsonSerializer.Serialize(result, PptToolsBase.JsonOptions);
     }
     catch (TimeoutException ex)
     {
@@ -154,15 +154,15 @@ private static async Task<string> RefreshPowerQueryAsync(...)
             Success = false,
             ErrorMessage = ex.Message,
             QueryName = queryName,
-            FilePath = excelPath,
+            FilePath = presentationPath,
             
             // ✨ Add LLM guidance
             SuggestedNextActions = new List<string>
             {
-                "Check if Excel is showing a 'Privacy Level' dialog or other modal dialogs",
+                "Check if PowerPoint is showing a 'Privacy Level' dialog or other modal dialogs",
                 "Verify the data source is accessible (network connection, database availability)",
                 "Consider breaking query into smaller steps if processing large datasets",
-                "Use batch mode (begin_excel_batch) if not already using it"
+                "Use batch mode (begin_ppt_batch) if not already using it"
             },
             
             OperationContext = new Dictionary<string, object>
@@ -176,11 +176,11 @@ private static async Task<string> RefreshPowerQueryAsync(...)
             IsRetryable = !ex.Message.Contains("maximum timeout"),  // Don't retry max timeout
             
             RetryGuidance = ex.Message.Contains("maximum timeout")
-                ? "Operation reached maximum timeout - do not retry. Check for Excel dialogs or break into smaller operations."
+                ? "Operation reached maximum timeout - do not retry. Check for PowerPoint dialogs or break into smaller operations."
                 : "Operation can be retried with longer timeout (up to 5 minutes) if data source is slow."
         };
 
-        return JsonSerializer.Serialize(result, ExcelToolsBase.JsonOptions);
+        return JsonSerializer.Serialize(result, PptToolsBase.JsonOptions);
     }
 }
 ```
@@ -191,7 +191,7 @@ For quick operations (list, get, create), use default 2-minute timeout:
 
 ```csharp
 // In PowerQueryCommands.cs
-public async Task<PowerQueryListResult> ListAsync(IExcelBatch batch)
+public async Task<PowerQueryListResult> ListAsync(IPptBatch batch)
 {
     // Light operation: use default timeout (no parameter needed)
     return await batch.Execute<PowerQueryListResult>((ctx, ct) =>
@@ -224,15 +224,15 @@ public async Task<PowerQueryListResult> ListAsync(IExcelBatch batch)
 Operations automatically log progress to stderr (visible in MCP clients):
 
 ```
-[EXCEL-BATCH] Starting operation (timeout: 2.0min)
-[EXCEL-BATCH] Completed in 3.5s
+[PPT-BATCH] Starting operation (timeout: 2.0min)
+[PPT-BATCH] Completed in 3.5s
 ```
 
 Or on timeout:
 
 ```
-[EXCEL-BATCH] Starting operation (timeout: 5.0min)
-[EXCEL-BATCH] TIMEOUT after 300.2s (limit: 5.0min, max: true)
+[PPT-BATCH] Starting operation (timeout: 5.0min)
+[PPT-BATCH] TIMEOUT after 300.2s (limit: 5.0min, max: true)
 ```
 
 ---
@@ -268,11 +268,11 @@ Or on timeout:
 
 ```csharp
 // Core Command (PowerQueryCommands.Refresh.cs)
-public async Task<PowerQueryRefreshResult> RefreshAsync(IExcelBatch batch, string queryName)
+public async Task<PowerQueryRefreshResult> RefreshAsync(IPptBatch batch, string queryName)
 {
     var result = new PowerQueryRefreshResult
     {
-        FilePath = batch.WorkbookPath,
+        FilePath = batch.PresentationPath,
         QueryName = queryName,
         RefreshTime = DateTime.Now
     };
@@ -288,10 +288,10 @@ public async Task<PowerQueryRefreshResult> RefreshAsync(IExcelBatch batch, strin
     );
 }
 
-// MCP Tool (ExcelPowerQueryTool.cs)
+// MCP Tool (PptPowerQueryTool.cs)
 private static async Task<string> RefreshPowerQueryAsync(
     PowerQueryCommands commands, 
-    string excelPath, 
+    string presentationPath, 
     string? queryName, 
     string? batchId)
 {
@@ -300,13 +300,13 @@ private static async Task<string> RefreshPowerQueryAsync(
 
     try
     {
-        var result = await ExcelToolsBase.WithBatchAsync(
+        var result = await PptToolsBase.WithBatchAsync(
             batchId,
-            excelPath,
+            presentationPath,
             save: true,
             async (batch) => await commands.RefreshAsync(batch, queryName));
 
-        return JsonSerializer.Serialize(result, ExcelToolsBase.JsonOptions);
+        return JsonSerializer.Serialize(result, PptToolsBase.JsonOptions);
     }
     catch (TimeoutException ex)
     {
@@ -315,15 +315,15 @@ private static async Task<string> RefreshPowerQueryAsync(
             Success = false,
             ErrorMessage = ex.Message,
             QueryName = queryName,
-            FilePath = excelPath,
+            FilePath = presentationPath,
             RefreshTime = DateTime.Now,
             
             SuggestedNextActions = new List<string>
             {
-                "Check if Excel is showing a 'Privacy Level' dialog",
+                "Check if PowerPoint is showing a 'Privacy Level' dialog",
                 "Verify the data source is accessible",
                 "Consider using smaller data ranges if processing large datasets",
-                "Use batch mode (begin_excel_batch) if not already"
+                "Use batch mode (begin_ppt_batch) if not already"
             },
             
             OperationContext = new Dictionary<string, object>
@@ -341,7 +341,7 @@ private static async Task<string> RefreshPowerQueryAsync(
                 : "Retry with same timeout acceptable if transient issue suspected."
         };
 
-        return JsonSerializer.Serialize(result, ExcelToolsBase.JsonOptions);
+        return JsonSerializer.Serialize(result, PptToolsBase.JsonOptions);
     }
 }
 ```
@@ -364,7 +364,7 @@ public void Execute_TimeoutClamping_LimitsToMax()
 }
 ```
 
-### Integration Tests (Requires Excel)
+### Integration Tests (Requires PowerPoint)
 
 Test actual timeout behavior:
 
@@ -372,7 +372,7 @@ Test actual timeout behavior:
 [Fact]
 public async Task Execute_ExceedsTimeout_ThrowsTimeoutException()
 {
-    await using var batch = await ExcelSession.BeginBatchAsync(testFile);
+    await using var batch = await PptSession.BeginBatchAsync(testFile);
     
     // Operation that takes 3 seconds with 1-second timeout
     await Assert.ThrowsAsync<TimeoutException>(async () =>
@@ -392,13 +392,13 @@ public async Task Execute_ExceedsTimeout_ThrowsTimeoutException()
 
 ### Symptom: All operations timing out
 
-**Likely Cause:** Excel showing modal dialog (Privacy Level, Credentials, etc.)
+**Likely Cause:** PowerPoint showing modal dialog (Privacy Level, Credentials, etc.)
 
 **Solution:**
-1. Check if Excel process is visible (should be hidden background process)
-2. Kill all Excel processes: `taskkill /F /IM excel.exe`
+1. Check if PowerPoint process is visible (should be hidden background process)
+2. Kill all PowerPoint processes: `taskkill /F /IM powerpnt.exe`
 3. Re-run operation
-4. If persistent, manually open Excel, configure privacy levels, save workbook
+4. If persistent, manually open PowerPoint, configure privacy levels, save presentation
 
 ### Symptom: Max timeout reached frequently
 
@@ -423,7 +423,7 @@ public async Task Execute_ExceedsTimeout_ThrowsTimeoutException()
 
 ### Potential Improvements
 
-1. **Configurable Max Timeout**: Allow per-workbook or per-session max timeout override (currently hardcoded 5 min)
+1. **Configurable Max Timeout**: Allow per-presentation or per-session max timeout override (currently hardcoded 5 min)
 2. **Progress Callbacks**: Provide progress updates during long operations
 3. **Timeout Metrics**: Collect stats on timeout frequency to identify problematic operations
 4. **Adaptive Timeout**: Automatically increase timeout for operations that consistently hit limit
@@ -432,7 +432,7 @@ public async Task Execute_ExceedsTimeout_ThrowsTimeoutException()
 
 ## Related Documentation
 
-- [Excel COM Interop Patterns](.github/instructions/excel-com-interop.instructions.md)
+- [PowerPoint COM Interop Patterns](.github/instructions/powerpoint-com-interop.instructions.md)
 - [MCP Server Guide](.github/instructions/mcp-server-guide.instructions.md)
 - [Testing Strategy](.github/instructions/testing-strategy.instructions.md)
 

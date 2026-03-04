@@ -1,4 +1,4 @@
-# CodeQL Configuration for ExcelMcp
+# CodeQL Configuration for PptMcp
 # Defines security scanning rules and exclusions
 # Version: 4.0 - Exclude test code from analysis (production code only)
 #
@@ -10,7 +10,7 @@
 #
 # See CODEQL-FIXES-SUMMARY.md for detailed rationale
 
-name: "ExcelMcp CodeQL Configuration v3.0"
+name: "PptMcp CodeQL Configuration v3.0"
 
 # Disable default query suite and use custom security-focused queries
 disable-default-queries: true
@@ -48,7 +48,7 @@ query-filters:
   - exclude:
       id: cs/catch-of-all-exceptions
       paths:
-        - src/ExcelMcp.McpServer/Tools/**
+        - src/PptMcp.McpServer/Tools/**
 
   # ============================================================================
   # INTENTIONAL PATTERN: Generic Exception Catches in CLI Commands
@@ -58,39 +58,39 @@ query-filters:
   - exclude:
       id: cs/catch-of-all-exceptions
       paths:
-        - src/ExcelMcp.CLI/Commands/**
-        - src/ExcelMcp.CLI/Program.cs
+        - src/PptMcp.CLI/Commands/**
+        - src/PptMcp.CLI/Program.cs
 
   # ============================================================================
   # INTENTIONAL PATTERN: COM Interop Exception Handling
-  # Excel COM automation requires catching exceptions at session/batch boundaries
+  # PowerPoint COM automation requires catching exceptions at session/batch boundaries
   # to ensure proper COM cleanup and resource management.
   # ============================================================================
   - exclude:
       id: cs/catch-of-all-exceptions
       paths:
-        - src/ExcelMcp.ComInterop/Session/**
+        - src/PptMcp.ComInterop/Session/**
 
   # ============================================================================
   # INTENTIONAL PATTERN: Dynamic COM Calls
-  # Excel COM interop uses late binding (dynamic) extensively.
+  # PowerPoint COM interop uses late binding (dynamic) extensively.
   # These are not invalid calls - they're the standard COM interop pattern.
   # ============================================================================
   - exclude:
       id: cs/invalid-dynamic-call
       paths:
-        - src/ExcelMcp.Core/**
-        - src/ExcelMcp.ComInterop/**
+        - src/PptMcp.Core/**
+        - src/PptMcp.ComInterop/**
 
   # ============================================================================
   # INTENTIONAL PATTERN: Explicit GC for COM Cleanup
   # GC.Collect() is required after releasing COM objects to ensure
-  # Excel process cleanup. This follows Microsoft guidance for COM interop.
+  # PowerPoint process cleanup. This follows Microsoft guidance for COM interop.
   # ============================================================================
   - exclude:
       id: cs/call-to-gc
       paths:
-        - src/ExcelMcp.ComInterop/**
+        - src/PptMcp.ComInterop/**
 
   # ============================================================================
   # AUTO-GENERATED CODE: Regex Generator

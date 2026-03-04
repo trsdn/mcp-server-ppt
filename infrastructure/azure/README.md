@@ -1,4 +1,4 @@
-# Azure Infrastructure for Excel Integration Testing
+# Azure Infrastructure for PowerPoint Integration Testing
 
 This directory contains Infrastructure as Code (IaC) for automating the deployment of Azure Windows VM with GitHub Actions self-hosted runner.
 
@@ -15,7 +15,7 @@ This directory contains Infrastructure as Code (IaC) for automating the deployme
 3. Get GitHub runner registration token (Settings → Actions → Runners → New runner)
 4. Go to Actions tab → Deploy Azure Self-Hosted Runner
 5. Enter parameters (Resource Group + Admin Password + Runner Token)
-6. RDP to VM and install Excel (30 minutes)
+6. RDP to VM and install PowerPoint (30 minutes)
 
 **If deployment fails:** Use the manual installation guide to configure the runner on an existing VM.
 
@@ -43,11 +43,11 @@ This directory contains Infrastructure as Code (IaC) for automating the deployme
 
 **✅ YES** - GitHub Coding Agents can use this runner in Agent mode:
 
-1. **Runner labels:** `self-hosted`, `windows`, `excel`
+1. **Runner labels:** `self-hosted`, `windows`, `powerpoint`
 2. **Available 24/7** for immediate workflow execution
 3. **Coding agents access runner same way as workflows:**
    - When you push code in VS Code Agent mode
-   - Workflows using `runs-on: [self-hosted, windows, excel]`
+   - Workflows using `runs-on: [self-hosted, windows, powerpoint]`
    - Manual workflow triggers via Actions tab
 
 **How it works:**
@@ -59,23 +59,23 @@ This directory contains Infrastructure as Code (IaC) for automating the deployme
 
 - **Location:** Sweden Central
 - **VM Size:** Standard_B2ms (2 vCPUs, 8 GB RAM)
-  - 8GB RAM required for reliable Excel automation
+  - 8GB RAM required for reliable PowerPoint automation
   - Burstable performance for cost efficiency
 - **Uptime:** 24/7 (VM runs continuously for immediate test execution)
 
 ### Software Installed Automatically
 
 1. **.NET 10 SDK** - For building and testing
-2. **GitHub Actions Runner** - Registered with `self-hosted`, `windows`, `excel` labels
+2. **GitHub Actions Runner** - Registered with `self-hosted`, `windows`, `powerpoint` labels
 3. **Auto-start service** - Runner starts on VM boot
 
 ### Manual Installation Required
 
-**Office 365 Excel** (you must install this via RDP):
+**Office 365 PowerPoint** (you must install this via RDP):
 1. RDP to VM using public IP from deployment output
 2. Sign in to https://portal.office.com
 3. Install Office 365 apps
-4. During installation, select **Excel only**
+4. During installation, select **PowerPoint only**
 5. Activate with your Office 365 account
 6. Reboot VM
 
@@ -94,11 +94,11 @@ infrastructure/azure/
 
 | Size | vCPUs | RAM | Monthly Cost (Sweden Central 24/7) | Use Case |
 |------|-------|-----|-----------------------------------|----------|
-| Standard_B2s | 2 | 4 GB | ~$40 | Too small for Excel |
+| Standard_B2s | 2 | 4 GB | ~$40 | Too small for PowerPoint |
 | **Standard_B2ms** | **2** | **8 GB** | **~$61** | **Recommended** ⭐ |
 | Standard_B4ms | 4 | 16 GB | ~$120 | Overkill for testing |
 
-**Note:** 8GB RAM is required for reliable Excel COM automation with multiple test projects.
+**Note:** 8GB RAM is required for reliable PowerPoint COM automation with multiple test projects.
 
 ### Region Options
 
@@ -127,19 +127,19 @@ VM runs continuously to ensure:
 
 ```bash
 # In GitHub UI
-https://github.com/sbroenne/mcp-server-excel/settings/actions/runners
+https://github.com/trsdn/mcp-server-ppt/settings/actions/runners
 
 # Should show:
-# - Name: azure-excel-runner
+# - Name: azure-ppt-runner
 # - Status: Idle (green)
-# - Labels: self-hosted, windows, excel
+# - Labels: self-hosted, windows, powerpoint
 ```
 
 ### Trigger Test Workflow
 
 ```bash
 # In GitHub UI
-Actions → Integration Tests (Excel) → Run workflow
+Actions → Integration Tests (PowerPoint) → Run workflow
 ```
 
 ### Monitor Costs
@@ -171,11 +171,11 @@ Auto-updates enabled. Manual check:
 sconfig  # Option 6: Download and Install Updates
 ```
 
-### Update Office/Excel
+### Update Office/PowerPoint
 
 Office auto-updates enabled. Manual check:
 ```powershell
-# Open Excel → File → Account → Update Options → Update Now
+# Open PowerPoint → File → Account → Update Options → Update Now
 ```
 
 ## Troubleshooting
@@ -195,10 +195,10 @@ Restart-Service actions.runner.*
 2. Check VM is deallocated when not in use
 3. Review Azure Cost Management for unexpected resources
 
-### Excel Activation Issues
+### PowerPoint Activation Issues
 
 1. RDP to VM
-2. Open Excel
+2. Open PowerPoint
 3. Sign in with Office 365 account
 4. Verify activation: File → Account
 
@@ -227,14 +227,14 @@ Restart-Service actions.runner.*
 
 - **Azure Issues:** Azure Support Portal
 - **GitHub Runner:** [GitHub Docs](https://docs.github.com/en/actions/hosting-your-own-runners)
-- **Repository Issues:** https://github.com/sbroenne/mcp-server-excel/issues
+- **Repository Issues:** https://github.com/trsdn/mcp-server-ppt/issues
 
 ## Cleanup
 
 To delete all resources:
 
 ```bash
-az group delete --name rg-excel-runner --yes --no-wait
+az group delete --name rg-ppt-runner --yes --no-wait
 ```
 
 This removes VM, disks, network resources, and stops all charges.
@@ -242,5 +242,5 @@ This removes VM, disks, network resources, and stops all charges.
 ---
 
 **Cost Estimate:** ~$30/month with auto-shutdown  
-**Setup Time:** 5 min deploy + 30 min Excel install  
+**Setup Time:** 5 min deploy + 30 min PowerPoint install  
 **Maintenance:** ~15 min/month

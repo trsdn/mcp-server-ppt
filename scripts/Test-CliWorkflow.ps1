@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Tests the Excel CLI end-to-end workflow - exactly what a user would do.
+    Tests the PowerPoint CLI end-to-end workflow - exactly what a user would do.
 
 .DESCRIPTION
     This script demonstrates and tests a basic CLI workflow:
@@ -30,12 +30,12 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # Find CLI executable (prefer Release build)
-$cliPath = Join-Path $PSScriptRoot "..\src\ExcelMcp.CLI\bin\Release\net10.0-windows\excelcli.exe"
+$cliPath = Join-Path $PSScriptRoot "..\src\PptMcp.CLI\bin\Release\net10.0-windows\pptcli.exe"
 if (-not (Test-Path $cliPath)) {
-    $cliPath = Join-Path $PSScriptRoot "..\src\ExcelMcp.CLI\bin\Debug\net10.0-windows\excelcli.exe"
+    $cliPath = Join-Path $PSScriptRoot "..\src\PptMcp.CLI\bin\Debug\net10.0-windows\pptcli.exe"
 }
 if (-not (Test-Path $cliPath)) {
-    Write-Error "CLI not found. Build first: dotnet build src/ExcelMcp.CLI"
+    Write-Error "CLI not found. Build first: dotnet build src/PptMcp.CLI"
     exit 1
 }
 
@@ -43,7 +43,7 @@ $cli = (Resolve-Path $cliPath).Path
 Write-Host "Using CLI: $cli" -ForegroundColor Cyan
 
 # Generate unique test file
-$testFile = Join-Path $env:TEMP "cli-workflow-test-$(Get-Random).xlsx"
+$testFile = Join-Path $env:TEMP "cli-workflow-test-$(Get-Random).pptx"
 Write-Host "Test file: $testFile" -ForegroundColor Cyan
 
 $passed = 0
@@ -84,7 +84,7 @@ function Test-Step {
 # ============================================================================
 
 Write-Host "`n========================================" -ForegroundColor Cyan
-Write-Host "Excel CLI Workflow Test" -ForegroundColor Cyan
+Write-Host "PowerPoint CLI Workflow Test" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 
 # 1. Create session (auto-starts daemon, creates file)
@@ -139,7 +139,7 @@ Test-Step "Close session (with save)" {
 
 # 6. Reopen saved file (session open - exercises Workbooks.Open path distinct from Add+SaveAs)
 #    This step would catch deployment issues like missing office.dll (issue #487) because
-#    ExcelBatch.ctor runs AutomationSecurity setup before opening any workbook.
+#    PptBatch.ctor runs AutomationSecurity setup before opening any workbook.
 $reopenSession = Test-Step "Reopen saved file (session open)" {
     & $cli -q session open $testFile | ConvertFrom-Json
 } -Verify {

@@ -406,7 +406,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 - ✅ NEVER shares test files between tests
 - ✅ VBA tests use `.pptm` extension (NOT .pptx renamed)
 - ✅ Binary assertions only (NO "accept both" patterns)
-- ✅ All required traits present (Category, Speed, Layer, RequiresExcel, Feature)
+- ✅ All required traits present (Category, Speed, Layer, RequiresPowerPoint, Feature)
 - ✅ Batch API pattern used correctly (no ValueTask.FromResult wrapper)
 - ✅ NO duplicate helper methods (use CoreTestHelper)
 
@@ -678,10 +678,10 @@ if (string.IsNullOrWhiteSpace(tableName))
 # ⚠️ IMPORTANT: gh CLI requires authentication with a PERSONAL GitHub account.
 # Enterprise Managed User (EMU) accounts cannot access public repos via gh CLI.
 # Use: gh auth login --with-token (with a personal access token)
-gh api repos/sbroenne/mcp-server-ppt/pulls/PULL_NUMBER/comments --paginate
+gh api repos/trsdn/mcp-server-ppt/pulls/PULL_NUMBER/comments --paginate
 
 # Or use the mcp_github tool if available
-mcp_github_github_pull_request_read(method="get_review_comments", owner="sbroenne", repo="mcp-server-ppt", pullNumber=PULL_NUMBER)
+mcp_github_github_pull_request_read(method="get_review_comments", owner="trsdn", repo="mcp-server-ppt", pullNumber=PULL_NUMBER)
 ```
 
 **Common automated reviewers:**
@@ -835,11 +835,11 @@ When adding a NEW action to an existing tool:
 | 2. Mapping | `ActionExtensions.cs` - Add ToActionString() case |
 | 3. Interface | `I*Commands.cs` - Add interface method |
 | 4. Core | `*Commands.*.cs` - Implement method |
-| 5. MCP Server | `Excel*Tool.cs` - Add switch case + handler |
-| 6. CLI Daemon | `ExcelDaemon.cs` - Add switch case |
+| 5. MCP Server | `Ppt*Tool.cs` - Add switch case + handler |
+| 6. CLI Daemon | `PptDaemon.cs` - Add switch case |
 | 7. Feature Count | `FEATURES.md` - Update operation count |
 | 8. README Files | All READMEs with operation counts (main, MCP, CLI, mcpb, vscode) |
-| 9. Skills Docs | `skills/shared/excel_*.md` - Document new action |
+| 9. Skills Docs | `skills/shared/ppt_*.md` - Document new action |
 
 **Quick Check Commands:**
 ```powershell
@@ -867,8 +867,8 @@ PowerQuery `unload` action was added to:
 - ✅ ActionExtensions.cs mapping
 - ✅ IPowerQueryCommands.cs interface
 - ✅ PowerQueryCommands.Lifecycle.cs implementation
-- ✅ ExcelPowerQueryTool.cs MCP handler
-- ❌ ExcelDaemon.cs CLI handler (MISSED!)
+- ✅ PptPowerQueryTool.cs MCP handler
+- ❌ PptDaemon.cs CLI handler (MISSED!)
 - ❌ FEATURES.md count (MISSED!)
 - ❌ README files (MISSED!)
 

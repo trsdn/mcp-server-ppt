@@ -8,7 +8,7 @@ This guide shows how to deploy the Azure VM using GitHub Actions with **OIDC (Op
 
 - Azure subscription with permissions to create app registrations
 - GitHub repository admin access
-- Office 365 license for Excel
+- Office 365 license for PowerPoint
 
 ## Setup (One-Time)
 
@@ -25,7 +25,7 @@ SUBSCRIPTION_ID=$(az account show --query id --output tsv)
 
 # Create app registration
 APP_ID=$(az ad app create \
-  --display-name "github-excel-runner-oidc" \
+  --display-name "github-ppt-runner-oidc" \
   --query appId \
   --output tsv)
 
@@ -38,9 +38,9 @@ az ad sp create --id $APP_ID
 az ad app federated-credential create \
   --id $APP_ID \
   --parameters "{
-    \"name\": \"github-excel-runner\",
+    \"name\": \"github-ppt-runner\",
     \"issuer\": \"https://token.actions.githubusercontent.com\",
-    \"subject\": \"repo:sbroenne/mcp-server-excel:ref:refs/heads/main\",
+    \"subject\": \"repo:trsdn/mcp-server-ppt:ref:refs/heads/main\",
     \"audiences\": [\"api://AzureADTokenExchange\"]
   }"
 
@@ -64,28 +64,28 @@ echo "AZURE_SUBSCRIPTION_ID: $SUBSCRIPTION_ID"
 
 1. Go to **Azure Active Directory** → **App registrations**
 2. Click **New registration**
-   - Name: `github-excel-runner-oidc`
+   - Name: `github-ppt-runner-oidc`
    - Click **Register**
 3. Note the **Application (client) ID** and **Directory (tenant) ID**
 4. Go to **Certificates & secrets** → **Federated credentials**
 5. Click **Add credential**
    - Federated credential scenario: **GitHub Actions deploying Azure resources**
-   - Organization: `sbroenne`
-   - Repository: `mcp-server-excel`
+   - Organization: `trsdn`
+   - Repository: `mcp-server-ppt`
    - Entity type: **Branch**
    - GitHub branch name: `main`
-   - Name: `github-excel-runner`
+   - Name: `github-ppt-runner`
    - Click **Add**
 6. Go to **Subscriptions** → Select your subscription → **Access control (IAM)**
 7. Click **Add role assignment**
    - Role: **Contributor**
    - Assign access to: **User, group, or service principal**
-   - Select: `github-excel-runner-oidc`
+   - Select: `github-ppt-runner-oidc`
    - Click **Review + assign**
 
 ### Step 2: Add Azure Information to GitHub Secrets
 
-1. Go to your repository: `https://github.com/sbroenne/mcp-server-excel`
+1. Go to your repository: `https://github.com/trsdn/mcp-server-ppt`
 2. Navigate to **Settings** → **Secrets and variables** → **Actions**
 3. Click **New repository secret** for each:
 
@@ -103,7 +103,7 @@ echo "AZURE_SUBSCRIPTION_ID: $SUBSCRIPTION_ID"
 
 Before deploying, you need a runner registration token:
 
-1. Go to your repository: `https://github.com/sbroenne/mcp-server-excel`
+1. Go to your repository: `https://github.com/trsdn/mcp-server-ppt`
 2. Navigate to **Settings** → **Actions** → **Runners**
 3. Click **New self-hosted runner**
 4. Select **Windows** as the OS
@@ -117,7 +117,7 @@ Before deploying, you need a runner registration token:
 2. Select **Deploy Azure Self-Hosted Runner** workflow
 3. Click **Run workflow**
 4. Fill in the parameters:
-   - **Resource Group:** `rg-excel-runner` (or your preference)
+   - **Resource Group:** `rg-ppt-runner` (or your preference)
    - **Admin Password:** Strong password for VM (e.g., `MySecurePass123!`)
    - **Runner Token:** Paste the token you copied from Settings → Actions → Runners
 5. Click **Run workflow**
@@ -128,10 +128,10 @@ Before deploying, you need a runner registration token:
 
 1. Check workflow run for VM FQDN (displayed in logs)
 2. RDP to the VM using the FQDN and credentials
-3. Install Office 365 Excel (30 minutes):
+3. Install Office 365 PowerPoint (30 minutes):
    - Sign in to https://portal.office.com
    - Install Office 365 apps
-   - Select Excel only during installation
+   - Select PowerPoint only during installation
    - Activate with your Office 365 account
 4. Reboot VM
 5. Runner auto-starts and registers with GitHub
@@ -140,13 +140,13 @@ Before deploying, you need a runner registration token:
 
 **Check runner status:**
 ```
-https://github.com/sbroenne/mcp-server-excel/settings/actions/runners
+https://github.com/trsdn/mcp-server-ppt/settings/actions/runners
 ```
 
 Should show:
-- Name: `azure-excel-runner`
+- Name: `azure-ppt-runner`
 - Status: Idle (green)
-- Labels: `self-hosted`, `windows`, `excel`
+- Labels: `self-hosted`, `windows`, `powerpoint`
 
 ## Why This Approach?
 
@@ -205,7 +205,7 @@ Get-Content C:\WindowsAzure\Logs\Plugins\Microsoft.Compute.CustomScriptExtension
 
 **Check:**
 1. `AZURE_CREDENTIALS` secret contains valid JSON
-2. Service principal exists: `az ad sp list --display-name "github-excel-runner-deployer"`
+2. Service principal exists: `az ad sp list --display-name "github-ppt-runner-deployer"`
 3. Service principal has Contributor role
 
 ## Cost
@@ -218,7 +218,7 @@ Get-Content C:\WindowsAzure\Logs\Plugins\Microsoft.Compute.CustomScriptExtension
 To delete all resources:
 
 ```bash
-az group delete --name rg-excel-runner --yes --no-wait
+az group delete --name rg-ppt-runner --yes --no-wait
 ```
 
 Or use Azure Portal → Resource Groups → Delete
@@ -238,10 +238,10 @@ Or use Azure Portal → Resource Groups → Delete
 ## Support
 
 - **Azure Issues:** Check workflow logs in Actions tab
-- **Repository Issues:** https://github.com/sbroenne/mcp-server-excel/issues
+- **Repository Issues:** https://github.com/trsdn/mcp-server-ppt/issues
 - **Azure Docs:** https://docs.microsoft.com/azure/developer/github/connect-from-azure
 
 ---
 
-**Deployment time:** 5 min (automated) + 30 min (Excel install)  
+**Deployment time:** 5 min (automated) + 30 min (PowerPoint install)  
 **Cost:** ~$61/month

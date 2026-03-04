@@ -5,8 +5,8 @@
 
 .DESCRIPTION
     Runs checks before allowing commits:
-    0. Process cleanup - kills stale Excel, excelcli, and MCP server processes to prevent file locks
-    1. COM leak checker - ensures no Excel COM objects are leaked
+    0. Process cleanup - kills stale PowerPoint, pptcli, and MCP server processes to prevent file locks
+    1. COM leak checker - ensures no PowerPoint COM objects are leaked
     2. Coverage audit - ensures 100% Core Commands are exposed via MCP Server
     3. Naming consistency - ensures enum names match Core method names exactly
     4. Success flag validation - ensures Success=true never paired with ErrorMessage (Rule 0)
@@ -50,11 +50,11 @@ if ($currentBranch -eq "main") {
 Write-Host "Branch check passed - on '$currentBranch' (not main)" -ForegroundColor Green
 Write-Host ""
 
-# Kill stale Excel and MCP server processes to avoid file locks on Release binaries
-Write-Host "Killing stale Excel and server processes..." -ForegroundColor Cyan
+# Kill stale PowerPoint and MCP server processes to avoid file locks on Release binaries
+Write-Host "Killing stale PowerPoint and server processes..." -ForegroundColor Cyan
 
 $killedProcesses = @()
-foreach ($procName in @("EXCEL", "excelcli", "Sbroenne.ExcelMcp.McpServer", "Sbroenne.ExcelMcp.Service")) {
+foreach ($procName in @("EXCEL", "pptcli", "PptMcp.McpServer", "PptMcp.Service")) {
     $procs = Get-Process -Name $procName -ErrorAction SilentlyContinue
     if ($procs) {
         $procs | Stop-Process -Force -ErrorAction SilentlyContinue
@@ -178,9 +178,9 @@ try {
     # SKILL.md + references are generated during Release build.
     # Auto-stage all of them so developers never have to think about it.
     $skillPaths = @(
-        "skills/excel-mcp/SKILL.md",
+        "skills/ppt-mcp/SKILL.md",
         "skills/excel-cli/SKILL.md",
-        "skills/excel-mcp/references/",
+        "skills/ppt-mcp/references/",
         "skills/excel-cli/references/"
     )
     $skillDiff = git diff --name-only -- @skillPaths 2>&1
@@ -232,8 +232,8 @@ catch {
 Write-Host ""
 Write-Host "Running MCP Server smoke test..." -ForegroundColor Cyan
 
-# Stop ExcelMCP Service before smoke test to prevent DLL locking
-& "$PSScriptRoot\Stop-ExcelMcpProcesses.ps1"
+# Stop PptMcp Service before smoke test to prevent DLL locking
+& "$PSScriptRoot\Stop-PptMcpProcesses.ps1"
 
 try {
     # Run the smoke test - validates all MCP tools work correctly
@@ -273,7 +273,7 @@ try {
 catch {
     Write-Host ""
     Write-Host "Error running smoke test: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "   Ensure Excel is installed and accessible." -ForegroundColor Yellow
+    Write-Host "   Ensure PowerPoint is installed and accessible." -ForegroundColor Yellow
     exit 1
 }
 

@@ -3,7 +3,7 @@
 ## Stefan Broenner
 
 **Email**: [stefan_broenner@yahoo.com](mailto:stefan_broenner@yahoo.com)  
-**GitHub**: [sbroenne](https://github.com/sbroenne)
+**GitHub**: [trsdn](https://github.com/trsdn)
 
 ### About the Author
 

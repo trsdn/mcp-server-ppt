@@ -27,7 +27,7 @@
     - Windows x64
 
     Output:
-    mcpb/artifacts/excel-mcp-{version}.mcpb
+    mcpb/artifacts/ppt-mcp-{version}.mcpb
 
     Contents:
     ├── manifest.json
@@ -36,7 +36,7 @@
     ├── LICENSE
     ├── CHANGELOG.md
     └── server/
-        └── excel-mcp-server.exe
+        └── ppt-mcp-server.exe
 #>
 
 [CmdletBinding()]
@@ -53,7 +53,7 @@ $ErrorActionPreference = "Stop"
 # Get script and project directories
 $McpbDir = $PSScriptRoot
 $RootDir = Split-Path $McpbDir -Parent
-$McpServerDir = Join-Path $RootDir "src/ExcelMcp.McpServer"
+$McpServerDir = Join-Path $RootDir "src/PptMcp.McpServer"
 
 Write-Host "🏗️  Building MCPB (MCP Bundle) package..." -ForegroundColor Cyan
 Write-Host ""
@@ -90,7 +90,7 @@ Write-Host "📦 Publishing self-contained executable..." -ForegroundColor Yello
 # Note: NuGetAudit=false avoids network failures during vulnerability check
 $PublishArgs = @(
     "publish"
-    "$McpServerDir/ExcelMcp.McpServer.csproj"
+    "$McpServerDir/PptMcp.McpServer.csproj"
     "-c", "Release"
     "-r", "win-x64"
     "--self-contained", "true"
@@ -110,14 +110,14 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-Write-Host "   ✓ Built Sbroenne.ExcelMcp.McpServer.exe" -ForegroundColor Green
+Write-Host "   ✓ Built PptMcp.McpServer.exe" -ForegroundColor Green
 
 # Create server subdirectory and rename exe to match manifest
 $ServerDir = Join-Path $StagingDir "server"
 New-Item -ItemType Directory -Path $ServerDir -Force | Out-Null
-$FinalExePath = Join-Path $ServerDir "excel-mcp-server.exe"
-Move-Item (Join-Path $StagingDir "Sbroenne.ExcelMcp.McpServer.exe") $FinalExePath -Force
-Write-Host "   ✓ Renamed to server/excel-mcp-server.exe" -ForegroundColor Green
+$FinalExePath = Join-Path $ServerDir "ppt-mcp-server.exe"
+Move-Item (Join-Path $StagingDir "PptMcp.McpServer.exe") $FinalExePath -Force
+Write-Host "   ✓ Renamed to server/ppt-mcp-server.exe" -ForegroundColor Green
 
 # Verify executable works
 $VersionOutput = & $FinalExePath --version 2>&1
@@ -164,7 +164,7 @@ Write-Host "   ✓ Copied CHANGELOG.md" -ForegroundColor Green
 # Skills are only bundled with the VS Code extension (via chatSkills contribution point).
 
 # Create mcpb file (zip with .mcpb extension)
-$McpbFileName = "excel-mcp-$Version.mcpb"
+$McpbFileName = "ppt-mcp-$Version.mcpb"
 $McpbPath = Join-Path $OutputDir $McpbFileName
 
 Write-Host ""

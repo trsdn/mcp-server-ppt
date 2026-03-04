@@ -14,7 +14,7 @@ Get-ChildItem -Path (Join-Path $rootDir "src") -Recurse -Filter "*.cs" | ForEach
     $content = Get-Content $_.FullName -Raw
     $hasDynamic = $content -match "dynamic\s+\w+\s*=.*\."
     $hasRelease = $content -match "ComUtilities\.Release"
-    $isSessionFile = $_.FullName -match "ExcelBatch\.cs|ExcelSession\.cs"
+    $isSessionFile = $_.FullName -match "PptBatch\.cs|PptSession\.cs"
 
     $relativePath = $_.FullName.Replace("$rootDir\", "")
 

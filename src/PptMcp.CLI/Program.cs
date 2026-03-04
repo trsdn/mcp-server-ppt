@@ -232,7 +232,7 @@ internal sealed class Program
         {
             AnsiConsole.MarkupLine($"[yellow]⚠ Update available:[/] [dim]{currentVersion}[/] → [green]{latestVersion}[/]");
             AnsiConsole.MarkupLine($"[cyan]Run:[/] [white]dotnet tool update --global PptMcp.CLI[/]");
-            AnsiConsole.MarkupLine($"[cyan]Release notes:[/] [blue]https://github.com/sbroenne/mcp-server-excel/releases/latest[/]");
+            AnsiConsole.MarkupLine($"[cyan]Release notes:[/] [blue]https://github.com/trsdn/mcp-server-ppt/releases/latest[/]");
         }
         else if (latestVersion != null)
         {

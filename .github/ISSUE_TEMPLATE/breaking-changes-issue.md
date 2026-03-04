@@ -17,7 +17,7 @@ Since PptMcp MCP Server hasn't been released yet, we can make breaking changes w
 ### Key Changes
 
 1. **Better Terminology**: `batchId` → `sessionId` (clearer intent)
-2. **Consistent Naming**: `excelPath` → `filePath`, `sheetName` → `slideName`
+2. **Consistent Naming**: `presentationPath` → `filePath`, `sheetName` → `slideName`
 3. **Standardized Errors**: Error codes and structured error responses
 4. **Cleaner Code**: Remove redundant validation attributes
 5. **Richer Responses**: Add metadata to all tool outputs
@@ -34,9 +34,9 @@ Since PptMcp MCP Server hasn't been released yet, we can make breaking changes w
 
 - [ ] Rename `BatchSessionTool.cs` → `SessionTool.cs`
 - [ ] Rename tools:
-  - `begin_excel_batch` → `begin_ppt_session`
-  - `commit_excel_batch` → `end_ppt_session`
-  - `list_excel_batches` → `list_ppt_sessions`
+  - `begin_ppt_batch` → `begin_ppt_session`
+  - `commit_ppt_batch` → `end_ppt_session`
+  - `list_ppt_batches` → `list_ppt_sessions`
 - [ ] Update all `batchId` parameters to `sessionId` in:
   - All 9 tool files in `src/PptMcp.McpServer/Tools/`
   - `PptToolsBase.cs`
@@ -49,7 +49,7 @@ Since PptMcp MCP Server hasn't been released yet, we can make breaking changes w
 - [ ] Update tests (all files referencing batchId)
 - [ ] Update Program.cs cleanup handler
 
-#### 1.2 excelPath → filePath
+#### 1.2 presentationPath → filePath
 **Affected files**: 16 C# files
 
 - [ ] Update all tool files:
@@ -201,7 +201,7 @@ Since PptMcp MCP Server hasn't been released yet, we can make breaking changes w
 ## Success Criteria
 
 - [ ] All `batchId` references changed to `sessionId`
-- [ ] All `excelPath` references changed to `filePath`
+- [ ] All `presentationPath` references changed to `filePath`
 - [ ] All `sheetName` references changed to `worksheetName`
 - [ ] Error response format standardized with error codes
 - [ ] Validation attributes cleaned up
@@ -233,7 +233,7 @@ git checkout -b feature/breaking-changes-pre-1.0
 git commit -m "Phase 1.1: Rename batchId to sessionId"
 # Test
 # Implement Phase 1.2
-git commit -m "Phase 1.2: Rename excelPath to filePath"
+git commit -m "Phase 1.2: Rename presentationPath to filePath"
 # Continue...
 ```
 

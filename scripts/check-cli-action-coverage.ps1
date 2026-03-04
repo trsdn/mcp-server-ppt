@@ -29,8 +29,8 @@ Write-Host "CLI Action Switch Coverage Check" -ForegroundColor Cyan
 Write-Host "====================================" -ForegroundColor Cyan
 Write-Host ""
 
-$actionExtensionsPath = Join-Path $rootDir "src\ExcelMcp.Core\Models\Actions\ActionExtensions.cs"
-$cliCommandsDir = Join-Path $rootDir "src\ExcelMcp.CLI\Commands"
+$actionExtensionsPath = Join-Path $rootDir "src\PptMcp.Core\Models\Actions\ActionExtensions.cs"
+$cliCommandsDir = Join-Path $rootDir "src\PptMcp.CLI\Commands"
 
 if (-not (Test-Path $actionExtensionsPath)) {
     Write-Host "ActionExtensions.cs not found: $actionExtensionsPath" -ForegroundColor Red

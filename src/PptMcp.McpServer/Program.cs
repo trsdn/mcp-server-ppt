@@ -354,7 +354,7 @@ public class Program
             Console.WriteLine();
             Console.WriteLine($"Update available: {currentVersion} -> {latestVersion}");
             Console.WriteLine("Run: dotnet tool update --global PptMcp.McpServer");
-            Console.WriteLine("Release notes: https://github.com/sbroenne/mcp-server-excel/releases/latest");
+            Console.WriteLine("Release notes: https://github.com/trsdn/mcp-server-ppt/releases/latest");
         }
     }
 }

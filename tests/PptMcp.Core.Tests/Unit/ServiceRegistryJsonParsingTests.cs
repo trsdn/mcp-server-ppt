@@ -14,7 +14,7 @@ namespace PptMcp.Core.Tests.Unit;
 [Trait("Category", "Unit")]
 [Trait("Feature", "ServiceRegistry")]
 [Trait("Speed", "Fast")]
-[Trait("RequiresExcel", "false")]
+[Trait("RequiresPowerPoint", "false")]
 public sealed class ServiceRegistryJsonParsingTests
 {
     private static readonly System.Type _registryType = typeof(ServiceRegistry);

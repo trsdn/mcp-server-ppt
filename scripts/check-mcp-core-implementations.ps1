@@ -53,34 +53,34 @@ $knownExceptions = @{
 
 # Define mappings: Enum -> Core Interface File(s)
 $mappings = @{
-    "FileAction" = @("src/ExcelMcp.Core/Commands/IFileCommands.cs")
-    "PowerQueryAction" = @("src/ExcelMcp.Core/Commands/PowerQuery/IPowerQueryCommands.cs")
-    "WorksheetAction" = @("src/ExcelMcp.Core/Commands/Sheet/ISheetCommands.cs")
-    "WorksheetStyleAction" = @("src/ExcelMcp.Core/Commands/Sheet/ISheetCommands.cs")
-    "RangeAction" = @("src/ExcelMcp.Core/Commands/Range/IRangeCommands.cs")
-    "RangeEditAction" = @("src/ExcelMcp.Core/Commands/Range/IRangeCommands.cs")
-    "RangeFormatAction" = @("src/ExcelMcp.Core/Commands/Range/IRangeCommands.cs")
-    "RangeLinkAction" = @("src/ExcelMcp.Core/Commands/Range/IRangeCommands.cs")
-    "TableAction" = @("src/ExcelMcp.Core/Commands/Table/ITableCommands.cs")
-    "TableColumnAction" = @("src/ExcelMcp.Core/Commands/Table/ITableCommands.cs")
-    "DataModelAction" = @("src/ExcelMcp.Core/Commands/DataModel/IDataModelCommands.cs")
-    "DataModelRelAction" = @("src/ExcelMcp.Core/Commands/DataModel/IDataModelCommands.cs")
-    "VbaAction" = @("src/ExcelMcp.Core/Commands/Vba/IVbaCommands.cs")
-    "ConnectionAction" = @("src/ExcelMcp.Core/Commands/Connection/IConnectionCommands.cs")
-    "NamedRangeAction" = @("src/ExcelMcp.Core/Commands/NamedRange/INamedRangeCommands.cs")
-    "PivotTableAction" = @("src/ExcelMcp.Core/Commands/PivotTable/IPivotTableCommands.cs")
-    "PivotTableFieldAction" = @("src/ExcelMcp.Core/Commands/PivotTable/IPivotTableCommands.cs")
-    "PivotTableCalcAction" = @("src/ExcelMcp.Core/Commands/PivotTable/IPivotTableCommands.cs")
-    "ChartAction" = @("src/ExcelMcp.Core/Commands/Chart/IChartCommands.cs")
-    "ChartConfigAction" = @("src/ExcelMcp.Core/Commands/Chart/IChartCommands.cs")
+    "FileAction" = @("src/PptMcp.Core/Commands/IFileCommands.cs")
+    "PowerQueryAction" = @("src/PptMcp.Core/Commands/PowerQuery/IPowerQueryCommands.cs")
+    "WorksheetAction" = @("src/PptMcp.Core/Commands/Sheet/ISheetCommands.cs")
+    "WorksheetStyleAction" = @("src/PptMcp.Core/Commands/Sheet/ISheetCommands.cs")
+    "RangeAction" = @("src/PptMcp.Core/Commands/Range/IRangeCommands.cs")
+    "RangeEditAction" = @("src/PptMcp.Core/Commands/Range/IRangeCommands.cs")
+    "RangeFormatAction" = @("src/PptMcp.Core/Commands/Range/IRangeCommands.cs")
+    "RangeLinkAction" = @("src/PptMcp.Core/Commands/Range/IRangeCommands.cs")
+    "TableAction" = @("src/PptMcp.Core/Commands/Table/ITableCommands.cs")
+    "TableColumnAction" = @("src/PptMcp.Core/Commands/Table/ITableCommands.cs")
+    "DataModelAction" = @("src/PptMcp.Core/Commands/DataModel/IDataModelCommands.cs")
+    "DataModelRelAction" = @("src/PptMcp.Core/Commands/DataModel/IDataModelCommands.cs")
+    "VbaAction" = @("src/PptMcp.Core/Commands/Vba/IVbaCommands.cs")
+    "ConnectionAction" = @("src/PptMcp.Core/Commands/Connection/IConnectionCommands.cs")
+    "NamedRangeAction" = @("src/PptMcp.Core/Commands/NamedRange/INamedRangeCommands.cs")
+    "PivotTableAction" = @("src/PptMcp.Core/Commands/PivotTable/IPivotTableCommands.cs")
+    "PivotTableFieldAction" = @("src/PptMcp.Core/Commands/PivotTable/IPivotTableCommands.cs")
+    "PivotTableCalcAction" = @("src/PptMcp.Core/Commands/PivotTable/IPivotTableCommands.cs")
+    "ChartAction" = @("src/PptMcp.Core/Commands/Chart/IChartCommands.cs")
+    "ChartConfigAction" = @("src/PptMcp.Core/Commands/Chart/IChartCommands.cs")
     "SlicerAction" = @(
-        "src/ExcelMcp.Core/Commands/PivotTable/IPivotTableCommands.cs",
-        "src/ExcelMcp.Core/Commands/Table/ITableCommands.cs"
+        "src/PptMcp.Core/Commands/PivotTable/IPivotTableCommands.cs",
+        "src/PptMcp.Core/Commands/Table/ITableCommands.cs"
     )
 }
 
 # Read ToolActions.cs to extract enum values
-$toolActionsFile = Join-Path $rootDir "src/ExcelMcp.Core/Models/Actions/ToolActions.cs"
+$toolActionsFile = Join-Path $rootDir "src/PptMcp.Core/Models/Actions/ToolActions.cs"
 $toolActionsContent = Get-Content $toolActionsFile -Raw
 
 foreach ($enumName in $mappings.Keys) {

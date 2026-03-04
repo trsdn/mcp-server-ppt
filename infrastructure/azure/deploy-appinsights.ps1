@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Deploys Application Insights infrastructure for ExcelMcp telemetry.
+    Deploys Application Insights infrastructure for PptMcp telemetry.
 
 .DESCRIPTION
     Deploys a resource group with Log Analytics Workspace and Application Insights
@@ -38,7 +38,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Push-Location $scriptDir
 
 try {
-    Write-Host "`n=== ExcelMcp Application Insights Deployment ===" -ForegroundColor Cyan
+    Write-Host "`n=== PptMcp Application Insights Deployment ===" -ForegroundColor Cyan
     Write-Host "Location: $Location"
     Write-Host "Parameters: $ParameterFile`n"
 
@@ -90,7 +90,7 @@ try {
                 --location $Location `
                 --template-file "appinsights.bicep" `
                 --parameters $ParameterFile `
-                --name "excelmcp-appinsights-$(Get-Date -Format 'yyyyMMdd-HHmmss')" `
+                --name "PptMcp-appinsights-$(Get-Date -Format 'yyyyMMdd-HHmmss')" `
                 | ConvertFrom-Json
 
             if ($LASTEXITCODE -ne 0) {
@@ -116,7 +116,7 @@ try {
             Write-Host ""
             Write-Host "=== Next Steps ===" -ForegroundColor Yellow
             Write-Host "1. Copy the connection string above"
-            Write-Host "2. Add it to src/ExcelMcp.McpServer/Telemetry/ExcelMcpTelemetry.cs"
+            Write-Host "2. Add it to src/PptMcp.McpServer/Telemetry/PptMcpTelemetry.cs"
             Write-Host "3. Build and test the MCP Server"
             Write-Host "4. View telemetry at: https://portal.azure.com/#@/resource/subscriptions/$($account.id)/resourceGroups/$resourceGroup/providers/Microsoft.Insights/components/$appInsightsName/overview"
             Write-Host ""

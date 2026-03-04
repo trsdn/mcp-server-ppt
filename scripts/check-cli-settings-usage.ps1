@@ -20,7 +20,7 @@
 
 $ErrorActionPreference = "Stop"
 $rootDir = Split-Path -Parent $PSScriptRoot
-$cliCommandsDir = Join-Path $rootDir "src\ExcelMcp.CLI\Commands"
+$cliCommandsDir = Join-Path $rootDir "src\PptMcp.CLI\Commands"
 
 # Properties that are legitimately not passed to daemon (session management, meta properties)
 $globalExclusions = @(

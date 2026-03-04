@@ -136,8 +136,8 @@ try {
     Write-Log ""
     Write-Log "Next steps:"
     Write-Log "1. Verify runner appears in GitHub: $GithubRepoUrl/settings/actions/runners"
-    Write-Log "2. RDP to VM and install Office 365 Excel"
-    Write-Log "3. Activate Excel with your Office 365 account"
+    Write-Log "2. RDP to VM and install Office 365 PowerPoint"
+    Write-Log "3. Activate PowerPoint with your Office 365 account"
     Write-Log "4. Reboot VM for all changes to take effect"
 
     exit 0

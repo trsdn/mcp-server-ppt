@@ -1,25 +1,25 @@
-# Excel MCP Server - Quick Reference
+# PowerPoint MCP Server - Quick Reference
 
-> **When user asks about Excel files, spreadsheets, workbooks, or data in .xlsx/.xlsm files - USE the Excel MCP tools.**
+> **When user asks about PowerPoint files, presentations, or slides in .pptx/.pptm files - USE the PowerPoint MCP tools.**
 
-## When to Use Excel MCP
+## When to Use PowerPoint MCP
 
 USE these tools when user wants to:
-- Read/write Excel data, formulas, or formatting
-- Create PivotTables, charts, or tables
+- Read/write PowerPoint data, shapes, or formatting
+- Create slides, charts, or tables
 - Import data via Power Query
 - Run VBA macros
-- Any .xlsx or .xlsm file operations
+- Any .pptx or .pptm file operations
 
-DO NOT use for: CSV files (use standard file tools), Google Sheets, or non-Excel formats.
+DO NOT use for: CSV files (use standard file tools), Google Slides, or non-PowerPoint formats.
 
 ---
 
 ## Prerequisites
 
-- **Windows OS** - Excel COM automation requires Windows
-- **Microsoft Excel 2016+** - Must be installed
-- **File CLOSED in Excel** - COM requires exclusive access
+- **Windows OS** - PowerPoint COM automation requires Windows
+- **Microsoft PowerPoint 2016+** - Must be installed
+- **File CLOSED in PowerPoint** - COM requires exclusive access
 
 ---
 
@@ -29,10 +29,10 @@ DO NOT use for: CSV files (use standard file tools), Google Sheets, or non-Excel
 |------|-----|-----|
 | Import external data (CSV, SQL, APIs) | `powerquery` | `table` |
 | DAX measures / calculated fields | `datamodel` | `range` |
-| Worksheet formulas (SUM, VLOOKUP) | `range` | `datamodel` |
+| Slide formulas (SUM, VLOOKUP) | `range` | `datamodel` |
 | Structured data with filtering | `table` | `range` |
 | Interactive summarization | `pivottable` | `table` |
-| VBA automation | `vba` | Requires .xlsm |
+| VBA automation | `vba` | Requires .pptm |
 
 **Data Model prerequisite**: Before using `datamodel`, data must be loaded with `loadDestination: 'data-model'` or `'both'` via `powerquery`.
 
@@ -43,7 +43,7 @@ DO NOT use for: CSV files (use standard file tools), Google Sheets, or non-Excel
 ### Import Data -> Analyze -> Visualize
 ```
 1. file(action: 'open')
-2. powerquery(action: 'create', loadDestination: 'worksheet')
+2. powerquery(action: 'create', loadDestination: 'slide')
 3. pivottable(action: 'create-from-table')
 4. chart(action: 'create-from-pivottable')
 5. file(action: 'close', save: true)
@@ -72,10 +72,10 @@ range(action: 'set-formulas', formulas: [['=A1', '=B1']])  # Multiple formulas a
 | Mistake | Fix |
 |---------|-----|
 | Using `table` to import CSV | Use `powerquery` (handles encoding, transforms) |
-| Using `range` for DAX | Use `datamodel` (DAX != worksheet formulas) |
+| Using `range` for DAX | Use `datamodel` (DAX != slide formulas) |
 | Multiple single-item calls | Use bulk actions when available |
 | Closing session between operations | Keep session open until workflow complete |
-| Working on file open in Excel | Ask user to close file first |
+| Working on file open in PowerPoint | Ask user to close file first |
 
 ---
 
@@ -85,9 +85,9 @@ range(action: 'set-formulas', formulas: [['=A1', '=B1']])  # Multiple formulas a
 file(action: 'open') -> [all operations with sessionId] -> file(action: 'close')
 ```
 
-- **DEFAULT: `showExcel: false`** - Use hidden mode for faster background automation
-- Only use `showExcel: true` if user explicitly requests to watch changes
-- If `showExcel: true` was used, **ask before closing** (user may want to inspect)
+- **DEFAULT: `showPowerPoint: false`** - Use hidden mode for faster background automation
+- Only use `showPowerPoint: true` if user explicitly requests to watch changes
+- If `showPowerPoint: true` was used, **ask before closing** (user may want to inspect)
 - Use `file(action: 'list')` to check session state if uncertain
 
 ---

@@ -63,15 +63,15 @@ jobs:
         run: |
           # Get list of all HTML pages from the built site (excluding 404.html which should not be indexed)
           cd gh-pages/_site
-          URLS=$(find . -name "*.html" -type f ! -name "404.html" | sed 's|^\./||' | sed 's|index\.html$||' | sed 's|^|https://excelmcpserver.dev/|' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          URLS=$(find . -name "*.html" -type f ! -name "404.html" | sed 's|^\./||' | sed 's|index\.html$||' | sed 's|^|https://PptMcpserver.dev/|' | jq -R -s -c 'split("\n") | map(select(length > 0))')
 
           # Submit to IndexNow API
           curl -X POST "https://api.indexnow.org/IndexNow" \
             -H "Content-Type: application/json; charset=utf-8" \
             -d "{
-              \"host\": \"excelmcpserver.dev\",
+              \"host\": \"PptMcpserver.dev\",
               \"key\": \"2049c837880704706739672b0ca752f9\",
-              \"keyLocation\": \"https://excelmcpserver.dev/2049c837880704706739672b0ca752f9.txt\",
+              \"keyLocation\": \"https://PptMcpserver.dev/2049c837880704706739672b0ca752f9.txt\",
               \"urlList\": $URLS
             }" \
             --fail-with-body || echo "IndexNow notification failed (non-critical)"

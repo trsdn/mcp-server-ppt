@@ -1,4 +1,4 @@
-# GitHub Dependabot configuration for ExcelMcp
+# GitHub Dependabot configuration for PptMcp
 # Automatically keeps dependencies up-to-date and secure
 
 version: 2
@@ -20,7 +20,7 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
     reviewers:
-      - "sbroenne"
+      - "trsdn"
     # Group minor and patch updates together
     groups:
       production-dependencies:
@@ -58,7 +58,7 @@ updates:
       prefix: "chore(actions)"
       include: "scope"
     reviewers:
-      - "sbroenne"
+      - "trsdn"
     groups:
       github-actions:
         patterns:
@@ -80,4 +80,4 @@ updates:
     commit-message:
       prefix: "chore(docker)"
     reviewers:
-      - "sbroenne"
+      - "trsdn"

@@ -3,23 +3,23 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "resourceGroupName": {
-      "value": "excelmcp-test-observability"
+      "value": "PptMcp-test-observability"
     },
     "location": {
       "value": "swedencentral"
     },
     "logAnalyticsName": {
-      "value": "excelmcp-test-logs"
+      "value": "PptMcp-test-logs"
     },
     "appInsightsName": {
-      "value": "excelmcp-test-appinsights"
+      "value": "PptMcp-test-appinsights"
     },
     "retentionInDays": {
       "value": 30
     },
     "tags": {
       "value": {
-        "project": "ExcelMcp",
+        "project": "PptMcp",
         "purpose": "TelemetryTesting",
         "environment": "test",
         "managedBy": "Bicep"

@@ -25,8 +25,8 @@ Write-Host "CLI Command Coverage Check" -ForegroundColor Cyan
 Write-Host "==============================" -ForegroundColor Cyan
 Write-Host ""
 
-$toolActionsPath = Join-Path $rootDir "src\ExcelMcp.Core\Models\Actions\ToolActions.cs"
-$programPath = Join-Path $rootDir "src\ExcelMcp.CLI\Program.cs"
+$toolActionsPath = Join-Path $rootDir "src\PptMcp.Core\Models\Actions\ToolActions.cs"
+$programPath = Join-Path $rootDir "src\PptMcp.CLI\Program.cs"
 
 if (-not (Test-Path $toolActionsPath)) {
     Write-Host "ToolActions.cs not found: $toolActionsPath" -ForegroundColor Red
@@ -161,7 +161,7 @@ if ($missingCommands.Count -gt 0) {
 
     Write-Host ""
     Write-Host "Action Required:" -ForegroundColor Yellow
-    Write-Host "  1. Create Command class: src/ExcelMcp.CLI/Commands/<Name>Command.cs" -ForegroundColor Yellow
+    Write-Host "  1. Create Command class: src/PptMcp.CLI/Commands/<Name>Command.cs" -ForegroundColor Yellow
     Write-Host "  2. Register in Program.cs: config.AddCommand<*Command>(""name"")" -ForegroundColor Yellow
     Write-Host "  3. Or add to subToolEnums/namingExceptions in this script if intentional" -ForegroundColor Yellow
     Write-Host ""

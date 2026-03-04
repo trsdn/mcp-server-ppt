@@ -12,8 +12,8 @@ Two skill packages for AI coding assistants:
 ```bash
 # Via VS Code extension (auto-installs ppt-mcp)
 # Or via npx:
-npx skills add sbroenne/mcp-server-ppt --skill ppt-cli   # Coding agents
-npx skills add sbroenne/mcp-server-ppt --skill ppt-mcp   # Conversational AI
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli   # Coding agents
+npx skills add trsdn/mcp-server-ppt --skill ppt-mcp   # Conversational AI
 ```
 
 ## Building

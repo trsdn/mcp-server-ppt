@@ -1,10 +1,10 @@
-# ExcelMcp Release Strategy
+# PptMcp Release Strategy
 
-This document outlines the unified release process for all ExcelMcp components.
+This document outlines the unified release process for all PptMcp components.
 
 ## Overview
 
-All ExcelMcp components are released together with a single version tag:
+All PptMcp components are released together with a single version tag:
 
 | Component | Distribution | Description |
 |-----------|--------------|-------------|
@@ -24,7 +24,7 @@ All ExcelMcp components are released together with a single version tag:
 When you run the release workflow:
 
 1. **CLI** → Built as dependency (artifact shared with MCP Server job)
-2. **MCP Server** → Unified NuGet (`Sbroenne.ExcelMcp.McpServer` — includes CLI) + ZIP
+2. **MCP Server** → Unified NuGet (`PptMcp.McpServer` — includes CLI) + ZIP
 3. **VS Code Extension** → Self-contained VSIX (bundles both exes + skills) → VS Code Marketplace
 4. **MCPB** → Claude Desktop bundle (`.mcpb` file)
 5. **Agent Skills** → ZIP package for AI coding assistants
@@ -35,11 +35,11 @@ When you run the release workflow:
 
 | Artifact | Format | Distribution |
 |----------|--------|--------------|
-| `ExcelMcp-MCP-Server-{version}-windows.zip` | ZIP | GitHub Release |
-| `excelmcp-{version}.vsix` | VSIX | GitHub Release + VS Code Marketplace (~68-70 MB, self-contained) |
-| `excel-mcp-{version}.mcpb` | MCPB | GitHub Release |
-| `excel-skills-v{version}.zip` | ZIP | GitHub Release |
-| `Sbroenne.ExcelMcp.McpServer.{version}.nupkg` | NuGet | NuGet.org (unified — includes CLI) |
+| `PptMcp-MCP-Server-{version}-windows.zip` | ZIP | GitHub Release |
+| `PptMcp-{version}.vsix` | VSIX | GitHub Release + VS Code Marketplace (~68-70 MB, self-contained) |
+| `ppt-mcp-{version}.mcpb` | MCPB | GitHub Release |
+| `ppt-skills-v{version}.zip` | ZIP | GitHub Release |
+| `PptMcp.McpServer.{version}.nupkg` | NuGet | NuGet.org (unified — includes CLI) |
 
 > **Note:** Separate CLI ZIP and CLI NuGet package are no longer produced. The CLI is bundled in the unified MCP Server NuGet package and in the VS Code extension.
 

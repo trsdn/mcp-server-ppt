@@ -1,0 +1,23 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.trsdn/mcp-server-ppt",
+  "title": "MCP Server for PowerPoint",
+  "description": "PowerPoint automation for AI - Slides, Shapes, Text, Charts and more. Windows only.",
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "nuget",
+      "identifier": "PptMcp.McpServer",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [],
+      "environmentVariables": []
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/trsdn/mcp-server-ppt",
+    "source": "github"
+  }
+}

@@ -12,7 +12,7 @@
 
 ## MCP Server Changes
 
-### 1. `excelPath` Parameter Removed (11 Tools)
+### 1. `presentationPath` Parameter Removed (11 Tools)
 
 **Removed from:** `calculation_mode`, `conditionalformat`, `connection`, `namedrange`, `range`, `range_edit`, `range_format`, `range_link`, `table`, `table_column`, `vba`
 
@@ -22,8 +22,8 @@
 
 ### 2. `file` Parameter Renames
 
-- `excelPath` → `path`
-- `showExcel` → `show`
+- `presentationPath` → `path`
+- `showPowerPoint` → `show`
 
 ---
 
@@ -89,7 +89,7 @@ Merged actions from `pivottablefield` and `pivottablecalc` into single command. 
 ## For Human Developers
 
 **Update hardcoded scripts:**
-1. Remove `excelPath` from 11 session-based MCP tools
+1. Remove `presentationPath` from 11 session-based MCP tools
 2. Update `file`, `connection`, `datamodel`, `datamodel_relationship` parameter names
 3. Update CLI parameter names (use `pptcli <command> --help` to see current names)
 4. Rename `add-to-datamodel` → `add-to-data-model` in table commands

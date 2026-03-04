@@ -27,12 +27,12 @@ You need to make sure that the `Features.md` file is up-to-date with the latest 
 
 Before updating counts, verify by counting:
 
-- **MCP Server**: Count tool files (excel_batch handled via PptTools.cs, not separate tool file)
+- **MCP Server**: Count tool files (ppt_batch handled via PptTools.cs, not separate tool file)
 - **CLI**: Count command group folders (includes Session commands)
 - **Operations**: Count separately for each - they differ!
 
 Sync counts across:
-  - GitHub Project About: https://github.com/sbroenne/mcp-server-excel (use the GitHub CLI to update)
+  - GitHub Project About: https://github.com/trsdn/mcp-server-ppt (use the GitHub CLI to update)
   - `/README.md`
   - `/src/PptMcp.McpServer/README.md`
   - `/src/PptMcp.CLI/README.md`

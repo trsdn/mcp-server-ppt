@@ -11,7 +11,7 @@ namespace PptMcp.Core.Tests.Unit;
 [Trait("Category", "Unit")]
 [Trait("Feature", "ParameterTransforms")]
 [Trait("Speed", "Fast")]
-[Trait("RequiresExcel", "false")]
+[Trait("RequiresPowerPoint", "false")]
 public sealed class ParameterTransformsFileTests : IDisposable
 {
     private readonly string _tempDir;

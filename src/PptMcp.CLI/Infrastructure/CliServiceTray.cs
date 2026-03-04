@@ -324,7 +324,7 @@ internal sealed class CliServiceTray : IDisposable
             AccessibleRole = AccessibleRole.StaticText
         };
 
-        const string githubUrl = "https://github.com/sbroenne/mcp-server-excel";
+        const string githubUrl = "https://github.com/trsdn/mcp-server-ppt";
         const string docsUrl = "https://PptMcpserver.dev/";
 
         var githubLabel = new Label

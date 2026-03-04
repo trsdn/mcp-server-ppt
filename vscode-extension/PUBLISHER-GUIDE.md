@@ -60,7 +60,7 @@ This guide walks you through publishing your VS Code extension to the marketplac
 2. **Sign in** with the same Microsoft account from Step 1
 3. Click **"Create publisher"**
 4. **Fill in the form:**
-   - **Publisher ID**: `sbroenne` (must match the `publisher` field in `package.json`)
+   - **Publisher ID**: `trsdn` (must match the `publisher` field in `package.json`)
      - ⚠️ This MUST be exactly what's in your package.json
      - ⚠️ Cannot be changed later
      - Can only contain letters, numbers, and hyphens
@@ -77,7 +77,7 @@ This guide walks you through publishing your VS Code extension to the marketplac
 
 **Why needed:** GitHub Actions needs the PAT to publish.
 
-1. **Go to your GitHub repository**: https://github.com/sbroenne/mcp-server-excel
+1. **Go to your GitHub repository**: https://github.com/trsdn/mcp-server-ppt
 2. Click **Settings** (top right, near the repo name)
 3. In left sidebar, click **Secrets and variables** → **Actions**
 4. Click **"New repository secret"**
@@ -125,8 +125,8 @@ This guide walks you through publishing your VS Code extension to the marketplac
      - Create unified GitHub release with all artifacts
 
 6. **Verify publication** (takes 5-15 minutes):
-   - VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=sbroenne.excelmcp
-   - Or search "ExcelMcp" in VS Code Extensions panel
+   - VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=PptMcp
+   - Or search "PptMcp" in VS Code Extensions panel
 
 **✅ Your extension is now live on the marketplace!**
 
@@ -163,23 +163,23 @@ git push origin v1.0.1
 ## Verifying Your Publisher Account
 
 **Check your publisher page:**
-- Go to https://marketplace.visualstudio.com/manage/publishers/sbroenne
+- Go to https://marketplace.visualstudio.com/manage/publishers/trsdn
 - You should see your publisher details
 - Any published extensions will appear here
 
 **Check extension page:**
-- Go to https://marketplace.visualstudio.com/items?itemName=sbroenne.excelmcp
+- Go to https://marketplace.visualstudio.com/items?itemName=PptMcp
 - Should show your extension (after first publish)
 
 ---
 
 ## Common First-Time Issues
 
-### ❌ "Publisher 'sbroenne' not found"
+### ❌ "Publisher 'trsdn' not found"
 
 **Solution:** 
 - Go to https://marketplace.visualstudio.com/manage
-- Verify you created a publisher with ID `sbroenne` (exact match to package.json)
+- Verify you created a publisher with ID `trsdn` (exact match to package.json)
 - Make sure you're signed in with the correct Microsoft account
 
 ### ❌ "Personal Access Token expired or invalid"
@@ -218,7 +218,7 @@ git push origin v1.0.1
 
 ### Update Publisher Details
 
-1. Go to https://marketplace.visualstudio.com/manage/publishers/sbroenne
+1. Go to https://marketplace.visualstudio.com/manage/publishers/trsdn
 2. Click "Edit" to update:
    - Display name
    - Description
@@ -227,7 +227,7 @@ git push origin v1.0.1
 
 ### View Extension Statistics
 
-1. Go to https://marketplace.visualstudio.com/manage/publishers/sbroenne
+1. Go to https://marketplace.visualstudio.com/manage/publishers/trsdn
 2. Click on your extension
 3. See:
    - Download/install counts

@@ -1,0 +1,36 @@
+{
+  "name": "ppt-mcp-skill",
+  "version": "1.7.0",
+  "description": "Agent Skill for automating Microsoft PowerPoint via MCP Server — slides, shapes, text, charts, and more",
+  "keywords": [
+    "agent-skill",
+    "powerpoint",
+    "mcp",
+    "mcp-server",
+    "presentation",
+    "slides",
+    "shapes"
+  ],
+  "homepage": "https://PptMcpserver.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trsdn/mcp-server-ppt.git",
+    "directory": "packages/ppt-mcp-skill"
+  },
+  "bugs": {
+    "url": "https://github.com/trsdn/mcp-server-ppt/issues"
+  },
+  "author": "trsdn",
+  "license": "MIT",
+  "files": [
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {},
+  "skillpm": {
+    "mcpServers": [
+      "trsdn/mcp-server-ppt"
+    ]
+  }
+}

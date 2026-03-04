@@ -1,13 +1,13 @@
-# ExcelMcp LLM Integration Tests
+# PptMcp LLM Integration Tests
 
-LLM-powered integration tests for both ExcelMcp MCP Server and Excel CLI using pytest-aitest.
+LLM-powered integration tests for both PptMcp MCP Server and PowerPoint CLI using pytest-aitest.
 
 ## Prerequisites
 
-- Windows desktop with Microsoft Excel installed
+- Windows desktop with Microsoft PowerPoint installed
 - .NET 10 SDK
 - Azure OpenAI endpoint configured
-- ExcelMcp MCP Server and CLI built/installed
+- PptMcp MCP Server and CLI built/installed
 
 ### Azure OpenAI
 
@@ -35,7 +35,7 @@ pytest-aitest = { path = "../../../pytest-aitest", editable = true }
 ## Build MCP Server (Required)
 
 ```powershell
-dotnet build ..\..\src\ExcelMcp.McpServer\ExcelMcp.McpServer.csproj -c Release
+dotnet build ..\..\src\PptMcp.McpServer\PptMcp.McpServer.csproj -c Release
 ```
 
 ## Run Tests (Manual Only)
@@ -60,14 +60,14 @@ uv run pytest -m aitest -v
 
 ## Configuration Overrides
 
-- `EXCEL_MCP_SERVER_COMMAND` — override MCP server command (full command line)
-- `EXCEL_CLI_COMMAND` — override CLI command (default: `excelcli`)
+- `ppt_mcp_SERVER_COMMAND` — override MCP server command (full command line)
+- `PPT_CLI_COMMAND` — override CLI command (default: `pptcli`)
 
 Example:
 
 ```powershell
-$env:EXCEL_MCP_SERVER_COMMAND = "d:\\source\\mcp-server-excel\\src\\ExcelMcp.McpServer\\bin\\Release\\net10.0\\ExcelMcp.McpServer.exe"
-$env:EXCEL_CLI_COMMAND = "excelcli"
+$env:ppt_mcp_SERVER_COMMAND = "d:\\source\\mcp-server-ppt\\src\\PptMcp.McpServer\\bin\\Release\\net10.0\\PptMcp.McpServer.exe"
+$env:PPT_CLI_COMMAND = "pptcli"
 ```
 
 ## Test Structure

@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Assembly and Namespace Configuration -->
+    <AssemblyName>PptMcp.Service</AssemblyName>
+    <RootNamespace>PptMcp.Service</RootNamespace>
+
+    <!-- Service library doesn't need XML documentation warnings -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <!-- Version Information -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+
+    <!-- Not a standalone package - bundled with CLI and MCP Server -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Release Build Optimizations -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PptMcp.Core\PptMcp.Core.csproj" />
+    <ProjectReference Include="..\PptMcp.ComInterop\PptMcp.ComInterop.csproj" />
+  </ItemGroup>
+
+  <!-- Allow CLI and MCP Server tests to access internals -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="PptMcp.CLI" />
+    <InternalsVisibleTo Include="PptMcp.McpServer" />
+    <InternalsVisibleTo Include="PptMcp.CLI.Tests" />
+    <InternalsVisibleTo Include="PptMcp.McpServer.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="StreamJsonRpc" />
+  </ItemGroup>
+
+</Project>

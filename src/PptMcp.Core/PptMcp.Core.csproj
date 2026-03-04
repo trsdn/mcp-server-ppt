@@ -1,0 +1,96 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Assembly and Namespace Configuration -->
+    <AssemblyName>PptMcp.Core</AssemblyName>
+    <RootNamespace>PptMcp.Core</RootNamespace>
+
+    <!-- Version Information -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+
+    <!-- Package Information -->
+    <PackageId>PptMcp.Core</PackageId>
+    <Title>PptMcp Core Library</Title>
+    <Description>Core library for PowerPoint automation operations via COM interop. Provides high-level commands for slides, shapes, text, charts, and more. Shared by PptMcp.McpServer and PptMcp.CLI.</Description>
+    <PackageTags>powerpoint;automation;com;slides;shapes;core;mcp</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>See https://github.com/trsdn/mcp-server-ppt/releases for release notes</PackageReleaseNotes>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+
+    <!-- Package Validation -->
+    <EnablePackageValidation>true</EnablePackageValidation>
+
+    <!-- Documentation - temporarily suppress CS1591 during rebuild -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!-- Release Build Optimizations -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Disable debug symbols in Release builds -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+
+    <!-- Additional optimization flags -->
+    <Optimize>true</Optimize>
+    <TieredCompilation>true</TieredCompilation>
+    <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+  </PropertyGroup>
+
+  <!-- Remove XML docs and PDB files from Release output -->
+  <Target Name="RemoveDebugFilesFromRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <ItemGroup>
+      <XmlDocsToDelete Include="$(OutputPath)**\*.xml" />
+      <PdbFilesToDelete Include="$(OutputPath)**\*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(XmlDocsToDelete)" />
+    <Delete Files="@(PdbFilesToDelete)" />
+  </Target>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PptMcp.Core.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include README and LICENSE in package -->
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PptMcp.ComInterop\PptMcp.ComInterop.csproj" />
+    <!-- Source generator for ServiceRegistry -->
+    <ProjectReference Include="..\PptMcp.Generators\PptMcp.Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Emit generated source files for inspection -->
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- PowerPoint COM Interop PIA - EmbedInteropTypes=true embeds only used types at compile time -->
+    <PackageReference Include="Microsoft.Office.Interop.PowerPoint">
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+      <NoWarn>NU1701</NoWarn>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" />
+    <!-- Required for generated CliSettings class (Spectre.Console.Cli.CommandSettings) -->
+    <PackageReference Include="Spectre.Console.Cli" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
