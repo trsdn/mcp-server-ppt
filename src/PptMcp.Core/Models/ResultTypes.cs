@@ -191,6 +191,9 @@ public class LayoutInfo
 {
     public string Name { get; set; } = string.Empty;
     public int Index { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? MatchingName { get; set; }
 }
 
 // ── Notes ─────────────────────────────────────────────────
@@ -273,6 +276,15 @@ public class ThemeColorResult : ResultBase
 {
     public string DesignName { get; set; } = string.Empty;
     public Dictionary<string, string> Colors { get; set; } = [];
+}
+
+// ── Theme Fonts ──────────────────────────────────────────
+
+public class ThemeFontResult : ResultBase
+{
+    public string DesignName { get; set; } = string.Empty;
+    public string HeadingFont { get; set; } = string.Empty;
+    public string BodyFont { get; set; } = string.Empty;
 }
 
 // ── Slideshow ─────────────────────────────────────────────

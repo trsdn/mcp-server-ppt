@@ -948,4 +948,277 @@ public class TextCommands : ITextCommands
             }
         });
     }
+
+    public OperationResult ChangeCase(IPptBatch batch, int slideIndex, string shapeName, int caseType)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? textFrame = null;
+            dynamic? textRange = null;
+            try
+            {
+                if (Convert.ToInt32(shape.HasTextFrame) == 0)
+                    throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
+
+                textFrame = shape.TextFrame;
+                textRange = textFrame.TextRange;
+                textRange.ChangeCase(caseType);
+
+                string caseLabel = caseType switch
+                {
+                    1 => "Sentence case",
+                    2 => "lowercase",
+                    3 => "UPPERCASE",
+                    4 => "Title Case",
+                    5 => "tOGGLE cASE",
+                    _ => $"case type {caseType}"
+                };
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "change-case",
+                    Message = $"Changed text to {caseLabel} in shape '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (textRange != null) ComUtilities.Release(ref textRange!);
+                if (textFrame != null) ComUtilities.Release(ref textFrame!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult ReadSpacing(IPptBatch batch, int slideIndex, string shapeName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? textFrame = null;
+            dynamic? textRange = null;
+            dynamic? paragraphFormat = null;
+            dynamic? font = null;
+            try
+            {
+                if (Convert.ToInt32(shape.HasTextFrame) == 0)
+                    throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
+
+                textFrame = shape.TextFrame;
+                textRange = textFrame.TextRange;
+                paragraphFormat = textRange.ParagraphFormat;
+                font = textRange.Font;
+
+                float spaceWithin = Convert.ToSingle(paragraphFormat.SpaceWithin);
+                float spaceBefore = Convert.ToSingle(paragraphFormat.SpaceBefore);
+                float spaceAfter = Convert.ToSingle(paragraphFormat.SpaceAfter);
+                float charSpacing = Convert.ToSingle(font.Spacing);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "read-spacing",
+                    Message = $"SpaceWithin={spaceWithin}, SpaceBefore={spaceBefore}, SpaceAfter={spaceAfter}, CharacterSpacing={charSpacing}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (font != null) ComUtilities.Release(ref font!);
+                if (paragraphFormat != null) ComUtilities.Release(ref paragraphFormat!);
+                if (textRange != null) ComUtilities.Release(ref textRange!);
+                if (textFrame != null) ComUtilities.Release(ref textFrame!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult ReadBullets(IPptBatch batch, int slideIndex, string shapeName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? textFrame = null;
+            dynamic? textRange = null;
+            dynamic? allParagraphs = null;
+            try
+            {
+                if (Convert.ToInt32(shape.HasTextFrame) == 0)
+                    throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
+
+                textFrame = shape.TextFrame;
+                textRange = textFrame.TextRange;
+                allParagraphs = textRange.Paragraphs();
+
+                int paraCount = (int)allParagraphs.Count;
+                var lines = new List<string>();
+
+                for (int p = 1; p <= paraCount; p++)
+                {
+                    dynamic para = textRange.Paragraphs(p, 1);
+                    dynamic? pf = null;
+                    dynamic? bullet = null;
+                    try
+                    {
+                        pf = para.ParagraphFormat;
+                        bullet = pf.Bullet;
+
+                        int bulletType = Convert.ToInt32(bullet.Type);
+                        int bulletChar = 0;
+                        try { bulletChar = Convert.ToInt32(bullet.Character); } catch { }
+                        int level = Convert.ToInt32(pf.Level);
+
+                        lines.Add($"Paragraph {p}: BulletType={bulletType}, BulletCharacter={bulletChar}, IndentLevel={level}");
+                    }
+                    finally
+                    {
+                        if (bullet != null) ComUtilities.Release(ref bullet!);
+                        if (pf != null) ComUtilities.Release(ref pf!);
+                        ComUtilities.Release(ref para!);
+                    }
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "read-bullets",
+                    Message = string.Join("; ", lines),
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (allParagraphs != null) ComUtilities.Release(ref allParagraphs!);
+                if (textRange != null) ComUtilities.Release(ref textRange!);
+                if (textFrame != null) ComUtilities.Release(ref textFrame!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult InsertSymbol(IPptBatch batch, int slideIndex, string shapeName, string fontName, int charNumber)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(fontName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? textFrame = null;
+            dynamic? textRange = null;
+            try
+            {
+                if (Convert.ToInt32(shape.HasTextFrame) == 0)
+                    throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
+
+                textFrame = shape.TextFrame;
+                textRange = textFrame.TextRange;
+                textRange.InsertSymbol(fontName, charNumber, true);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "insert-symbol",
+                    Message = $"Inserted symbol (font='{fontName}', char={charNumber}) in shape '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (textRange != null) ComUtilities.Release(ref textRange!);
+                if (textFrame != null) ComUtilities.Release(ref textFrame!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult InsertDateTime(IPptBatch batch, int slideIndex, string shapeName, int dateTimeFormat)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? textFrame = null;
+            dynamic? textRange = null;
+            try
+            {
+                if (Convert.ToInt32(shape.HasTextFrame) == 0)
+                    throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
+
+                textFrame = shape.TextFrame;
+                textRange = textFrame.TextRange;
+                textRange.InsertDateTime(dateTimeFormat, true);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "insert-datetime",
+                    Message = $"Inserted date/time (format={dateTimeFormat}) in shape '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (textRange != null) ComUtilities.Release(ref textRange!);
+                if (textFrame != null) ComUtilities.Release(ref textFrame!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult InsertSlideNumber(IPptBatch batch, int slideIndex, string shapeName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? textFrame = null;
+            dynamic? textRange = null;
+            try
+            {
+                if (Convert.ToInt32(shape.HasTextFrame) == 0)
+                    throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
+
+                textFrame = shape.TextFrame;
+                textRange = textFrame.TextRange;
+                textRange.InsertSlideNumber();
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "insert-slide-number",
+                    Message = $"Inserted slide number in shape '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (textRange != null) ComUtilities.Release(ref textRange!);
+                if (textFrame != null) ComUtilities.Release(ref textFrame!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
 }

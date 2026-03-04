@@ -24,4 +24,12 @@ public interface IPageSetupCommands
     /// <param name="slideHeight">Slide height in points. 0 = don't change.</param>
     [ServiceAction("set-size")]
     OperationResult SetSize(IPptBatch batch, float slideWidth, float slideHeight);
+
+    /// <summary>
+    /// Set the first slide number for the presentation.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="firstSlideNumber">The number to assign to the first slide</param>
+    [ServiceAction("set-first-number")]
+    OperationResult SetFirstNumber(IPptBatch batch, int firstSlideNumber);
 }

@@ -276,4 +276,83 @@ public interface IShapeCommands
     /// <param name="targetShapeName">Name of the shape to apply formatting to</param>
     [ServiceAction("copy-formatting")]
     OperationResult CopyFormatting(IPptBatch batch, int slideIndex, string sourceShapeName, string targetShapeName);
+
+    /// <summary>
+    /// Set action settings (click behavior) on a shape.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    /// <param name="actionType">0=None, 1=NextSlide, 2=PreviousSlide, 3=FirstSlide, 4=LastSlide, 7=Hyperlink</param>
+    /// <param name="hyperlinkAddress">URL for actionType=7 (Hyperlink), ignored for other types</param>
+    [ServiceAction("set-action-settings")]
+    OperationResult SetActionSettings(IPptBatch batch, int slideIndex, string shapeName, int actionType, string? hyperlinkAddress);
+
+    /// <summary>
+    /// Scale a shape by width and height factors relative to its current size.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    /// <param name="scaleX">Width scale factor (e.g. 1.5 = 150%)</param>
+    /// <param name="scaleY">Height scale factor (e.g. 1.5 = 150%)</param>
+    [ServiceAction("scale")]
+    OperationResult Scale(IPptBatch batch, int slideIndex, string shapeName, float scaleX, float scaleY);
+
+    /// <summary>
+    /// Lock or unlock the aspect ratio of a shape.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    /// <param name="locked">True to lock aspect ratio, false to unlock</param>
+    [ServiceAction("lock-aspect-ratio")]
+    OperationResult SetLockAspectRatio(IPptBatch batch, int slideIndex, string shapeName, bool locked);
+
+    /// <summary>
+    /// Set soft edge effect on a shape. Use radius=0 to remove soft edge.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    /// <param name="radius">Soft edge radius in points (0 = remove soft edge)</param>
+    [ServiceAction("set-soft-edge")]
+    OperationResult SetSoftEdge(IPptBatch batch, int slideIndex, string shapeName, float radius);
+
+    /// <summary>
+    /// Read the shadow properties of a shape: visible, offsetX, offsetY, blur, color.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    [ServiceAction("read-shadow")]
+    OperationResult ReadShadow(IPptBatch batch, int slideIndex, string shapeName);
+
+    /// <summary>
+    /// Add a decorative text effect (WordArt) to a slide.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="presetEffect">MsoPresetTextEffect integer (0-based preset index)</param>
+    /// <param name="text">Text content</param>
+    /// <param name="fontName">Font name (e.g. "Arial")</param>
+    /// <param name="fontSize">Font size in points</param>
+    /// <param name="left">Position from left in points</param>
+    /// <param name="top">Position from top in points</param>
+    [ServiceAction("add-text-effect")]
+    OperationResult AddTextEffect(IPptBatch batch, int slideIndex, int presetEffect, string text, string fontName, float fontSize, float left, float top);
+
+    /// <summary>
+    /// Set 3D rotation and bevel effects on a shape. Only non-null values are changed.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    /// <param name="rotationX">X-axis rotation in degrees (null = don't change)</param>
+    /// <param name="rotationY">Y-axis rotation in degrees (null = don't change)</param>
+    /// <param name="rotationZ">Z-axis rotation in degrees (null = don't change)</param>
+    /// <param name="bevelType">Bevel top type: 0=None, 1=Circle, 2=RelaxedInset, 3=Cross, 4=Angle, etc. (null = don't change)</param>
+    /// <param name="bevelDepth">Bevel top depth in points (null = don't change)</param>
+    [ServiceAction("set-3d")]
+    OperationResult Set3D(IPptBatch batch, int slideIndex, string shapeName, float? rotationX, float? rotationY, float? rotationZ, int? bevelType, float? bevelDepth);
 }

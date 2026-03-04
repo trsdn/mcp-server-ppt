@@ -6,7 +6,10 @@ using PptMcp.Core.Commands.CustomShow;
 using PptMcp.Core.Commands.DocumentProperty;
 using PptMcp.Core.Commands.Export;
 using PptMcp.Core.Commands.Hyperlink;
+using PptMcp.Core.Commands.Image;
+using PptMcp.Core.Commands.Master;
 using PptMcp.Core.Commands.Media;
+using PptMcp.Core.Commands.Proofing;
 using PptMcp.Core.Commands.Section;
 using PptMcp.Core.Commands.Shape;
 using PptMcp.Core.Commands.ShapeAlign;
@@ -278,6 +281,104 @@ public class ParameterValidationTests
         Assert.Throws<ArgumentException>(() => commands.Delete(null!, 1, shapeName));
     }
 
+    // ── Chart Commands (Additional) ─────────────────────────
+
+    [Fact]
+    public void ChartSetData_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetData(null!, 1, null!, new List<List<object?>>()));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ChartSetData_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetData(null!, 1, shapeName, new List<List<object?>>()));
+    }
+
+    [Fact]
+    public void ChartSetLegend_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetLegend(null!, 1, null!, true, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ChartSetLegend_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetLegend(null!, 1, shapeName, true, 1));
+    }
+
+    [Fact]
+    public void ChartReadData_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ReadData(null!, 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ChartReadData_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentException>(() => commands.ReadData(null!, 1, shapeName));
+    }
+
+    [Fact]
+    public void ChartSetAxisTitle_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetAxisTitle(null!, 1, null!, 1, "Title"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ChartSetAxisTitle_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetAxisTitle(null!, 1, shapeName, 1, "Title"));
+    }
+
+    [Fact]
+    public void ChartSetAxisTitle_NullTitle_ThrowsArgumentNullException()
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetAxisTitle(null!, 1, "Chart1", 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ChartSetAxisTitle_EmptyTitle_ThrowsArgumentException(string title)
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetAxisTitle(null!, 1, "Chart1", 1, title));
+    }
+
+    [Fact]
+    public void ChartToggleDataTable_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ToggleDataTable(null!, 1, null!, true));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ChartToggleDataTable_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ChartCommands();
+        Assert.Throws<ArgumentException>(() => commands.ToggleDataTable(null!, 1, shapeName, true));
+    }
+
     // ── Export Commands ──────────────────────────────────────
 
     [Fact]
@@ -326,6 +427,154 @@ public class ParameterValidationTests
     {
         var commands = new ExportCommands();
         Assert.Throws<ArgumentException>(() => commands.SaveAs(null!, path, 1));
+    }
+
+    // ── Export Commands (Additional) ─────────────────────────
+
+    [Fact]
+    public void ExportToVideo_NullDestinationPath_ThrowsArgumentNullException()
+    {
+        var commands = new ExportCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ToVideo(null!, null!, 5, 1080));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ExportToVideo_EmptyDestinationPath_ThrowsArgumentException(string path)
+    {
+        var commands = new ExportCommands();
+        Assert.Throws<ArgumentException>(() => commands.ToVideo(null!, path, 5, 1080));
+    }
+
+    [Fact]
+    public void ExportAllSlidesToImages_NullDestinationDirectory_ThrowsArgumentNullException()
+    {
+        var commands = new ExportCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.AllSlidesToImages(null!, null!, 1920, 1080));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ExportAllSlidesToImages_EmptyDestinationDirectory_ThrowsArgumentException(string dir)
+    {
+        var commands = new ExportCommands();
+        Assert.Throws<ArgumentException>(() => commands.AllSlidesToImages(null!, dir, 1920, 1080));
+    }
+
+    [Fact]
+    public void ExportExtractText_NullDestinationPath_ThrowsArgumentNullException()
+    {
+        var commands = new ExportCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ExtractText(null!, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ExportExtractText_EmptyDestinationPath_ThrowsArgumentException(string path)
+    {
+        var commands = new ExportCommands();
+        Assert.Throws<ArgumentException>(() => commands.ExtractText(null!, path));
+    }
+
+    [Fact]
+    public void ExportExtractImages_NullDestinationDirectory_ThrowsArgumentNullException()
+    {
+        var commands = new ExportCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ExtractImages(null!, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ExportExtractImages_EmptyDestinationDirectory_ThrowsArgumentException(string dir)
+    {
+        var commands = new ExportCommands();
+        Assert.Throws<ArgumentException>(() => commands.ExtractImages(null!, dir));
+    }
+
+    [Fact]
+    public void ExportSaveCopy_NullDestinationPath_ThrowsArgumentNullException()
+    {
+        var commands = new ExportCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SaveCopy(null!, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ExportSaveCopy_EmptyDestinationPath_ThrowsArgumentException(string path)
+    {
+        var commands = new ExportCommands();
+        Assert.Throws<ArgumentException>(() => commands.SaveCopy(null!, path));
+    }
+
+    // ── Image Commands ──────────────────────────────────────
+
+    [Fact]
+    public void ImageCrop_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ImageCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.Crop(null!, 1, null!, 0f, 0f, 0f, 0f));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ImageCrop_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ImageCommands();
+        Assert.Throws<ArgumentException>(() => commands.Crop(null!, 1, shapeName, 0f, 0f, 0f, 0f));
+    }
+
+    [Fact]
+    public void ImageSetBrightnessContrast_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ImageCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetBrightnessContrast(null!, 1, null!, 0.5f, 0.5f));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ImageSetBrightnessContrast_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ImageCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetBrightnessContrast(null!, 1, shapeName, 0.5f, 0.5f));
+    }
+
+    [Fact]
+    public void ImageSetTransparentColor_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ImageCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetTransparentColor(null!, 1, null!, "#FFFFFF"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ImageSetTransparentColor_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ImageCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetTransparentColor(null!, 1, shapeName, "#FFFFFF"));
+    }
+
+    [Fact]
+    public void ImageSetTransparentColor_NullColorHex_ThrowsArgumentNullException()
+    {
+        var commands = new ImageCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetTransparentColor(null!, 1, "Image1", null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ImageSetTransparentColor_EmptyColorHex_ThrowsArgumentException(string colorHex)
+    {
+        var commands = new ImageCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetTransparentColor(null!, 1, "Image1", colorHex));
     }
 
     // ── Shape Commands ───────────────────────────────────────
@@ -634,6 +883,328 @@ public class ParameterValidationTests
         Assert.Throws<ArgumentException>(() => commands.Flip(null!, 1, shapeName, 0));
     }
 
+    // ── Shape Commands (Additional) ─────────────────────────
+
+    [Fact]
+    public void ShapeSetTextFrame_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetTextFrame(null!, 1, null!, null, null, null, null, null, null));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetTextFrame_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetTextFrame(null!, 1, shapeName, null, null, null, null, null, null));
+    }
+
+    [Fact]
+    public void ShapeReadFill_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ReadFill(null!, 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeReadFill_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.ReadFill(null!, 1, shapeName));
+    }
+
+    [Fact]
+    public void ShapeReadLine_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ReadLine(null!, 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeReadLine_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.ReadLine(null!, 1, shapeName));
+    }
+
+    [Fact]
+    public void ShapeSetGradientFill_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetGradientFill(null!, 1, null!, "#FF0000", "#0000FF", 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetGradientFill_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetGradientFill(null!, 1, shapeName, "#FF0000", "#0000FF", 1));
+    }
+
+    [Fact]
+    public void ShapeSetGradientFill_NullColor1_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetGradientFill(null!, 1, "Shape1", null!, "#0000FF", 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetGradientFill_EmptyColor1_ThrowsArgumentException(string color1)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetGradientFill(null!, 1, "Shape1", color1, "#0000FF", 1));
+    }
+
+    [Fact]
+    public void ShapeSetGradientFill_NullColor2_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetGradientFill(null!, 1, "Shape1", "#FF0000", null!, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetGradientFill_EmptyColor2_ThrowsArgumentException(string color2)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetGradientFill(null!, 1, "Shape1", "#FF0000", color2, 1));
+    }
+
+    [Fact]
+    public void ShapeSetGlow_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetGlow(null!, 1, null!, 5f, "#FF0000"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetGlow_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetGlow(null!, 1, shapeName, 5f, "#FF0000"));
+    }
+
+    [Fact]
+    public void ShapeSetGlow_NullColorHex_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetGlow(null!, 1, "Shape1", 5f, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetGlow_EmptyColorHex_ThrowsArgumentException(string colorHex)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetGlow(null!, 1, "Shape1", 5f, colorHex));
+    }
+
+    [Fact]
+    public void ShapeSetReflection_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetReflection(null!, 1, null!, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetReflection_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetReflection(null!, 1, shapeName, 1));
+    }
+
+    [Fact]
+    public void ShapeSetOpacity_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetOpacity(null!, 1, null!, 0.5f));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetOpacity_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetOpacity(null!, 1, shapeName, 0.5f));
+    }
+
+    [Fact]
+    public void ShapeSetActionSettings_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetActionSettings(null!, 1, null!, 1, null));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetActionSettings_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetActionSettings(null!, 1, shapeName, 1, null));
+    }
+
+    [Fact]
+    public void ShapeScale_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.Scale(null!, 1, null!, 1.5f, 1.5f));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeScale_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.Scale(null!, 1, shapeName, 1.5f, 1.5f));
+    }
+
+    [Fact]
+    public void ShapeSetLockAspectRatio_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetLockAspectRatio(null!, 1, null!, true));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetLockAspectRatio_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetLockAspectRatio(null!, 1, shapeName, true));
+    }
+
+    [Fact]
+    public void ShapeSetSoftEdge_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetSoftEdge(null!, 1, null!, 5f));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSetSoftEdge_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetSoftEdge(null!, 1, shapeName, 5f));
+    }
+
+    [Fact]
+    public void ShapeReadShadow_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ReadShadow(null!, 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeReadShadow_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.ReadShadow(null!, 1, shapeName));
+    }
+
+    [Fact]
+    public void ShapeAddTextEffect_NullText_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.AddTextEffect(null!, 1, 0, null!, "Arial", 24f, 100f, 100f));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeAddTextEffect_EmptyText_ThrowsArgumentException(string text)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.AddTextEffect(null!, 1, 0, text, "Arial", 24f, 100f, 100f));
+    }
+
+    [Fact]
+    public void ShapeAddTextEffect_NullFontName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.AddTextEffect(null!, 1, 0, "Text", null!, 24f, 100f, 100f));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeAddTextEffect_EmptyFontName_ThrowsArgumentException(string fontName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.AddTextEffect(null!, 1, 0, "Text", fontName, 24f, 100f, 100f));
+    }
+
+    [Fact]
+    public void ShapeSet3D_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.Set3D(null!, 1, null!, null, null, null, null, null));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeSet3D_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.Set3D(null!, 1, shapeName, null, null, null, null, null));
+    }
+
+    [Fact]
+    public void ShapeCopyFormatting_NullSourceShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.CopyFormatting(null!, 1, null!, "Target"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeCopyFormatting_EmptySourceShapeName_ThrowsArgumentException(string sourceShapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.CopyFormatting(null!, 1, sourceShapeName, "Target"));
+    }
+
+    [Fact]
+    public void ShapeCopyFormatting_NullTargetShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.CopyFormatting(null!, 1, "Source", null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ShapeCopyFormatting_EmptyTargetShapeName_ThrowsArgumentException(string targetShapeName)
+    {
+        var commands = new ShapeCommands();
+        Assert.Throws<ArgumentException>(() => commands.CopyFormatting(null!, 1, "Source", targetShapeName));
+    }
+
     // ── Text Commands ────────────────────────────────────────
 
     [Fact]
@@ -698,6 +1269,200 @@ public class ParameterValidationTests
     {
         var commands = new TextCommands();
         Assert.Throws<ArgumentException>(() => commands.FormatAdvanced(null!, 1, shapeName, null, null, null, null));
+    }
+
+    // ── Text Commands (Additional) ──────────────────────────
+
+    [Fact]
+    public void TextSetSpacing_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetSpacing(null!, 1, null!, null, null, null, null));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextSetSpacing_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetSpacing(null!, 1, shapeName, null, null, null, null));
+    }
+
+    [Fact]
+    public void TextSetBullets_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetBullets(null!, 1, null!, 1, null, 0));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextSetBullets_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetBullets(null!, 1, shapeName, 1, null, 0));
+    }
+
+    [Fact]
+    public void TextInsertLink_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.InsertLink(null!, 1, null!, "Click here", "https://example.com"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextInsertLink_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.InsertLink(null!, 1, shapeName, "Click here", "https://example.com"));
+    }
+
+    [Fact]
+    public void TextInsertLink_NullLinkText_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.InsertLink(null!, 1, "Shape1", null!, "https://example.com"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextInsertLink_EmptyLinkText_ThrowsArgumentException(string linkText)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.InsertLink(null!, 1, "Shape1", linkText, "https://example.com"));
+    }
+
+    [Fact]
+    public void TextInsertLink_NullUrl_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.InsertLink(null!, 1, "Shape1", "Click here", null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextInsertLink_EmptyUrl_ThrowsArgumentException(string url)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.InsertLink(null!, 1, "Shape1", "Click here", url));
+    }
+
+    [Fact]
+    public void TextChangeCase_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ChangeCase(null!, 1, null!, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextChangeCase_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.ChangeCase(null!, 1, shapeName, 1));
+    }
+
+    [Fact]
+    public void TextReadSpacing_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ReadSpacing(null!, 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextReadSpacing_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.ReadSpacing(null!, 1, shapeName));
+    }
+
+    [Fact]
+    public void TextReadBullets_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ReadBullets(null!, 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextReadBullets_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.ReadBullets(null!, 1, shapeName));
+    }
+
+    [Fact]
+    public void TextInsertSymbol_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.InsertSymbol(null!, 1, null!, "Wingdings", 65));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextInsertSymbol_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.InsertSymbol(null!, 1, shapeName, "Wingdings", 65));
+    }
+
+    [Fact]
+    public void TextInsertSymbol_NullFontName_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.InsertSymbol(null!, 1, "Shape1", null!, 65));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextInsertSymbol_EmptyFontName_ThrowsArgumentException(string fontName)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.InsertSymbol(null!, 1, "Shape1", fontName, 65));
+    }
+
+    [Fact]
+    public void TextInsertDateTime_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.InsertDateTime(null!, 1, null!, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextInsertDateTime_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.InsertDateTime(null!, 1, shapeName, 1));
+    }
+
+    [Fact]
+    public void TextInsertSlideNumber_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.InsertSlideNumber(null!, 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void TextInsertSlideNumber_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new TextCommands();
+        Assert.Throws<ArgumentException>(() => commands.InsertSlideNumber(null!, 1, shapeName));
     }
 
     // ── Background Commands ──────────────────────────────────
@@ -782,6 +1547,72 @@ public class ParameterValidationTests
     {
         var commands = new SmartArtCommands();
         Assert.Throws<ArgumentException>(() => commands.AddNode(null!, 1, "SmartArt1", text));
+    }
+
+    // ── SmartArt Commands (Additional) ──────────────────────
+
+    [Fact]
+    public void SmartArtSetLayout_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new SmartArtCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetLayout(null!, 1, null!, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SmartArtSetLayout_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new SmartArtCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetLayout(null!, 1, shapeName, 1));
+    }
+
+    [Fact]
+    public void SmartArtSetStyle_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new SmartArtCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetStyle(null!, 1, null!, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SmartArtSetStyle_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new SmartArtCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetStyle(null!, 1, shapeName, 1));
+    }
+
+    [Fact]
+    public void SmartArtDeleteNode_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new SmartArtCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.DeleteNode(null!, 1, null!, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SmartArtDeleteNode_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new SmartArtCommands();
+        Assert.Throws<ArgumentException>(() => commands.DeleteNode(null!, 1, shapeName, 1));
+    }
+
+    [Fact]
+    public void SmartArtChangeNodeLevel_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new SmartArtCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ChangeNodeLevel(null!, 1, null!, 1, true));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SmartArtChangeNodeLevel_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new SmartArtCommands();
+        Assert.Throws<ArgumentException>(() => commands.ChangeNodeLevel(null!, 1, shapeName, 1, true));
     }
 
     // ── Comment Commands ─────────────────────────────────────
@@ -938,6 +1769,24 @@ public class ParameterValidationTests
         Assert.Throws<ArgumentException>(() => commands.GetInfo(null!, 1, shapeName));
     }
 
+    // ── Media Commands (Additional) ─────────────────────────
+
+    [Fact]
+    public void MediaSetPlayback_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new MediaCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetPlayback(null!, 1, null!, null, null, null, null));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void MediaSetPlayback_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new MediaCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetPlayback(null!, 1, shapeName, null, null, null, null));
+    }
+
     // ── Slide Commands ───────────────────────────────────────
 
     [Fact]
@@ -1040,5 +1889,223 @@ public class ParameterValidationTests
     {
         var commands = new SlideTableCommands();
         Assert.Throws<ArgumentException>(() => commands.FormatCell(null!, 1, shapeName, 1, 1, null, null, 0, null));
+    }
+
+    // ── Slide Table Commands (Additional) ────────────────────
+
+    [Fact]
+    public void SlideTableReadCell_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ReadCell(null!, 1, null!, 1, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SlideTableReadCell_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentException>(() => commands.ReadCell(null!, 1, shapeName, 1, 1));
+    }
+
+    [Fact]
+    public void SlideTableWriteRow_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.WriteRow(null!, 1, null!, 1, "a,b,c"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SlideTableWriteRow_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentException>(() => commands.WriteRow(null!, 1, shapeName, 1, "a,b,c"));
+    }
+
+    [Fact]
+    public void SlideTableWriteRow_NullValues_ThrowsArgumentNullException()
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.WriteRow(null!, 1, "Table1", 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SlideTableWriteRow_EmptyValues_ThrowsArgumentException(string values)
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentException>(() => commands.WriteRow(null!, 1, "Table1", 1, values));
+    }
+
+    [Fact]
+    public void SlideTableReadRow_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.ReadRow(null!, 1, null!, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SlideTableReadRow_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentException>(() => commands.ReadRow(null!, 1, shapeName, 1));
+    }
+
+    [Fact]
+    public void SlideTableSetCellBorder_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetCellBorder(null!, 1, null!, 1, 1, "#000000", 1f));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SlideTableSetCellBorder_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetCellBorder(null!, 1, shapeName, 1, 1, "#000000", 1f));
+    }
+
+    [Fact]
+    public void SlideTableSetCellBorder_NullColorHex_ThrowsArgumentNullException()
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetCellBorder(null!, 1, "Table1", 1, 1, null!, 1f));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SlideTableSetCellBorder_EmptyColorHex_ThrowsArgumentException(string colorHex)
+    {
+        var commands = new SlideTableCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetCellBorder(null!, 1, "Table1", 1, 1, colorHex, 1f));
+    }
+
+    // ── Background Commands (Additional) ────────────────────
+
+    [Fact]
+    public void BackgroundSetGradient_NullColor1_ThrowsArgumentNullException()
+    {
+        var commands = new BackgroundCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetGradient(null!, 1, null!, "#0000FF", 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void BackgroundSetGradient_EmptyColor1_ThrowsArgumentException(string color1)
+    {
+        var commands = new BackgroundCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetGradient(null!, 1, color1, "#0000FF", 1));
+    }
+
+    [Fact]
+    public void BackgroundSetGradient_NullColor2_ThrowsArgumentNullException()
+    {
+        var commands = new BackgroundCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.SetGradient(null!, 1, "#FF0000", null!, 1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void BackgroundSetGradient_EmptyColor2_ThrowsArgumentException(string color2)
+    {
+        var commands = new BackgroundCommands();
+        Assert.Throws<ArgumentException>(() => commands.SetGradient(null!, 1, "#FF0000", color2, 1));
+    }
+
+    // ── Proofing Commands ───────────────────────────────────
+
+    [Fact]
+    public void ProofingGetLanguage_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new ProofingCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.GetLanguage(null!, 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ProofingGetLanguage_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new ProofingCommands();
+        Assert.Throws<ArgumentException>(() => commands.GetLanguage(null!, 1, shapeName));
+    }
+
+    // ── Master Commands ─────────────────────────────────────
+
+    [Fact]
+    public void MasterEditShapeText_NullShapeName_ThrowsArgumentNullException()
+    {
+        var commands = new MasterCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.EditShapeText(null!, 1, null!, "text"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void MasterEditShapeText_EmptyShapeName_ThrowsArgumentException(string shapeName)
+    {
+        var commands = new MasterCommands();
+        Assert.Throws<ArgumentException>(() => commands.EditShapeText(null!, 1, shapeName, "text"));
+    }
+
+    // ── Slide Commands (Additional) ─────────────────────────
+
+    [Fact]
+    public void SlideCloneWithReplace_NullSearchText_ThrowsArgumentNullException()
+    {
+        var commands = new SlideCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.CloneWithReplace(null!, 1, 1, null!, "replace"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SlideCloneWithReplace_EmptySearchText_ThrowsArgumentException(string searchText)
+    {
+        var commands = new SlideCommands();
+        Assert.Throws<ArgumentException>(() => commands.CloneWithReplace(null!, 1, 1, searchText, "replace"));
+    }
+
+    [Fact]
+    public void SlideCloneWithReplace_NullReplaceText_ThrowsArgumentNullException()
+    {
+        var commands = new SlideCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.CloneWithReplace(null!, 1, 1, "search", null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SlideCloneWithReplace_EmptyReplaceText_ThrowsArgumentException(string replaceText)
+    {
+        var commands = new SlideCommands();
+        Assert.Throws<ArgumentException>(() => commands.CloneWithReplace(null!, 1, 1, "search", replaceText));
+    }
+
+    [Fact]
+    public void SlideGetThumbnail_NullDestinationPath_ThrowsArgumentNullException()
+    {
+        var commands = new SlideCommands();
+        Assert.Throws<ArgumentNullException>(() => commands.GetThumbnail(null!, 1, null!));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SlideGetThumbnail_EmptyDestinationPath_ThrowsArgumentException(string path)
+    {
+        var commands = new SlideCommands();
+        Assert.Throws<ArgumentException>(() => commands.GetThumbnail(null!, 1, path));
     }
 }

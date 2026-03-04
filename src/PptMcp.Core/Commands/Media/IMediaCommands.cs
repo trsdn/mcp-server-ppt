@@ -44,4 +44,18 @@ public interface IMediaCommands
     /// </summary>
     [ServiceAction("get-info")]
     MediaInfoResult GetInfo(IPptBatch batch, int slideIndex, string shapeName);
+
+    /// <summary>
+    /// Set playback properties on a media shape (volume, mute, fade in/out).
+    /// Only non-null values are applied; null values leave the property unchanged.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the media shape</param>
+    /// <param name="volume">Volume level (0.0 to 1.0), null to leave unchanged</param>
+    /// <param name="muted">Mute state, null to leave unchanged</param>
+    /// <param name="fadeInSeconds">Fade-in duration in seconds, null to leave unchanged</param>
+    /// <param name="fadeOutSeconds">Fade-out duration in seconds, null to leave unchanged</param>
+    [ServiceAction("set-playback")]
+    OperationResult SetPlayback(IPptBatch batch, int slideIndex, string shapeName, float? volume, bool? muted, float? fadeInSeconds, float? fadeOutSeconds);
 }

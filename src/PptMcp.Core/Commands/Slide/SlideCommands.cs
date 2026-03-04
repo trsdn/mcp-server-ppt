@@ -479,6 +479,32 @@ public class SlideCommands : ISlideCommands
         });
     }
 
+    public OperationResult SetDisplayMaster(IPptBatch batch, int slideIndex, bool display)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            try
+            {
+                // msoTrue = -1, msoFalse = 0
+                slide.DisplayMasterShapes = display ? -1 : 0;
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-display-master",
+                    Message = display
+                        ? $"Enabled master shapes on slide {slideIndex}"
+                        : $"Disabled master shapes on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     /// <summary>
     /// Replaces text in a shape, recursing into grouped shapes (Type == 6).
     /// </summary>
@@ -573,5 +599,28 @@ public class SlideCommands : ISlideCommands
         {
             ComUtilities.Release(ref designs!);
         }
+    }
+
+    public OperationResult CopyToClipboard(IPptBatch batch, int slideIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            try
+            {
+                slide.Copy();
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "copy",
+                    Message = $"Copied slide {slideIndex} to clipboard",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+            }
+        });
     }
 }

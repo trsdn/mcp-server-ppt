@@ -287,4 +287,25 @@ public class ResultTypeInvariantTests
         Assert.NotNull(result.ColorSchemes);
         Assert.Empty(result.ColorSchemes);
     }
+
+    [Fact]
+    public void AccessibilityAuditResult_DefaultValues()
+    {
+        var result = new AccessibilityAuditResult();
+        Assert.False(result.Success);
+        Assert.Equal(0, result.TotalSlides);
+        Assert.Equal(0, result.IssueCount);
+        Assert.NotNull(result.Issues);
+        Assert.Empty(result.Issues);
+    }
+
+    [Fact]
+    public void ReadingOrderResult_DefaultValues()
+    {
+        var result = new ReadingOrderResult();
+        Assert.False(result.Success);
+        Assert.Equal(0, result.SlideIndex);
+        Assert.NotNull(result.Shapes);
+        Assert.Empty(result.Shapes);
+    }
 }

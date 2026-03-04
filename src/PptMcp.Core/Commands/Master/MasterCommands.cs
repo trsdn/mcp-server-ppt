@@ -150,4 +150,130 @@ public class MasterCommands : IMasterCommands
             }
         });
     }
+
+    public OperationResult ListLayouts(IPptBatch batch, int masterIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic masters = ((dynamic)ctx.Presentation).SlideMasters;
+            dynamic master = masters.Item(masterIndex);
+            dynamic layouts = master.CustomLayouts;
+            try
+            {
+                int count = (int)layouts.Count;
+                var layoutInfos = new List<LayoutInfo>(count);
+
+                for (int i = 1; i <= count; i++)
+                {
+                    dynamic layout = layouts.Item(i);
+                    try
+                    {
+                        string name = layout.Name?.ToString() ?? $"Layout {i}";
+                        string? matchingName = null;
+                        try { matchingName = layout.MatchingName?.ToString(); } catch { }
+
+                        layoutInfos.Add(new LayoutInfo
+                        {
+                            Name = name,
+                            Index = i,
+                            MatchingName = string.IsNullOrEmpty(matchingName) ? null : matchingName
+                        });
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref layout!);
+                    }
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "list-layouts",
+                    Message = $"Master {masterIndex} has {count} custom layout(s):\n" +
+                        string.Join("\n", layoutInfos.Select(l => l.MatchingName != null
+                            ? $"  {l.Index}. {l.Name} (matching: {l.MatchingName})"
+                            : $"  {l.Index}. {l.Name}")),
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref layouts!);
+                ComUtilities.Release(ref master!);
+                ComUtilities.Release(ref masters!);
+            }
+        });
+    }
+
+    public OperationResult DeleteUnused(IPptBatch batch)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic designs = pres.Designs;
+            dynamic slides = pres.Slides;
+            try
+            {
+                int slideCount = (int)slides.Count;
+                int designCount = (int)designs.Count;
+
+                // Build a set of design names that are in use
+                var usedDesignNames = new HashSet<string>();
+                for (int s = 1; s <= slideCount; s++)
+                {
+                    dynamic slide = slides.Item(s);
+                    try
+                    {
+                        string designName = slide.Design.Name?.ToString() ?? "";
+                        if (!string.IsNullOrEmpty(designName))
+                            usedDesignNames.Add(designName);
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref slide!);
+                    }
+                }
+
+                // Delete unused designs in reverse order to avoid index shifts
+                int deletedCount = 0;
+                for (int d = designCount; d >= 1; d--)
+                {
+                    // Never delete the last remaining design
+                    int currentCount = (int)designs.Count;
+                    if (currentCount <= 1)
+                        break;
+
+                    dynamic design = designs.Item(d);
+                    try
+                    {
+                        string name = design.Name?.ToString() ?? "";
+                        if (!usedDesignNames.Contains(name))
+                        {
+                            design.Delete();
+                            deletedCount++;
+                        }
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref design!);
+                    }
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "delete-unused",
+                    Message = deletedCount > 0
+                        ? $"Deleted {deletedCount} unused master(s)"
+                        : "No unused masters found",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slides!);
+                ComUtilities.Release(ref designs!);
+            }
+        });
+    }
 }

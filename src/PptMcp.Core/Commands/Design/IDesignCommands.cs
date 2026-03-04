@@ -38,4 +38,12 @@ public interface IDesignCommands
     /// </summary>
     [ServiceAction("list-color-schemes")]
     ColorSchemeListResult ListColorSchemes(IPptBatch batch);
+
+    /// <summary>
+    /// Get the theme fonts (heading and body) for a design.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="designIndex">1-based design index (0 = first design)</param>
+    [ServiceAction("get-fonts")]
+    ThemeFontResult GetThemeFonts(IPptBatch batch, int designIndex);
 }

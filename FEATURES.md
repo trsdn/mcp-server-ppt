@@ -1,6 +1,6 @@
 # PptMcp - Complete Feature Reference
 
-**32 specialized tools with 170 operations for comprehensive PowerPoint automation**
+**33 specialized tools with 204 operations for comprehensive PowerPoint automation**
 
 ---
 

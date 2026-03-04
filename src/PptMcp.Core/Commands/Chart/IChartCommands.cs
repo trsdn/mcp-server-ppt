@@ -73,4 +73,34 @@ public interface IChartCommands
     /// <param name="position">Legend position: -4107=Bottom, -4131=Left, -4152=Right, -4160=Top, -4161=TopRight</param>
     [ServiceAction("set-legend")]
     OperationResult SetLegend(IPptBatch batch, int slideIndex, string shapeName, bool visible, int position);
+
+    /// <summary>
+    /// Read chart data from the embedded data worksheet and return as a text grid.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the chart shape</param>
+    [ServiceAction("read-data")]
+    OperationResult ReadData(IPptBatch batch, int slideIndex, string shapeName);
+
+    /// <summary>
+    /// Set the title of a chart axis.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the chart shape</param>
+    /// <param name="axisType">Axis type: 1=Category(X), 2=Value(Y)</param>
+    /// <param name="title">Title text for the axis</param>
+    [ServiceAction("set-axis-title")]
+    OperationResult SetAxisTitle(IPptBatch batch, int slideIndex, string shapeName, int axisType, string title);
+
+    /// <summary>
+    /// Show or hide the chart data table.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the chart shape</param>
+    /// <param name="visible">Whether the data table is visible</param>
+    [ServiceAction("toggle-data-table")]
+    OperationResult ToggleDataTable(IPptBatch batch, int slideIndex, string shapeName, bool visible);
 }

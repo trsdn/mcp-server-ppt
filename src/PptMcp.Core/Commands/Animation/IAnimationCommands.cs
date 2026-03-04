@@ -51,4 +51,14 @@ public interface IAnimationCommands
     /// <param name="triggerType">1=OnClick, 2=WithPrevious, 3=AfterPrevious</param>
     [ServiceAction("set-timing")]
     OperationResult SetTiming(IPptBatch batch, int slideIndex, int effectIndex, float duration, float delay, int triggerType);
+
+    /// <summary>
+    /// Reorder an animation effect by moving it to a new position in the sequence.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="effectIndex">1-based index of the effect to move</param>
+    /// <param name="newIndex">1-based target position in the sequence</param>
+    [ServiceAction("reorder")]
+    OperationResult Reorder(IPptBatch batch, int slideIndex, int effectIndex, int newIndex);
 }

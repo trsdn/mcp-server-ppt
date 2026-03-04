@@ -19,6 +19,7 @@ using PptMcp.Core.Commands.Media;
 using PptMcp.Core.Commands.Notes;
 using PptMcp.Core.Commands.PageSetup;
 using PptMcp.Core.Commands.Placeholder;
+using PptMcp.Core.Commands.PrintOptions;
 using PptMcp.Core.Commands.Proofing;
 using PptMcp.Core.Commands.Section;
 using PptMcp.Core.Commands.Shape;
@@ -653,6 +654,66 @@ public class CoreCommandsCoverageTests
             var exception = Record.Exception(() => ServiceRegistry.Tag.ToActionString(action));
             Assert.Null(exception);
             Assert.NotEmpty(ServiceRegistry.Tag.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void IProofingCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(IProofingCommands));
+        var enumValueCount = Enum.GetValues<ProofingAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"IProofingCommands has {coreMethodCount} [ServiceAction] methods but ProofingAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void IPrintOptionsCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(IPrintOptionsCommands));
+        var enumValueCount = Enum.GetValues<PrintoptionsAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"IPrintOptionsCommands has {coreMethodCount} [ServiceAction] methods but PrintoptionsAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void IAccessibilityCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(IAccessibilityCommands));
+        var enumValueCount = Enum.GetValues<AccessibilityAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"IAccessibilityCommands has {coreMethodCount} [ServiceAction] methods but AccessibilityAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void ProofingAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<ProofingAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Proofing.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Proofing.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void PrintoptionsAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<PrintoptionsAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Printoptions.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Printoptions.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void AccessibilityAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<AccessibilityAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Accessibility.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Accessibility.ToActionString(action));
         }
     }
 

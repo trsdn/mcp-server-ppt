@@ -368,4 +368,28 @@ public class ExportCommands : IExportCommands
             };
         });
     }
+
+    public ExportResult SaveCopy(IPptBatch batch, string destinationPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            string fullPath = Path.GetFullPath(destinationPath);
+            string? directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
+            dynamic pres = ctx.Presentation;
+            pres.SaveCopyAs(fullPath);
+
+            return new ExportResult
+            {
+                Success = true,
+                FilePath = ctx.PresentationPath,
+                OutputPath = fullPath,
+                Format = Path.GetExtension(fullPath).TrimStart('.').ToUpperInvariant()
+            };
+        });
+    }
 }

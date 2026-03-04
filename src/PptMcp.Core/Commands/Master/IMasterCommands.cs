@@ -28,4 +28,15 @@ public interface IMasterCommands
     /// <param name="text">New text content</param>
     [ServiceAction("edit-shape-text")]
     OperationResult EditShapeText(IPptBatch batch, int masterIndex, string shapeName, string text);
+
+    /// <summary>List all custom layouts for a specific slide master.</summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="masterIndex">1-based slide master index</param>
+    [ServiceAction("list-layouts")]
+    OperationResult ListLayouts(IPptBatch batch, int masterIndex);
+
+    /// <summary>Delete unused slide masters that have no slides referencing them. Will not delete the last remaining master.</summary>
+    /// <param name="batch">Batch context</param>
+    [ServiceAction("delete-unused")]
+    OperationResult DeleteUnused(IPptBatch batch);
 }

@@ -70,6 +70,7 @@ public class McpServerIntegrationTests(ITestOutputHelper output) : IAsyncLifetim
         "notes",
         "pagesetup",
         "placeholder",
+        "printoptions",
         "proofing",
         "section",
         "shape",

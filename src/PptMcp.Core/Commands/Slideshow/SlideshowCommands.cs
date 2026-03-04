@@ -154,4 +154,41 @@ public class SlideshowCommands : ISlideshowCommands
             };
         });
     }
+
+    public OperationResult Configure(IPptBatch batch, int showType, bool loopUntilStopped, bool showWithAnimation, bool showWithNarration)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = (dynamic)ctx.Presentation;
+            dynamic settings = pres.SlideShowSettings;
+            try
+            {
+                int type = showType >= 1 && showType <= 3 ? showType : 1;
+                settings.ShowType = type;
+                settings.LoopUntilStopped = loopUntilStopped ? -1 : 0;
+                settings.ShowWithAnimation = showWithAnimation ? -1 : 0;
+                settings.ShowWithNarration = showWithNarration ? -1 : 0;
+
+                string typeName = type switch
+                {
+                    1 => "Speaker (full screen)",
+                    2 => "Browsed by individual (window)",
+                    3 => "Browsed at kiosk (loop)",
+                    _ => "Unknown"
+                };
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "configure",
+                    Message = $"Configured slideshow: type={typeName}, loop={loopUntilStopped}, animation={showWithAnimation}, narration={showWithNarration}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref settings!);
+            }
+        });
+    }
 }

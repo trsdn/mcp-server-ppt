@@ -213,6 +213,46 @@ public class AnimationCommands : IAnimationCommands
         });
     }
 
+    public OperationResult Reorder(IPptBatch batch, int slideIndex, int effectIndex, int newIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic? timeline = null;
+            dynamic? mainSequence = null;
+            dynamic? effect = null;
+            try
+            {
+                timeline = slide.TimeLine;
+                mainSequence = timeline.MainSequence;
+                int count = (int)mainSequence.Count;
+
+                if (effectIndex < 1 || effectIndex > count)
+                    throw new ArgumentOutOfRangeException(nameof(effectIndex), $"effectIndex {effectIndex} is out of range (1-{count})");
+                if (newIndex < 1 || newIndex > count)
+                    throw new ArgumentOutOfRangeException(nameof(newIndex), $"newIndex {newIndex} is out of range (1-{count})");
+
+                effect = mainSequence.Item(effectIndex);
+                effect.MoveTo(newIndex);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "reorder",
+                    Message = $"Moved animation effect from position {effectIndex} to {newIndex} on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (effect != null) ComUtilities.Release(ref effect!);
+                if (mainSequence != null) ComUtilities.Release(ref mainSequence!);
+                if (timeline != null) ComUtilities.Release(ref timeline!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static string GetEffectTypeName(int effectType) => effectType switch
     {
         1 => "Appear",

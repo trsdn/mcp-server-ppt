@@ -85,4 +85,12 @@ public interface IExportCommands
     /// <param name="destinationDirectory">Directory to save extracted images</param>
     [ServiceAction("extract-images")]
     OperationResult ExtractImages(IPptBatch batch, string destinationDirectory);
+
+    /// <summary>
+    /// Save a copy of the presentation to a new path without changing the current file.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="destinationPath">Full path for the copy</param>
+    [ServiceAction("save-copy")]
+    ExportResult SaveCopy(IPptBatch batch, string destinationPath);
 }

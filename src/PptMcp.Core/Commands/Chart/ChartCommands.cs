@@ -325,4 +325,150 @@ public class ChartCommands : IChartCommands
             }
         });
     }
+
+    public OperationResult ReadData(IPptBatch batch, int slideIndex, string shapeName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? chart = null;
+            dynamic? chartData = null;
+            dynamic? workbook = null;
+            dynamic? dataSheet = null;
+            dynamic? usedRange = null;
+            try
+            {
+                chart = shape.Chart;
+                chartData = chart.ChartData;
+                chartData.Activate();
+                workbook = chartData.Workbook;
+                dataSheet = workbook.Worksheets(1);
+                usedRange = dataSheet.UsedRange;
+
+                int rowCount = (int)usedRange.Rows.Count;
+                int colCount = (int)usedRange.Columns.Count;
+
+                var lines = new System.Text.StringBuilder();
+                for (int r = 1; r <= rowCount; r++)
+                {
+                    for (int c = 1; c <= colCount; c++)
+                    {
+                        dynamic? cell = null;
+                        try
+                        {
+                            cell = usedRange.Cells(r, c);
+                            object? val = cell.Value2;
+                            if (c > 1) lines.Append('\t');
+                            lines.Append(val?.ToString() ?? "");
+                        }
+                        finally
+                        {
+                            if (cell != null) ComUtilities.Release(ref cell!);
+                        }
+                    }
+                    if (r < rowCount) lines.AppendLine();
+                }
+
+                try { workbook.Close(false); } catch { /* best-effort close */ }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "read-data",
+                    Message = lines.ToString(),
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (usedRange != null) ComUtilities.Release(ref usedRange!);
+                if (dataSheet != null) ComUtilities.Release(ref dataSheet!);
+                if (workbook != null) ComUtilities.Release(ref workbook!);
+                if (chartData != null) ComUtilities.Release(ref chartData!);
+                if (chart != null) ComUtilities.Release(ref chart!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult SetAxisTitle(IPptBatch batch, int slideIndex, string shapeName, int axisType, string title)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(title);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? chart = null;
+            dynamic? axis = null;
+            try
+            {
+                chart = shape.Chart;
+                // xlCategory=1, xlValue=2
+                axis = chart.Axes(axisType);
+                axis.HasTitle = true;
+                axis.AxisTitle.Text = title;
+
+                string axisName = axisType switch
+                {
+                    1 => "Category (X)",
+                    2 => "Value (Y)",
+                    _ => $"Axis({axisType})"
+                };
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-axis-title",
+                    Message = $"Set {axisName} axis title to '{title}' on '{shapeName}' slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (axis != null) ComUtilities.Release(ref axis!);
+                if (chart != null) ComUtilities.Release(ref chart!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult ToggleDataTable(IPptBatch batch, int slideIndex, string shapeName, bool visible)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? chart = null;
+            try
+            {
+                chart = shape.Chart;
+                chart.HasDataTable = visible;
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "toggle-data-table",
+                    Message = visible
+                        ? $"Showed data table on '{shapeName}' slide {slideIndex}"
+                        : $"Hid data table on '{shapeName}' slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (chart != null) ComUtilities.Release(ref chart!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
 }

@@ -38,4 +38,15 @@ public interface ISlideshowCommands
     /// </summary>
     [ServiceAction("get-status")]
     SlideshowInfoResult GetStatus(IPptBatch batch);
+
+    /// <summary>
+    /// Configure slideshow settings (show type, looping, animation, narration).
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="showType">1=Speaker (full screen), 2=Browsed by individual (window), 3=Browsed at kiosk (loop)</param>
+    /// <param name="loopUntilStopped">Whether to loop the slideshow continuously</param>
+    /// <param name="showWithAnimation">Whether to show animations during the slideshow</param>
+    /// <param name="showWithNarration">Whether to play narrations during the slideshow</param>
+    [ServiceAction("configure")]
+    OperationResult Configure(IPptBatch batch, int showType, bool loopUntilStopped, bool showWithAnimation, bool showWithNarration);
 }

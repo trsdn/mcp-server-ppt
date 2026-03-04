@@ -117,4 +117,21 @@ public interface ISlideCommands
     /// <param name="batch">Batch context</param>
     [ServiceAction("summary")]
     OperationResult Summary(IPptBatch batch);
+
+    /// <summary>
+    /// Show or hide master slide shapes (background graphics) on a slide.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="display">Whether to display master shapes</param>
+    [ServiceAction("set-display-master")]
+    OperationResult SetDisplayMaster(IPptBatch batch, int slideIndex, bool display);
+
+    /// <summary>
+    /// Copy a slide to the clipboard.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    [ServiceAction("copy")]
+    OperationResult CopyToClipboard(IPptBatch batch, int slideIndex);
 }

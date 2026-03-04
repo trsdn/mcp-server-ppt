@@ -177,4 +177,50 @@ public class DesignCommands : IDesignCommands
             }
         });
     }
+
+    public ThemeFontResult GetThemeFonts(IPptBatch batch, int designIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic designs = ((dynamic)ctx.Presentation).Designs;
+            int idx = designIndex <= 0 ? 1 : designIndex;
+            dynamic design = designs.Item(idx);
+            dynamic? slideMaster = null;
+            dynamic? theme = null;
+            dynamic? fontScheme = null;
+            dynamic? majorFont = null;
+            dynamic? minorFont = null;
+            try
+            {
+                slideMaster = design.SlideMaster;
+                theme = slideMaster.Theme;
+                fontScheme = theme.ThemeFontScheme;
+                majorFont = fontScheme.MajorFont;
+                minorFont = fontScheme.MinorFont;
+
+                // Item(1) = Latin font
+                string headingFont = majorFont.Item(1).Name?.ToString() ?? "";
+                string bodyFont = minorFont.Item(1).Name?.ToString() ?? "";
+
+                return new ThemeFontResult
+                {
+                    Success = true,
+                    FilePath = ctx.PresentationPath,
+                    DesignName = design.Name?.ToString() ?? "",
+                    HeadingFont = headingFont,
+                    BodyFont = bodyFont
+                };
+            }
+            finally
+            {
+                if (minorFont != null) ComUtilities.Release(ref minorFont!);
+                if (majorFont != null) ComUtilities.Release(ref majorFont!);
+                if (fontScheme != null) ComUtilities.Release(ref fontScheme!);
+                if (theme != null) ComUtilities.Release(ref theme!);
+                if (slideMaster != null) ComUtilities.Release(ref slideMaster!);
+                ComUtilities.Release(ref design!);
+                ComUtilities.Release(ref designs!);
+            }
+        });
+    }
 }

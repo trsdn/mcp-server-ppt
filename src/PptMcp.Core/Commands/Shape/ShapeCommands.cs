@@ -1068,4 +1068,302 @@ public class ShapeCommands : IShapeCommands
             }
         });
     }
+
+    public OperationResult SetActionSettings(IPptBatch batch, int slideIndex, string shapeName, int actionType, string? hyperlinkAddress)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        if (actionType == 7 && string.IsNullOrWhiteSpace(hyperlinkAddress))
+            throw new ArgumentException("hyperlinkAddress is required when actionType is 7 (Hyperlink)", nameof(hyperlinkAddress));
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? actionSettings = null;
+            dynamic? actionSetting = null;
+            try
+            {
+                actionSettings = shape.ActionSettings;
+                // Item(1) = ppMouseClick
+                actionSetting = actionSettings.Item(1);
+                actionSetting.Action = actionType;
+
+                if (actionType == 7 && !string.IsNullOrWhiteSpace(hyperlinkAddress))
+                {
+                    dynamic hyperlink = actionSetting.Hyperlink;
+                    try
+                    {
+                        hyperlink.Address = hyperlinkAddress;
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref hyperlink!);
+                    }
+                }
+
+                string actionDesc = actionType switch
+                {
+                    0 => "None",
+                    1 => "NextSlide",
+                    2 => "PreviousSlide",
+                    3 => "FirstSlide",
+                    4 => "LastSlide",
+                    7 => $"Hyperlink ({hyperlinkAddress})",
+                    _ => $"Action {actionType}"
+                };
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-action-settings",
+                    Message = $"Set action on shape '{shapeName}' to {actionDesc} on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (actionSetting != null) ComUtilities.Release(ref actionSetting!);
+                if (actionSettings != null) ComUtilities.Release(ref actionSettings!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult Scale(IPptBatch batch, int slideIndex, string shapeName, float scaleX, float scaleY)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                // 0 = msoScaleFromTopLeft, relative to current size
+                shape.ScaleWidth(scaleX, 0);
+                shape.ScaleHeight(scaleY, 0);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "scale",
+                    Message = $"Scaled shape '{shapeName}' by {scaleX:F2}x width, {scaleY:F2}x height on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult SetLockAspectRatio(IPptBatch batch, int slideIndex, string shapeName, bool locked)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                // msoTrue = -1, msoFalse = 0
+                shape.LockAspectRatio = locked ? -1 : 0;
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "lock-aspect-ratio",
+                    Message = locked
+                        ? $"Locked aspect ratio of shape '{shapeName}' on slide {slideIndex}"
+                        : $"Unlocked aspect ratio of shape '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult SetSoftEdge(IPptBatch batch, int slideIndex, string shapeName, float radius)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? softEdge = null;
+            try
+            {
+                softEdge = shape.SoftEdge;
+                // Type: 1 = msoSoftEdgeType1 (enabled), 0 = none
+                softEdge.Type = radius > 0 ? 1 : 0;
+                softEdge.Radius = radius;
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-soft-edge",
+                    Message = radius > 0
+                        ? $"Set soft edge on shape '{shapeName}' with radius {radius}pt on slide {slideIndex}"
+                        : $"Removed soft edge from shape '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (softEdge != null) ComUtilities.Release(ref softEdge!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult ReadShadow(IPptBatch batch, int slideIndex, string shapeName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? shadow = null;
+            try
+            {
+                shadow = shape.Shadow;
+                bool visible = Convert.ToInt32(shadow.Visible) != 0;
+
+                string message;
+                if (visible)
+                {
+                    float offsetX = Convert.ToSingle(shadow.OffsetX);
+                    float offsetY = Convert.ToSingle(shadow.OffsetY);
+                    float blur = Convert.ToSingle(shadow.Blur);
+                    int rgb = Convert.ToInt32(shadow.ForeColor.RGB);
+                    int r = rgb & 0xFF;
+                    int g = (rgb >> 8) & 0xFF;
+                    int b = (rgb >> 16) & 0xFF;
+                    string colorHex = $"#{r:X2}{g:X2}{b:X2}";
+                    message = $"Visible: true, OffsetX: {offsetX:F2}, OffsetY: {offsetY:F2}, Blur: {blur:F2}, Color: {colorHex}";
+                }
+                else
+                {
+                    message = "Visible: false";
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "read-shadow",
+                    Message = message,
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (shadow != null) ComUtilities.Release(ref shadow!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult AddTextEffect(IPptBatch batch, int slideIndex, int presetEffect, string text, string fontName, float fontSize, float left, float top)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        ArgumentException.ThrowIfNullOrWhiteSpace(fontName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic? shape = null;
+            try
+            {
+                // AddTextEffect(PresetTextEffect, Text, FontName, FontSize, FontBold, FontItalic, Left, Top)
+                // FontBold=0 (msoFalse), FontItalic=0 (msoFalse)
+                shape = slide.Shapes.AddTextEffect(presetEffect, text, fontName, fontSize, 0, 0, left, top);
+                string name = shape.Name?.ToString() ?? "";
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "add-text-effect",
+                    Message = $"Added text effect '{name}' with preset {presetEffect} on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (shape != null) ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult Set3D(IPptBatch batch, int slideIndex, string shapeName, float? rotationX, float? rotationY, float? rotationZ, int? bevelType, float? bevelDepth)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? threeD = null;
+            try
+            {
+                threeD = shape.ThreeD;
+                var changes = new List<string>();
+
+                if (rotationX.HasValue)
+                {
+                    threeD.RotationX = rotationX.Value;
+                    changes.Add($"RotationX={rotationX.Value}");
+                }
+                if (rotationY.HasValue)
+                {
+                    threeD.RotationY = rotationY.Value;
+                    changes.Add($"RotationY={rotationY.Value}");
+                }
+                if (rotationZ.HasValue)
+                {
+                    threeD.RotationZ = rotationZ.Value;
+                    changes.Add($"RotationZ={rotationZ.Value}");
+                }
+                if (bevelType.HasValue)
+                {
+                    threeD.BevelTopType = bevelType.Value;
+                    changes.Add($"BevelTopType={bevelType.Value}");
+                }
+                if (bevelDepth.HasValue)
+                {
+                    threeD.BevelTopDepth = bevelDepth.Value;
+                    changes.Add($"BevelTopDepth={bevelDepth.Value}");
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-3d",
+                    Message = changes.Count > 0
+                        ? $"Set 3D effects on shape '{shapeName}': {string.Join(", ", changes)} on slide {slideIndex}"
+                        : $"No 3D properties changed on shape '{shapeName}' (all parameters were null)",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (threeD != null) ComUtilities.Release(ref threeD!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
 }

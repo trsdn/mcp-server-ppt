@@ -123,4 +123,43 @@ public class MediaCommands : IMediaCommands
             }
         });
     }
+
+    public OperationResult SetPlayback(IPptBatch batch, int slideIndex, string shapeName, float? volume, bool? muted, float? fadeInSeconds, float? fadeOutSeconds)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                dynamic mediaFormat = shape.MediaFormat;
+                try
+                {
+                    if (volume.HasValue) mediaFormat.Volume = volume.Value;
+                    if (muted.HasValue) mediaFormat.Muted = muted.Value ? -1 : 0;
+                    if (fadeInSeconds.HasValue) mediaFormat.FadeInDuration = (int)(fadeInSeconds.Value * 1000);
+                    if (fadeOutSeconds.HasValue) mediaFormat.FadeOutDuration = (int)(fadeOutSeconds.Value * 1000);
+
+                    return new OperationResult
+                    {
+                        Success = true,
+                        Action = "set-playback",
+                        Message = $"Set playback properties on media shape '{shapeName}' on slide {slideIndex}",
+                        FilePath = ctx.PresentationPath
+                    };
+                }
+                finally
+                {
+                    ComUtilities.Release(ref mediaFormat!);
+                }
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
 }

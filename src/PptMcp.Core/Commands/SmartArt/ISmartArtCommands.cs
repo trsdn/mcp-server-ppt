@@ -25,4 +25,37 @@ public interface ISmartArtCommands
     /// <param name="text">Text for the new node</param>
     [ServiceAction("add-node")]
     OperationResult AddNode(IPptBatch batch, int slideIndex, string shapeName, string text);
+
+    /// <summary>Change the layout of a SmartArt diagram.</summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the SmartArt shape</param>
+    /// <param name="layoutIndex">1-based index into Application.SmartArtLayouts</param>
+    [ServiceAction("set-layout")]
+    OperationResult SetLayout(IPptBatch batch, int slideIndex, string shapeName, int layoutIndex);
+
+    /// <summary>Change the quick style of a SmartArt diagram.</summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the SmartArt shape</param>
+    /// <param name="styleIndex">1-based index into Application.SmartArtQuickStyles</param>
+    [ServiceAction("set-style")]
+    OperationResult SetStyle(IPptBatch batch, int slideIndex, string shapeName, int styleIndex);
+
+    /// <summary>Delete a node from a SmartArt diagram.</summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the SmartArt shape</param>
+    /// <param name="nodeIndex">1-based index of the node to delete</param>
+    [ServiceAction("delete-node")]
+    OperationResult DeleteNode(IPptBatch batch, int slideIndex, string shapeName, int nodeIndex);
+
+    /// <summary>Promote or demote a node in a SmartArt diagram to change its level.</summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the SmartArt shape</param>
+    /// <param name="nodeIndex">1-based index of the node</param>
+    /// <param name="promote">True to promote (decrease level), false to demote (increase level)</param>
+    [ServiceAction("change-level")]
+    OperationResult ChangeNodeLevel(IPptBatch batch, int slideIndex, string shapeName, int nodeIndex, bool promote);
 }

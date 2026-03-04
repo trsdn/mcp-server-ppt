@@ -32,4 +32,21 @@ public interface IImageCommands
     /// <param name="cropBottom">Crop from bottom in points (0 = no crop)</param>
     [ServiceAction("crop")]
     OperationResult Crop(IPptBatch batch, int slideIndex, string shapeName, float cropLeft, float cropRight, float cropTop, float cropBottom);
+
+    /// <summary>Set brightness and contrast on a picture shape.</summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the picture shape</param>
+    /// <param name="brightness">Brightness value (0.0 to 1.0)</param>
+    /// <param name="contrast">Contrast value (0.0 to 1.0)</param>
+    [ServiceAction("set-brightness-contrast")]
+    OperationResult SetBrightnessContrast(IPptBatch batch, int slideIndex, string shapeName, float brightness, float contrast);
+
+    /// <summary>Set a transparent color on a picture shape. Pixels matching this color become transparent.</summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the picture shape</param>
+    /// <param name="colorHex">Hex color string (#RRGGBB) to make transparent</param>
+    [ServiceAction("set-transparent-color")]
+    OperationResult SetTransparentColor(IPptBatch batch, int slideIndex, string shapeName, string colorHex);
 }

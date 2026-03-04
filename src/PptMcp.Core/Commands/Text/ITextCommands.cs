@@ -123,4 +123,64 @@ public interface ITextCommands
     /// <param name="url">URL for the hyperlink</param>
     [ServiceAction("insert-link")]
     OperationResult InsertLink(IPptBatch batch, int slideIndex, string shapeName, string linkText, string url);
+
+    /// <summary>
+    /// Change the case of text in a shape.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    /// <param name="caseType">1=Sentence, 2=Lower, 3=Upper, 4=Title, 5=Toggle</param>
+    [ServiceAction("change-case")]
+    OperationResult ChangeCase(IPptBatch batch, int slideIndex, string shapeName, int caseType);
+
+    /// <summary>
+    /// Read paragraph and character spacing from a shape's text.
+    /// Returns SpaceWithin, SpaceBefore, SpaceAfter, and character Spacing.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    [ServiceAction("read-spacing")]
+    OperationResult ReadSpacing(IPptBatch batch, int slideIndex, string shapeName);
+
+    /// <summary>
+    /// Read bullet settings from a shape's text.
+    /// Returns Bullet.Type, Bullet.Character, and IndentLevel for each paragraph.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    [ServiceAction("read-bullets")]
+    OperationResult ReadBullets(IPptBatch batch, int slideIndex, string shapeName);
+
+    /// <summary>
+    /// Insert a symbol character from a specified font into a shape's text.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    /// <param name="fontName">Font name containing the symbol (e.g. "Wingdings")</param>
+    /// <param name="charNumber">Unicode/character code of the symbol</param>
+    [ServiceAction("insert-symbol")]
+    OperationResult InsertSymbol(IPptBatch batch, int slideIndex, string shapeName, string fontName, int charNumber);
+
+    /// <summary>
+    /// Insert a date/time field into a shape's text.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    /// <param name="dateTimeFormat">PpDateTimeFormat value (1-13)</param>
+    [ServiceAction("insert-datetime")]
+    OperationResult InsertDateTime(IPptBatch batch, int slideIndex, string shapeName, int dateTimeFormat);
+
+    /// <summary>
+    /// Insert a slide number field into a shape's text.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    [ServiceAction("insert-slide-number")]
+    OperationResult InsertSlideNumber(IPptBatch batch, int slideIndex, string shapeName);
 }

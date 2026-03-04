@@ -56,4 +56,29 @@ public class PageSetupCommands : IPageSetupCommands
             }
         });
     }
+
+    public OperationResult SetFirstNumber(IPptBatch batch, int firstSlideNumber)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic pageSetup = pres.PageSetup;
+            try
+            {
+                pageSetup.FirstSlideNumber = firstSlideNumber;
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-first-number",
+                    Message = $"Set first slide number to {firstSlideNumber}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref pageSetup!);
+            }
+        });
+    }
 }
