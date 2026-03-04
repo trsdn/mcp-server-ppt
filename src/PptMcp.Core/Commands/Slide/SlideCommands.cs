@@ -1,0 +1,303 @@
+using PptMcp.ComInterop;
+using PptMcp.ComInterop.Session;
+using PptMcp.Core.Models;
+
+namespace PptMcp.Core.Commands.Slide;
+
+public class SlideCommands : ISlideCommands
+{
+    public SlideListResult List(IPptBatch batch)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            var result = new SlideListResult { Success = true, FilePath = ctx.PresentationPath };
+            dynamic pres = ctx.Presentation;
+            dynamic slides = pres.Slides;
+            try
+            {
+                int count = (int)slides.Count;
+
+                for (int i = 1; i <= count; i++)
+                {
+                    dynamic slide = slides.Item(i);
+                    try
+                    {
+                        var info = new SlideInfo
+                        {
+                            SlideIndex = i,
+                            SlideNumber = (int)slide.SlideNumber,
+                            SlideId = slide.SlideID.ToString(),
+                            ShapeCount = (int)slide.Shapes.Count,
+                        };
+
+                        try { info.LayoutName = slide.CustomLayout.Name?.ToString() ?? ""; } catch { info.LayoutName = ""; }
+                        try { info.MasterName = slide.Design.SlideMaster.Name?.ToString() ?? ""; } catch { info.MasterName = ""; }
+                        try { info.HasNotes = slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text?.ToString()?.Length > 0; } catch { info.HasNotes = false; }
+                        try { info.HasAnimations = (int)slide.TimeLine.MainSequence.Count > 0; } catch { info.HasAnimations = false; }
+                        try { info.Name = slide.Name?.ToString(); } catch { }
+
+                        result.Slides.Add(info);
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref slide!);
+                    }
+                }
+
+                return result;
+            }
+            finally
+            {
+                ComUtilities.Release(ref slides!);
+            }
+        });
+    }
+
+    public SlideDetailResult Read(IPptBatch batch, int slideIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic slides = pres.Slides;
+            dynamic slide = slides.Item(slideIndex);
+            try
+            {
+                var result = new SlideDetailResult
+                {
+                    Success = true,
+                    FilePath = ctx.PresentationPath,
+                    Slide = new SlideInfo
+                    {
+                        SlideIndex = slideIndex,
+                        SlideNumber = (int)slide.SlideNumber,
+                        SlideId = slide.SlideID.ToString(),
+                        ShapeCount = (int)slide.Shapes.Count,
+                    }
+                };
+
+                try { result.Slide.LayoutName = slide.CustomLayout.Name?.ToString() ?? ""; } catch { result.Slide.LayoutName = ""; }
+                try { result.Slide.MasterName = slide.Design.SlideMaster.Name?.ToString() ?? ""; } catch { result.Slide.MasterName = ""; }
+                try { result.Slide.Name = slide.Name?.ToString(); } catch { }
+
+                dynamic shapes = slide.Shapes;
+                int shapeCount = (int)shapes.Count;
+                for (int i = 1; i <= shapeCount; i++)
+                {
+                    dynamic shape = shapes.Item(i);
+                    try
+                    {
+                        result.Shapes.Add(ShapeHelpers.ReadShapeInfo(shape));
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref shape!);
+                    }
+                }
+                ComUtilities.Release(ref shapes!);
+
+                return result;
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+                ComUtilities.Release(ref slides!);
+            }
+        });
+    }
+
+    public OperationResult Create(IPptBatch batch, int position, string layoutName)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic slides = pres.Slides;
+            int slideCount = (int)slides.Count;
+
+            // Find the layout by name
+            dynamic? layout = FindLayout(pres, layoutName);
+            if (layout == null)
+                throw new ArgumentException($"Layout '{layoutName}' not found in this presentation.");
+
+            try
+            {
+                int insertAt = position <= 0 ? slideCount + 1 : position;
+                dynamic newSlide = slides.AddSlide(insertAt, layout);
+                int newIndex = (int)newSlide.SlideIndex;
+                ComUtilities.Release(ref newSlide!);
+                ComUtilities.Release(ref slides!);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "create",
+                    Message = $"Created slide at position {newIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref layout!);
+            }
+        });
+    }
+
+    public OperationResult Duplicate(IPptBatch batch, int slideIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic slides = pres.Slides;
+            dynamic slide = slides.Item(slideIndex);
+            try
+            {
+                dynamic duplicated = slide.Duplicate();
+                // Duplicate returns a SlideRange; get first item
+                dynamic newSlide = duplicated.Item(1);
+                int newIndex = (int)newSlide.SlideIndex;
+                ComUtilities.Release(ref newSlide!);
+                ComUtilities.Release(ref duplicated!);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "duplicate",
+                    Message = $"Duplicated slide {slideIndex} → new slide at position {newIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+                ComUtilities.Release(ref slides!);
+            }
+        });
+    }
+
+    public OperationResult Move(IPptBatch batch, int slideIndex, int newPosition)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic slides = pres.Slides;
+            dynamic slide = slides.Item(slideIndex);
+            try
+            {
+                slide.MoveTo(newPosition);
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "move",
+                    Message = $"Moved slide from position {slideIndex} to {newPosition}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+                ComUtilities.Release(ref slides!);
+            }
+        });
+    }
+
+    public OperationResult Delete(IPptBatch batch, int slideIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic slides = pres.Slides;
+            dynamic slide = slides.Item(slideIndex);
+            try
+            {
+                slide.Delete();
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "delete",
+                    Message = $"Deleted slide at position {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+                ComUtilities.Release(ref slides!);
+            }
+        });
+    }
+
+    public OperationResult ApplyLayout(IPptBatch batch, int slideIndex, string layoutName)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic slides = pres.Slides;
+            dynamic slide = slides.Item(slideIndex);
+            dynamic? layout = FindLayout(pres, layoutName);
+
+            if (layout == null)
+                throw new ArgumentException($"Layout '{layoutName}' not found in this presentation.");
+
+            try
+            {
+                slide.CustomLayout = layout;
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "apply-layout",
+                    Message = $"Applied layout '{layoutName}' to slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref layout!);
+                ComUtilities.Release(ref slide!);
+                ComUtilities.Release(ref slides!);
+            }
+        });
+    }
+
+    private static dynamic? FindLayout(dynamic pres, string layoutName)
+    {
+        // PowerPoint COM: Presentation.Designs → Design.SlideMaster.CustomLayouts
+        dynamic designs = pres.Designs;
+        try
+        {
+            int designCount = (int)designs.Count;
+
+            for (int d = 1; d <= designCount; d++)
+            {
+                dynamic design = designs.Item(d);
+                dynamic master = design.SlideMaster;
+                dynamic layouts = master.CustomLayouts;
+                try
+                {
+                    int layoutCount = (int)layouts.Count;
+
+                    for (int l = 1; l <= layoutCount; l++)
+                    {
+                        dynamic layout = layouts.Item(l);
+                        string name = layout.Name?.ToString() ?? "";
+                        if (string.Equals(name, layoutName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return layout;
+                        }
+                        ComUtilities.Release(ref layout!);
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref layouts!);
+                    ComUtilities.Release(ref master!);
+                    ComUtilities.Release(ref design!);
+                }
+            }
+
+            return null;
+        }
+        finally
+        {
+            ComUtilities.Release(ref designs!);
+        }
+    }
+}
