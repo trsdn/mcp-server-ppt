@@ -201,4 +201,90 @@ public class ResultTypeInvariantTests
         Assert.False(result.IsMacroEnabled);
         Assert.Equal(0, result.SlideCount);
     }
+
+    [Fact]
+    public void CommentListResult_DefaultValues()
+    {
+        var result = new CommentListResult();
+        Assert.False(result.Success);
+        Assert.NotNull(result.Comments);
+        Assert.Empty(result.Comments);
+    }
+
+    [Fact]
+    public void PlaceholderListResult_DefaultValues()
+    {
+        var result = new PlaceholderListResult();
+        Assert.False(result.Success);
+        Assert.NotNull(result.Placeholders);
+        Assert.Empty(result.Placeholders);
+        Assert.Equal(0, result.SlideIndex);
+    }
+
+    [Fact]
+    public void BackgroundResult_DefaultValues()
+    {
+        var result = new BackgroundResult();
+        Assert.False(result.Success);
+        Assert.False(result.FollowMasterBackground);
+        Assert.Equal(string.Empty, result.FillType);
+    }
+
+    [Fact]
+    public void HeaderFooterResult_DefaultValues()
+    {
+        var result = new HeaderFooterResult();
+        Assert.False(result.Success);
+        Assert.False(result.ShowFooter);
+        Assert.False(result.ShowSlideNumber);
+        Assert.False(result.ShowDate);
+        Assert.Null(result.FooterText);
+    }
+
+    [Fact]
+    public void SmartArtInfoResult_DefaultValues()
+    {
+        var result = new SmartArtInfoResult();
+        Assert.False(result.Success);
+        Assert.NotNull(result.Nodes);
+        Assert.Empty(result.Nodes);
+        Assert.Equal(string.Empty, result.LayoutName);
+    }
+
+    [Fact]
+    public void CustomShowListResult_DefaultValues()
+    {
+        var result = new CustomShowListResult();
+        Assert.False(result.Success);
+        Assert.NotNull(result.Shows);
+        Assert.Empty(result.Shows);
+    }
+
+    [Fact]
+    public void PageSetupResult_DefaultValues()
+    {
+        var result = new PageSetupResult();
+        Assert.False(result.Success);
+        Assert.Equal(0f, result.SlideWidth);
+        Assert.Equal(0f, result.SlideHeight);
+    }
+
+    [Fact]
+    public void TagListResult_DefaultValues()
+    {
+        var result = new TagListResult();
+        Assert.False(result.Success);
+        Assert.NotNull(result.Tags);
+        Assert.Empty(result.Tags);
+        Assert.Null(result.ShapeName);
+    }
+
+    [Fact]
+    public void ColorSchemeListResult_DefaultValues()
+    {
+        var result = new ColorSchemeListResult();
+        Assert.False(result.Success);
+        Assert.NotNull(result.ColorSchemes);
+        Assert.Empty(result.ColorSchemes);
+    }
 }

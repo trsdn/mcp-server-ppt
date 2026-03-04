@@ -99,7 +99,7 @@ public class PlaceholderCommands : IPlaceholderCommands
         });
     }
 
-    internal static string GetPlaceholderTypeName(int ppPlaceholderType) => ppPlaceholderType switch
+    private static string GetPlaceholderTypeName(int ppPlaceholderType) => ppPlaceholderType switch
     {
         1 => "Title",
         2 => "Body",
