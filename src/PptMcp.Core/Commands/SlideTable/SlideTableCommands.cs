@@ -485,6 +485,56 @@ public class SlideTableCommands : ISlideTableCommands
         });
     }
 
+    public OperationResult SetCellBorder(IPptBatch batch, int slideIndex, string shapeName, int row, int column, string colorHex, float width)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(colorHex);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? table = null;
+            dynamic? cell = null;
+            try
+            {
+                table = shape.Table;
+                cell = table.Cell(row, column);
+                int rgb = HexToOleColor(colorHex);
+
+                // ppBorderTop=1, ppBorderLeft=2, ppBorderBottom=3, ppBorderRight=4
+                for (int edge = 1; edge <= 4; edge++)
+                {
+                    dynamic border = cell.Borders.Item(edge);
+                    try
+                    {
+                        border.ForeColor.RGB = rgb;
+                        border.Weight = width;
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref border!);
+                    }
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-cell-border",
+                    Message = $"Set borders on cell ({row},{column}) in table '{shapeName}' on slide {slideIndex} to color '{colorHex}' width {width}pt",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (cell != null) ComUtilities.Release(ref cell!);
+                if (table != null) ComUtilities.Release(ref table!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static int HexToOleColor(string hex)
     {
         hex = hex.TrimStart('#');

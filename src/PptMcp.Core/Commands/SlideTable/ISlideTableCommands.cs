@@ -145,4 +145,17 @@ public interface ISlideTableCommands
     /// <param name="row">1-based row index</param>
     [ServiceAction("read-row")]
     OperationResult ReadRow(IPptBatch batch, int slideIndex, string shapeName, int row);
+
+    /// <summary>
+    /// Set all four borders of a table cell to the same color and width.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the table shape</param>
+    /// <param name="row">1-based row index</param>
+    /// <param name="column">1-based column index</param>
+    /// <param name="colorHex">Border color as hex (#RRGGBB)</param>
+    /// <param name="width">Border width in points</param>
+    [ServiceAction("set-cell-border")]
+    OperationResult SetCellBorder(IPptBatch batch, int slideIndex, string shapeName, int row, int column, string colorHex, float width);
 }

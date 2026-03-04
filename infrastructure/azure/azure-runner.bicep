@@ -1,4 +1,4 @@
-// Azure Bicep Template for Excel Integration Test Runner
+// Azure Bicep Template for PowerPoint Integration Test Runner
 // Automates provisioning of Windows VM with GitHub Actions self-hosted runner
 
 @description('Location for all resources')
@@ -183,4 +183,4 @@ output vmResourceId string = vm.id
 output vmName string = vmName
 output nextSteps string = 'Connect via Azure Portal → VM → Connect → Bastion. Then install Excel, .NET SDK, and GitHub runner manually'
 output monthlyCost string = 'Estimated ~$200/month (VM $61 + Bastion Developer $140) in Sweden Central'
-output manualSetup string = 'Install: 1) Office 365 Excel, 2) .NET 10 SDK, 3) GitHub Actions Runner from https://github.com/trsdn/mcp-server-ppt/settings/actions/runners'
+output manualSetup string = 'Install: 1) Office 365 PowerPoint, 2) .NET 10 SDK, 3) GitHub Actions Runner from https://github.com/trsdn/mcp-server-ppt/settings/actions/runners'

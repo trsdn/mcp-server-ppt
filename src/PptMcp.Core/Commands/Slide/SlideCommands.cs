@@ -426,6 +426,59 @@ public class SlideCommands : ISlideCommands
         });
     }
 
+    public OperationResult Summary(IPptBatch batch)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic slides = pres.Slides;
+            dynamic pageSetup = pres.PageSetup;
+            try
+            {
+                int slideCount = (int)slides.Count;
+                float slideWidth = (float)pageSetup.SlideWidth;
+                float slideHeight = (float)pageSetup.SlideHeight;
+
+                bool hasNotesMaster = false;
+                try { hasNotesMaster = Convert.ToInt32(pres.HasNotesMaster) != 0; } catch { }
+
+                string templateName = "";
+                try { templateName = pres.TemplateName?.ToString() ?? ""; } catch { }
+
+                int totalShapes = 0;
+                for (int i = 1; i <= slideCount; i++)
+                {
+                    dynamic slide = slides.Item(i);
+                    try
+                    {
+                        totalShapes += (int)slide.Shapes.Count;
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref slide!);
+                    }
+                }
+
+                var message = $"Slides: {slideCount}, Dimensions: {slideWidth}x{slideHeight}pt, " +
+                              $"HasNotesMaster: {hasNotesMaster}, TemplateName: '{templateName}', " +
+                              $"TotalShapes: {totalShapes}";
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "summary",
+                    Message = message,
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref pageSetup!);
+                ComUtilities.Release(ref slides!);
+            }
+        });
+    }
+
     /// <summary>
     /// Replaces text in a shape, recursing into grouped shapes (Type == 6).
     /// </summary>

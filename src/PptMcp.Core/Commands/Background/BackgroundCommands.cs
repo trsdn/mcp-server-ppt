@@ -134,6 +134,39 @@ public class BackgroundCommands : IBackgroundCommands
         });
     }
 
+    public OperationResult SetGradient(IPptBatch batch, int slideIndex, string color1, string color2, int gradientStyle)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(color1);
+        ArgumentException.ThrowIfNullOrWhiteSpace(color2);
+
+        if (gradientStyle < 1 || gradientStyle > 6)
+            throw new ArgumentOutOfRangeException(nameof(gradientStyle), "gradientStyle must be 1-6 (1=Horizontal, 2=Vertical, 3=DiagonalUp, 4=DiagonalDown, 5=FromCorner, 6=FromCenter)");
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            try
+            {
+                slide.FollowMasterBackground = 0; // msoFalse
+                slide.Background.Fill.TwoColorGradient(gradientStyle, 1);
+                slide.Background.Fill.ForeColor.RGB = HexToOleColor(color1);
+                slide.Background.Fill.BackColor.RGB = HexToOleColor(color2);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-gradient",
+                    Message = $"Set gradient background on slide {slideIndex} from '{color1}' to '{color2}' (style {gradientStyle})",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static string GetFillTypeName(int msoFillType) => msoFillType switch
     {
         1 => "Solid",

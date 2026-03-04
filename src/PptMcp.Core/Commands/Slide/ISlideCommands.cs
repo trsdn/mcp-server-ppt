@@ -110,4 +110,11 @@ public interface ISlideCommands
     /// <param name="destinationPath">Full path for the output PNG file</param>
     [ServiceAction("get-thumbnail")]
     OperationResult GetThumbnail(IPptBatch batch, int slideIndex, string destinationPath);
+
+    /// <summary>
+    /// Get a summary of the presentation including slide count, dimensions, and metadata.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    [ServiceAction("summary")]
+    OperationResult Summary(IPptBatch batch);
 }
