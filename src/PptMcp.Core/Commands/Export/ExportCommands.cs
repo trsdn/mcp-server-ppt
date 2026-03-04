@@ -101,4 +101,29 @@ public class ExportCommands : IExportCommands
             };
         });
     }
+
+    public OperationResult Print(IPptBatch batch, int copies, int fromSlide, int toSlide)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            int numCopies = copies > 0 ? copies : 1;
+            int from = fromSlide > 0 ? fromSlide : -1;
+            int to = toSlide > 0 ? toSlide : -1;
+
+            if (from > 0 && to > 0)
+                pres.PrintOut(from, to, "", numCopies);
+            else
+                pres.PrintOut(1, (int)pres.Slides.Count, "", numCopies);
+
+            return new OperationResult
+            {
+                Success = true,
+                Action = "print",
+                Message = $"Printed {numCopies} copy(ies)" +
+                    (from > 0 ? $" (slides {from}-{to})" : " (all slides)"),
+                FilePath = ctx.PresentationPath
+            };
+        });
+    }
 }

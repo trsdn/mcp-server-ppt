@@ -36,4 +36,14 @@ public interface IExportCommands
     /// <param name="resolution">1=1080p, 2=720p, 3=480p</param>
     [ServiceAction("to-video")]
     ExportResult ToVideo(IPptBatch batch, string destinationPath, int defaultSlideSeconds, int resolution);
+
+    /// <summary>
+    /// Print the presentation.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="copies">Number of copies (default: 1)</param>
+    /// <param name="fromSlide">First slide to print (0 = from beginning)</param>
+    /// <param name="toSlide">Last slide to print (0 = to end)</param>
+    [ServiceAction("print")]
+    OperationResult Print(IPptBatch batch, int copies, int fromSlide, int toSlide);
 }

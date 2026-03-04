@@ -132,4 +132,49 @@ public class DesignCommands : IDesignCommands
             }
         });
     }
+
+    public ColorSchemeListResult ListColorSchemes(IPptBatch batch)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic colorSchemes = ((dynamic)ctx.Presentation).ColorSchemes;
+            try
+            {
+                var result = new ColorSchemeListResult { Success = true, FilePath = ctx.PresentationPath };
+                int count = (int)colorSchemes.Count;
+                for (int i = 1; i <= count; i++)
+                {
+                    dynamic cs = colorSchemes.Item(i);
+                    try
+                    {
+                        var info = new ColorSchemeInfo { Index = i };
+                        // RGBColor indices: 1-8 map to standard PowerPoint color roles
+                        string[] roleNames = ["Background", "Text", "Shadow", "Title", "Fill", "Accent1", "Accent2", "Accent3"];
+                        for (int c = 1; c <= Math.Min(8, roleNames.Length); c++)
+                        {
+                            try
+                            {
+                                int rgb = (int)cs.Colors(c).RGB;
+                                int r = rgb & 0xFF;
+                                int g = (rgb >> 8) & 0xFF;
+                                int b = (rgb >> 16) & 0xFF;
+                                info.Colors[roleNames[c - 1]] = $"#{r:X2}{g:X2}{b:X2}";
+                            }
+                            catch { }
+                        }
+                        result.ColorSchemes.Add(info);
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref cs!);
+                    }
+                }
+                return result;
+            }
+            finally
+            {
+                ComUtilities.Release(ref colorSchemes!);
+            }
+        });
+    }
 }

@@ -540,3 +540,16 @@ public class TagInfo
     public string Name { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
 }
+
+// ── Color Scheme ─────────────────────────────────────────
+
+public class ColorSchemeListResult : ResultBase
+{
+    public List<ColorSchemeInfo> ColorSchemes { get; set; } = [];
+}
+
+public class ColorSchemeInfo
+{
+    public int Index { get; set; }
+    public Dictionary<string, string> Colors { get; set; } = [];
+}
