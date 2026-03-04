@@ -38,7 +38,6 @@ A clear and concise description of any alternative solutions or features you've 
 
 ## Use Case
 Describe the specific use case this feature would address:
-- [ ] Power Query management
 - [ ] VBA script automation
 - [ ] Slide operations  
 - [ ] Data analysis

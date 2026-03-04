@@ -89,9 +89,7 @@ AI: [response]
 - **File Format**: [.pptx or .pptm]
 - **File Size**: [approximate size]
 - **Contains**: 
-  - [ ] Power Queries
   - [ ] VBA Macros
-  - [ ] Named Ranges
   - [ ] Multiple slides
   - [ ] External connections
 

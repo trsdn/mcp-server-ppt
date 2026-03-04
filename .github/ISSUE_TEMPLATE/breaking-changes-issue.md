@@ -17,7 +17,7 @@ Since PptMcp MCP Server hasn't been released yet, we can make breaking changes w
 ### Key Changes
 
 1. **Better Terminology**: `batchId` → `sessionId` (clearer intent)
-2. **Consistent Naming**: `presentationPath` → `filePath`, `sheetName` → `slideName`
+2. **Consistent Naming**: `presentationPath` → `filePath`, `slideIndex` parameter changes
 3. **Standardized Errors**: Error codes and structured error responses
 4. **Cleaner Code**: Remove redundant validation attributes
 5. **Richer Responses**: Add metadata to all tool outputs
@@ -53,26 +53,26 @@ Since PptMcp MCP Server hasn't been released yet, we can make breaking changes w
 **Affected files**: 16 C# files
 
 - [ ] Update all tool files:
-  - `PptPowerQueryTool.cs`
-  - `PptWorksheetTool.cs`
-  - `PptParameterTool.cs`
-  - `PptCellTool.cs`
+  - `PptSlideTool.cs`
+  - `PptShapeTool.cs`
+  - `PptTextTool.cs`
+  - `PptChartTool.cs`
   - `PptVbaTool.cs`
-  - `PptConnectionTool.cs`
-  - `PptDataModelTool.cs`
+  - `PptAnimationTool.cs`
+  - `PptTransitionTool.cs`
   - `PptFileTool.cs`
-  - `HyperlinkTool.cs`
-  - `TableTool.cs`
+  - `PptNotesTool.cs`
+  - `PptMediaTool.cs`
 - [ ] Update all Core command interfaces
 - [ ] Update all Core command implementations
 - [ ] Update all tests
 - [ ] Update all prompt content and documentation
 
-#### 1.3 sheetName → worksheetName
+#### 1.3 slideIndex parameter changes
 **Affected files**: ~5 files
 
-- [ ] `PptWorksheetTool.cs`
-- [ ] Worksheet Core commands
+- [ ] `PptSlideTool.cs`
+- [ ] Slide Core commands
 - [ ] Related tests
 - [ ] Prompt content
 - [ ] Documentation
@@ -84,10 +84,10 @@ Since PptMcp MCP Server hasn't been released yet, we can make breaking changes w
 - [ ] Define standard error codes:
   ```csharp
   FILE_NOT_FOUND
-  QUERY_NOT_FOUND
-  WORKSHEET_NOT_FOUND
-  INVALID_M_CODE
-  PRIVACY_LEVEL_REQUIRED
+  SLIDE_NOT_FOUND
+  SHAPE_NOT_FOUND
+  INVALID_PARAMETER
+  ANIMATION_ERROR
   VBA_TRUST_REQUIRED
   POWERPOINT_BUSY
   SESSION_NOT_FOUND
@@ -100,11 +100,11 @@ Since PptMcp MCP Server hasn't been released yet, we can make breaking changes w
   {
     "success": false,
     "error": {
-      "code": "QUERY_NOT_FOUND",
-      "message": "Power Query 'SalesData' not found",
+      "code": "SLIDE_NOT_FOUND",
+      "message": "Slide 'Intro' not found",
       "details": {
-        "queryName": "SalesData",
-        "availableQueries": ["Data1", "Data2"]
+        "slideName": "Intro",
+        "availableSlides": ["Slide1", "Slide2"]
       }
     }
   }
@@ -202,7 +202,7 @@ Since PptMcp MCP Server hasn't been released yet, we can make breaking changes w
 
 - [ ] All `batchId` references changed to `sessionId`
 - [ ] All `presentationPath` references changed to `filePath`
-- [ ] All `sheetName` references changed to `worksheetName`
+- [ ] All `slideIndex` references updated consistently
 - [ ] Error response format standardized with error codes
 - [ ] Validation attributes cleaned up
 - [ ] Rich metadata added to all responses

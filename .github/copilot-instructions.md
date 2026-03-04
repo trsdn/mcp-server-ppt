@@ -53,9 +53,9 @@
 dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust"
 
 # Surgical testing - Feature-specific (2-5 minutes per feature)
-dotnet test --filter "Feature=PowerQuery&RunType!=OnDemand"
-dotnet test --filter "Feature=Ranges&RunType!=OnDemand"
-dotnet test --filter "Feature=PivotTables&RunType!=OnDemand"
+dotnet test --filter "Feature=Slide&RunType!=OnDemand"
+dotnet test --filter "Feature=Shape&RunType!=OnDemand"
+dotnet test --filter "Feature=Text&RunType!=OnDemand"
 
 # Session/batch changes (MANDATORY)
 dotnet test --filter "RunType=OnDemand"
@@ -122,7 +122,7 @@ public void TestMethod()
 
 **Batch API:** Create NEW simple tests. CLI needs try-catch wrapping.
 
-**PowerPoint Quirks:** Type 3/4 both handle TEXT. `RefreshAll()` unreliable. Use `queryTable.Refresh(false)`.
+**PowerPoint Quirks:** Shape Z-order requires explicit reordering. Slide indices are 1-based. Use `Slides.Item(index)` not zero-based access.
 
 **MCP Design:** Prompts are shortcuts, not tutorials. LLMs know PowerPoint/programming.
 

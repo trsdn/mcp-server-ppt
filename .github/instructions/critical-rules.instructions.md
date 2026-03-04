@@ -51,7 +51,7 @@ applyTo: "**"
 - Any information that could identify a specific customer engagement
 
 **Allowed:**
-- Generic descriptions ("a Power Query", "a PowerPoint presentation")
+- Generic descriptions ("a slide shape", "a PowerPoint presentation")
 - Technical details that don't identify the source ("a column with a hyphen in the name")
 - Error messages and stack traces (sanitized of paths/names)
 
@@ -61,7 +61,7 @@ applyTo: "**"
 Discovered while debugging Milestone_Export query in CP Toolkit's MSX Plan.pptx
 
 # ✅ CORRECT: Generic description
-Discovered while debugging a Power Query that referenced a column with a hyphen
+Discovered while debugging a slide shape that referenced an embedded object
 ```
 
 **Enforcement:**
@@ -139,7 +139,7 @@ Discovered while debugging a Power Query that referenced a column with a hyphen
 ```csharp
 // ❌ CRITICAL BUG: Confuses LLMs and users
 result.Success = true;
-result.ErrorMessage = "Query imported but failed to load...";
+result.ErrorMessage = "Shape added but failed to format...";
 
 // ✅ CORRECT: Success only when NO errors
 if (!loadResult.Success) {
@@ -183,12 +183,12 @@ try {
 
 **Enforcement:**
 - Pre-commit hook runs `check-success-flag.ps1` to detect violations
-- Regression tests verify this invariant (PowerQuerySuccessErrorRegressionTests)
+- Regression tests verify this invariant (SlideSuccessErrorRegressionTests)
 - Code review MUST check every `Success = ` assignment
 - Search pattern: `Success.*true.*ErrorMessage`
 
 **Examples of bugs found:**
-- 43 violations across Connection, PowerQuery, DataModel, VBA, Range, Table commands
+- 43 violations across Slide, Shape, Text, VBA, Chart, Animation commands
 - All followed pattern: `Success = true` at start, `ErrorMessage` set in catch without `Success = false`
 
 ---
@@ -204,8 +204,8 @@ public async Task<OperationResult> CreateAsync(IPptBatch batch, string name)
     try
     {
         return await batch.Execute((ctx, ct) => {
-            var sheet = ctx.Book.Worksheets.Add();
-            sheet.Name = name;
+            var slide = ctx.Presentation.Slides.Add(1, 1);
+            slide.Name = name;
             return ValueTask.FromResult(new OperationResult { Success = true });
         });
     }
@@ -224,8 +224,8 @@ public async Task<OperationResult> CreateAsync(IPptBatch batch, string name)
 public async Task<OperationResult> CreateAsync(IPptBatch batch, string name)
 {
     return await batch.Execute((ctx, ct) => {
-        var sheet = ctx.Book.Worksheets.Add();
-        sheet.Name = name;
+        var slide = ctx.Presentation.Slides.Add(1, 1);
+        slide.Name = name;
         return ValueTask.FromResult(new OperationResult { Success = true });
     });
     // batch.Execute() catches via TaskCompletionSource → returns OperationResult { Success = false }
@@ -432,7 +432,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 
 **Why:** Incomplete bug fixes lead to regressions, confusion, and wasted time. Comprehensive fixes prevent future issues.
 
-**Example:** Refresh + loadDestination bug = 1 code file + 13 tests + 5 doc files + detailed PR description = complete fix.
+**Example:** Shape rotation + positioning bug = 1 code file + 13 tests + 5 doc files + detailed PR description = complete fix.
 
 ---
 
@@ -532,9 +532,9 @@ dotnet test --filter "Category=Integration&RunType!=OnDemand"
 **Correct:**
 ```bash
 # ✅ CORRECT: Test only the feature you changed
-dotnet test --filter "Feature=PowerQuery&RunType!=OnDemand"  # PowerQuery changes only
-dotnet test --filter "Feature=Connection&RunType!=OnDemand"  # Connection changes only
-dotnet test --filter "Feature=Sheet&RunType!=OnDemand"       # Sheet changes only
+dotnet test --filter "Feature=Slide&RunType!=OnDemand"       # Slide changes only
+dotnet test --filter "Feature=Shape&RunType!=OnDemand"      # Shape changes only
+dotnet test --filter "Feature=Text&RunType!=OnDemand"       # Text changes only
 ```
 
 **Why Critical:** Integration tests require PowerPoint COM automation and are SLOW. Running all tests wastes time and resources.
@@ -587,10 +587,10 @@ private static async Task<string> SomeAction(...)
 
 **Example - Business Error (return JSON):**
 ```csharp
-// Core returns: { Success = false, ErrorMessage = "Table 'Sales' not found" }
+// Core returns: { Success = false, ErrorMessage = "Shape 'Title' not found" }
 // MCP Tool: Return this as-is
 return JsonSerializer.Serialize(result, JsonOptions);
-// Client gets: {"success": false, "errorMessage": "Table 'Sales' not found"}
+// Client gets: {"success": false, "errorMessage": "Shape 'Title' not found"}
 ```
 
 **Example - Validation Error (throw exception):**
@@ -615,7 +615,7 @@ if (string.IsNullOrWhiteSpace(tableName))
 1. **Purpose and Use Cases Clear**:
    ```csharp
    // ❌ WRONG: Vague description
-   /// <summary>Manage worksheets</summary>
+   /// <summary>Manage slides</summary>
    
    // ✅ CORRECT: Clear purpose and use cases
    /// <summary>
@@ -626,27 +626,27 @@ if (string.IsNullOrWhiteSpace(tableName))
 2. **Non-Enum Parameter Values Documented**:
    ```csharp
    // ❌ WRONG: Parameter values not explained
-   /// <summary>Import Power Query with loadDestination parameter</summary>
+   /// <summary>Add shape with shapeType parameter</summary>
    
    // ✅ CORRECT: Non-enum parameter values explained
    /// <summary>
-   /// Import Power Query.
+   /// Add shape to slide.
    /// 
-   /// LOAD DESTINATIONS:
-   /// - 'slide': Load to slide (DEFAULT)
-   /// - 'data-model': Load to Power Pivot
-   /// - 'both': Load to BOTH
-   /// - 'connection-only': Don't load data
+   /// SHAPE TYPES:
+   /// - 'rectangle': Add rectangle shape (DEFAULT)
+   /// - 'oval': Add oval shape
+   /// - 'textbox': Add text box
+   /// - 'line': Add line shape
    /// </summary>
    ```
 
 3. **Server-Specific Behavior Documented**:
    ```csharp
    // ❌ WRONG: Behavior changed but description outdated
-   /// <summary>Default: loadDestination='connection-only'</summary>  // Wrong!
+   /// <summary>Default: shapeType='line'</summary>  // Wrong!
    
    // ✅ CORRECT: Description reflects actual default
-   /// <summary>Default: loadDestination='slide'</summary>
+   /// <summary>Default: shapeType='rectangle'</summary>
    ```
 
 **What NOT to include:**
@@ -661,7 +661,7 @@ if (string.IsNullOrWhiteSpace(tableName))
 
 **When to Update:**
 - Changing default values or server behavior
-- Adding/changing non-enum parameter values (loadDestination, formatCode, etc.)
+- Adding/changing non-enum parameter values (shapeType, transitionType, etc.)
 - Changing which tools to use for related operations
 - Adding performance guidance (batch mode)
 
@@ -724,11 +724,11 @@ mcp_github_github_pull_request_read(method="get_review_comments", owner="trsdn",
 // ❌ WRONG: Swallows exception, sets fallback value
 try
 {
-    dynamic pivotLayout = chart.PivotLayout;
-    dynamic pivotTable = pivotLayout.PivotTable;
-    name = pivotTable.Name?.ToString() ?? string.Empty;
-    ComUtilities.Release(ref pivotTable!);  // Won't execute if exception occurs!
-    ComUtilities.Release(ref pivotLayout!);
+    dynamic slideLayout = slide.CustomLayout;
+    dynamic shapePlaceholder = slideLayout.SlideMaster;
+    name = shapePlaceholder.Name?.ToString() ?? string.Empty;
+    ComUtilities.Release(ref shapePlaceholder!);  // Won't execute if exception occurs!
+    ComUtilities.Release(ref slideLayout!);
 }
 catch
 {
@@ -736,18 +736,18 @@ catch
 }
 
 // ✅ CORRECT: Finally ensures cleanup, exceptions propagate
-dynamic? pivotLayout = null;
-dynamic? pivotTable = null;
+dynamic? slideLayout = null;
+dynamic? shapePlaceholder = null;
 try
 {
-    pivotLayout = chart.PivotLayout;
-    pivotTable = pivotLayout.PivotTable;
-    name = pivotTable.Name?.ToString() ?? string.Empty;
+    slideLayout = slide.CustomLayout;
+    shapePlaceholder = slideLayout.SlideMaster;
+    name = shapePlaceholder.Name?.ToString() ?? string.Empty;
 }
 finally
 {
-    if (pivotTable != null) ComUtilities.Release(ref pivotTable!);
-    if (pivotLayout != null) ComUtilities.Release(ref pivotLayout!);
+    if (shapePlaceholder != null) ComUtilities.Release(ref shapePlaceholder!);
+    if (slideLayout != null) ComUtilities.Release(ref slideLayout!);
 }
 // Exception propagates naturally, COM objects always released
 ```
@@ -862,12 +862,12 @@ grep -r "209 operations\|210 operations\|10 ops\|11 ops" --include="*.md"
 - Before EVERY commit that touches tool/action code
 
 **Historical Example (Jan 2026):**
-PowerQuery `unload` action was added to:
+Slide `duplicate` action was added to:
 - ✅ ToolActions.cs enum
 - ✅ ActionExtensions.cs mapping
-- ✅ IPowerQueryCommands.cs interface
-- ✅ PowerQueryCommands.Lifecycle.cs implementation
-- ✅ PptPowerQueryTool.cs MCP handler
+- ✅ ISlideCommands.cs interface
+- ✅ SlideCommands.Lifecycle.cs implementation
+- ✅ PptSlideTool.cs MCP handler
 - ❌ PptDaemon.cs CLI handler (MISSED!)
 - ❌ FEATURES.md count (MISSED!)
 - ❌ README files (MISSED!)
@@ -970,35 +970,35 @@ Select-String -Path "**/*.md" -Pattern '```bash' -Recurse
 > **If the COM method's parameter name is clear and self-describing in our flat tool schema, use it.
 > If the COM name is opaque or ambiguous without its parent context, keep a more descriptive name.**
 
-**Why:** MCP tool parameters appear in a flat schema — they lose the context of the parent class/method. A name that works when you see `PivotTable.RowAxisLayout(RowLayout)` may be opaque when the LLM just sees a `row_layout` parameter. Conversely, inventing a name like `layoutType` when COM already calls it `RowLayout` adds unnecessary indirection.
+**Why:** MCP tool parameters appear in a flat schema — they lose the context of the parent class/method. A name that works when you see `Shape.Rotation` may be opaque when the LLM just sees a `rotation` parameter. Conversely, inventing a name like `rotationAngle` when COM already calls it `Rotation` adds unnecessary indirection.
 
 **Decision Framework:**
 
 | COM API | COM Param | Our Param | Rationale |
 |---------|-----------|-----------|-----------|
-| `Names.Add(Name)` | `Name` | `name` | ✅ Clear in flat schema — "name of the named range" |
-| `PivotTable.RowAxisLayout(RowLayout)` | `RowLayout` | `rowLayout` | ✅ `row_layout` values 0/1/2 are self-describing in tool schema |
-| `Range.Value2` | (property) | `value` | ✅ Clear in context |
-| `Presentation.Connections` | (collection) | `connectionName` | ✅ Keep descriptive — COM's `Name` property is too generic |
-| `PivotField.Subtotals` | (property) | `subtotalFunction` | ✅ Keep descriptive — `subtotals` alone is ambiguous |
+| `Slides.Add(Index, Layout)` | `Index` | `slideIndex` | ✅ Keep descriptive — `index` alone is ambiguous |
+| `Shape.Rotation` | `Rotation` | `rotation` | ✅ `rotation` is self-describing in tool schema |
+| `Shape.Name` | `Name` | `shapeName` | ✅ Keep descriptive — COM's `Name` property is too generic in flat schema |
+| `TextFrame.Text` | (property) | `text` | ✅ Clear in context |
+| `SlideRange.Item(Index)` | `Index` | `slideIndex` | ✅ Keep descriptive — `index` alone is ambiguous |
 
 **Implementation Pattern:**
 ```csharp
 // ✅ COM name is clear → use it directly
-void Write(IPptBatch batch, [FromString("name")] string name, ...);
+void SetRotation(IPptBatch batch, string shapeName, float rotation, ...);
 
 // ✅ COM name works in flat schema → use it
-OperationResult SetLayout(IPptBatch batch, string pivotTableName, int rowLayout);
+OperationResult SetText(IPptBatch batch, string shapeName, string text);
 
 // ✅ COM name too generic → keep descriptive
-void AddField(IPptBatch batch, string pivotTableName, string fieldName, string fieldArea);
+void AddShape(IPptBatch batch, int slideIndex, string shapeName, string shapeType);
 ```
 
 **When Adding New Parameters:**
 1. Check the COM API docs for the original parameter name
 2. Ask: "Would an LLM understand `{com_param_name}` without seeing the method/class name?"
-3. If YES → use COM name (e.g., `name`, `rowLayout`, `reference`)
-4. If NO → use descriptive name (e.g., `fieldName` not `Name`, `subtotalFunction` not `Function`)
+3. If YES → use COM name (e.g., `rotation`, `text`, `left`)
+4. If NO → use descriptive name (e.g., `shapeName` not `Name`, `slideIndex` not `Index`)
 
 ---
 
@@ -1079,7 +1079,7 @@ public void ProgressAdapter_Maps_Current_To_Progress()
 
 **NEVER write unit tests. Unit tests that mock COM objects, fake contexts, or test adapter mappings in isolation prove NOTHING. Write integration tests that exercise real PowerPoint COM automation.**
 
-**Why Critical:** PptMcp is a COM interop project. The bugs that matter — STA threading deadlocks, COM object leaks, OleMessageFilter re-entrancy, type conversion failures (`double` vs `int`), QueryTable persistence — **only manifest when real PowerPoint is running**. A unit test that verifies an adapter maps field A to field B catches zero real bugs. An integration test that opens a presentation, refreshes a Power Query, and verifies the result catches ALL of them.
+**Why Critical:** PptMcp is a COM interop project. The bugs that matter — STA threading deadlocks, COM object leaks, OleMessageFilter re-entrancy, type conversion failures (`double` vs `int`), shape persistence — **only manifest when real PowerPoint is running**. A unit test that verifies an adapter maps field A to field B catches zero real bugs. An integration test that opens a presentation, adds a shape, and verifies the result catches ALL of them.
 
 ```csharp
 // ❌ WRONG: Unit test that proves nothing
@@ -1095,15 +1095,15 @@ public void Adapter_Maps_Field_A_To_Field_B()
 // ✅ CORRECT: Integration test that catches real bugs
 [Fact]
 [Trait("Category", "Integration")]
-[Trait("Feature", "PowerQuery")]
-public void Refresh_ReportsProgress_DuringExecution()
+[Trait("Feature", "Slide")]
+public void AddShape_ReportsProgress_DuringExecution()
 {
     using var batch = PptSession.BeginBatch(_testFile);
     var progress = new List<ProgressInfo>();
-    var result = _commands.Refresh(batch, "TestQuery",
+    var result = _commands.AddShape(batch, 1, "Rectangle",
         new Progress<ProgressInfo>(p => progress.Add(p)));
     Assert.True(result.Success);
-    Assert.NotEmpty(progress);  // Real PowerPoint, real refresh, real progress
+    Assert.NotEmpty(progress);  // Real PowerPoint, real shape creation, real progress
 }
 ```
 
@@ -1125,5 +1125,5 @@ public void Refresh_ReportsProgress_DuringExecution()
 - If a test doesn't require PowerPoint, question whether it tests anything meaningful
 - The only acceptable non-integration tests are for pure algorithmic utilities with zero COM dependency (e.g., string parsing, enum mapping validation)
 
-**Historical Lesson:** 10 unit tests were written for the MCP progress feature (McpProgressAdapter mapping, ProgressContext AsyncLocal). All 10 passed. Zero of them would have caught the real bugs: STA thread affinity issues, COM callback re-entrancy during refresh, or progress notifications not flowing through the generated code pipeline. The unit tests tested the unit tests.
+**Historical Lesson:** 10 unit tests were written for the MCP progress feature (McpProgressAdapter mapping, ProgressContext AsyncLocal). All 10 passed. Zero of them would have caught the real bugs: STA thread affinity issues, COM callback re-entrancy during shape operations, or progress notifications not flowing through the generated code pipeline. The unit tests tested the unit tests.
 
