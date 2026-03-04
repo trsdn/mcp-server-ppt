@@ -60,4 +60,45 @@ public class ExportCommands : IExportCommands
             }
         });
     }
+
+    public ExportResult ToVideo(IPptBatch batch, string destinationPath, int defaultSlideSeconds, int resolution)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            string fullPath = Path.GetFullPath(destinationPath);
+            string? directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
+            dynamic pres = ctx.Presentation;
+            int seconds = defaultSlideSeconds > 0 ? defaultSlideSeconds : 5;
+            // Resolution: 1=1080p, 2=720p, 3=480p (maps to ppResolution enum)
+            int res = resolution >= 1 && resolution <= 3 ? resolution : 1;
+
+            // CreateVideo(FileName, UseTimingsAndNarrations, DefaultSlideDuration, VertResolution, FramesPerSecond, Quality)
+            pres.CreateVideo(fullPath, false, seconds, res == 1 ? 1080 : res == 2 ? 720 : 480, 30, 85);
+
+            // Wait for video creation to complete
+            int timeout = 300; // 5 minutes max
+            while (Convert.ToInt32(pres.CreateVideoStatus) == 1 && timeout > 0) // ppMediaTaskStatusInProgress = 1
+            {
+                System.Threading.Thread.Sleep(1000);
+                timeout--;
+            }
+
+            int status = Convert.ToInt32(pres.CreateVideoStatus);
+            if (status == 3) // ppMediaTaskStatusFailed
+                throw new InvalidOperationException("Video creation failed.");
+
+            return new ExportResult
+            {
+                Success = true,
+                FilePath = ctx.PresentationPath,
+                OutputPath = fullPath,
+                Format = "MP4"
+            };
+        });
+    }
 }

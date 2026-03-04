@@ -433,7 +433,196 @@ public class ShapeCommands : IShapeCommands
         });
     }
 
-    /// <summary>Convert hex color string (#RRGGBB) to OLE color (R | G&lt;&lt;8 | B&lt;&lt;16).</summary>
+    public OperationResult CopyToSlide(IPptBatch batch, int slideIndex, string shapeName, int targetSlideIndex)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic srcSlide = pres.Slides.Item(slideIndex);
+            dynamic shape = srcSlide.Shapes.Item(shapeName);
+            try
+            {
+                shape.Copy();
+                dynamic targetSlide = pres.Slides.Item(targetSlideIndex);
+                dynamic pasted = targetSlide.Shapes.Paste();
+                string newName = "";
+                try { newName = pasted.Item(1).Name?.ToString() ?? ""; } catch { }
+                ComUtilities.Release(ref pasted!);
+                ComUtilities.Release(ref targetSlide!);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "copy-to-slide",
+                    Message = $"Copied shape '{shapeName}' from slide {slideIndex} to slide {targetSlideIndex}" +
+                              (string.IsNullOrEmpty(newName) ? "" : $" as '{newName}'"),
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref srcSlide!);
+            }
+        });
+    }
+
+    public OperationResult SetShadow(IPptBatch batch, int slideIndex, string shapeName, bool visible, float offsetX, float offsetY)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                dynamic shadow = shape.Shadow;
+                try
+                {
+                    shadow.Visible = visible ? -1 : 0;
+                    if (visible)
+                    {
+                        shadow.OffsetX = offsetX;
+                        shadow.OffsetY = offsetY;
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref shadow!);
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-shadow",
+                    Message = visible
+                        ? $"Set shadow on shape '{shapeName}' (offset {offsetX},{offsetY})"
+                        : $"Removed shadow from shape '{shapeName}'",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult AddConnector(IPptBatch batch, int slideIndex, int connectorType, string startShapeName, string endShapeName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(startShapeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(endShapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic? startShape = null;
+            dynamic? endShape = null;
+            dynamic? connector = null;
+            try
+            {
+                startShape = slide.Shapes.Item(startShapeName);
+                endShape = slide.Shapes.Item(endShapeName);
+
+                // AddConnector(Type, BeginX, BeginY, EndX, EndY)
+                // Type: 1=msoConnectorStraight, 2=msoConnectorElbow, 3=msoConnectorCurve
+                float sx = Convert.ToSingle(startShape.Left) + Convert.ToSingle(startShape.Width) / 2;
+                float sy = Convert.ToSingle(startShape.Top) + Convert.ToSingle(startShape.Height) / 2;
+                float ex = Convert.ToSingle(endShape.Left) + Convert.ToSingle(endShape.Width) / 2;
+                float ey = Convert.ToSingle(endShape.Top) + Convert.ToSingle(endShape.Height) / 2;
+
+                connector = slide.Shapes.AddConnector(connectorType, sx, sy, ex, ey);
+                dynamic cf = connector.ConnectorFormat;
+                try
+                {
+                    cf.BeginConnect(startShape, 1);
+                    cf.EndConnect(endShape, 1);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref cf!);
+                }
+
+                string name = connector.Name?.ToString() ?? "";
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "add-connector",
+                    Message = $"Added connector '{name}' between '{startShapeName}' and '{endShapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (connector != null) ComUtilities.Release(ref connector!);
+                if (endShape != null) ComUtilities.Release(ref endShape!);
+                if (startShape != null) ComUtilities.Release(ref startShape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult MergeShapes(IPptBatch batch, int slideIndex, string shapeNames, int mergeType)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeNames);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            try
+            {
+                string[] names = shapeNames.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (names.Length < 2)
+                    throw new ArgumentException("At least 2 shape names are required for merge.");
+
+                dynamic shapes = slide.Shapes;
+                try
+                {
+                    object[] nameArray = names.Cast<object>().ToArray();
+                    dynamic range = shapes.Range(nameArray);
+                    try
+                    {
+                        // MergeShapes: 1=Union, 2=Combine, 3=Fragment, 4=Intersect, 5=Subtract
+                        range.MergeShapes(mergeType);
+
+                        string mergeName = mergeType switch
+                        {
+                            1 => "union",
+                            2 => "combine",
+                            3 => "fragment",
+                            4 => "intersect",
+                            5 => "subtract",
+                            _ => $"type({mergeType})"
+                        };
+
+                        return new OperationResult
+                        {
+                            Success = true,
+                            Action = "merge",
+                            Message = $"Merged {names.Length} shapes using {mergeName} on slide {slideIndex}",
+                            FilePath = ctx.PresentationPath
+                        };
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref range!);
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref shapes!);
+                }
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
     private static int HexToOleColor(string hex)
     {
         hex = hex.TrimStart('#');

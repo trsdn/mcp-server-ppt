@@ -20,10 +20,10 @@
 
 ## 🎯 What You Can Do
 
-**30 specialized tools with 110 operations:**
+**30 specialized tools with 115 operations:**
 
 - 📄 **Slides** (1 tool, 7 ops) — Create, duplicate, move, delete, apply layouts
-- 🔷 **Shapes** (1 tool, 13 ops) — Add textboxes/shapes, move, resize, fill, line, rotation, z-order, grouping
+- 🔷 **Shapes** (1 tool, 17 ops) — Add, move, resize, fill, line, shadow, rotation, z-order, grouping, copy, connectors, merge
 - 📝 **Text** (1 tool, 6 ops) — Get/set text, find, replace, format (font, size, bold, italic, color, alignment)
 - 📊 **Charts** (1 tool, 5 ops) — Create charts, set title, type, get info, delete
 - 📋 **Slide Tables** (1 tool, 9 ops) — Create, read, write cells, add/delete rows and columns
@@ -36,7 +36,7 @@
 - 🔗 **Hyperlinks** (1 tool, 4 ops) — Add, read, list, remove hyperlinks
 - 📺 **Slideshow** (1 tool, 4 ops) — Start, stop, navigate, get status
 - 🎭 **Slide Masters** (1 tool, 1 op) — List masters and layouts
-- 📤 **Export** (1 tool, 2 ops) — Export to PDF, export slides as images
+- 📤 **Export** (1 tool, 3 ops) — Export to PDF, slides as images, presentation as video (MP4)
 - 📝 **VBA** (1 tool, 5 ops) — List, view, import, delete, run macros
 - 🎥 **Media** (1 tool, 3 ops) — Insert audio/video, get media info
 - 🪟 **Window** (1 tool, 4 ops) — Show/hide, minimize, maximize, get window info
@@ -53,7 +53,7 @@
 - 📥 **Slide Import** (1 tool, 1 op) — Import slides from another .pptx file
 - 🏷️ **Tags** (1 tool, 3 ops) — Custom metadata on slides and shapes
 
-📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 110 operations
+📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 115 operations
 
 
 ## 💬 Example Prompts
