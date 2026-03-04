@@ -37,7 +37,7 @@ on:
         type: string
 
 env:
-  DOTNET_VERSION: '10.0.x'
+  DOTNET_VERSION: '9.0.x'
   NODE_VERSION: '22'
 
 jobs:
@@ -142,7 +142,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: cli-build
-        path: src/PptMcp.CLI/bin/Release/net10.0-windows/
+        path: src/PptMcp.CLI/bin/Release/net9.0-windows/
 
     - name: Upload CLI NuGet Artifact
       uses: actions/upload-artifact@v4
@@ -173,7 +173,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: cli-build
-        path: src/PptMcp.CLI/bin/Release/net10.0-windows/
+        path: src/PptMcp.CLI/bin/Release/net9.0-windows/
 
     - name: Set Version
       run: |
@@ -207,7 +207,7 @@ jobs:
       run: |
         $version = $env:VERSION
         New-Item -ItemType Directory -Path "release/PptMcp-MCP-Server-$version" -Force
-        Copy-Item "src/PptMcp.McpServer/bin/Release/net10.0-windows/*" "release/PptMcp-MCP-Server-$version/" -Recurse
+        Copy-Item "src/PptMcp.McpServer/bin/Release/net9.0-windows/*" "release/PptMcp-MCP-Server-$version/" -Recurse
         Copy-Item "README.md" "release/PptMcp-MCP-Server-$version/"
         Copy-Item "LICENSE" "release/PptMcp-MCP-Server-$version/"
         Compress-Archive -Path "release/PptMcp-MCP-Server-$version/*" -DestinationPath "PptMcp-MCP-Server-$version-windows.zip"

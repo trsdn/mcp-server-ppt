@@ -42,7 +42,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 10.0.x
+        dotnet-version: 9.0.x
 
     - name: Restore dependencies
       run: dotnet restore src/PptMcp.CLI/PptMcp.CLI.csproj
@@ -64,13 +64,13 @@ jobs:
     - name: Verify CLI build
       run: |
         # Check pptcli main executable
-        if (Test-Path "src/PptMcp.CLI/bin/Release/net10.0-windows/pptcli.exe") {
+        if (Test-Path "src/PptMcp.CLI/bin/Release/net9.0-windows/pptcli.exe") {
           Write-Output "✅ pptcli.exe built successfully"
-          $version = (Get-Item "src/PptMcp.CLI/bin/Release/net10.0-windows/pptcli.exe").VersionInfo.FileVersion
+          $version = (Get-Item "src/PptMcp.CLI/bin/Release/net9.0-windows/pptcli.exe").VersionInfo.FileVersion
           Write-Output "Version: $version"
 
           # Test CLI help command (safe - no PowerPoint COM required)
-          $helpOutput = & "src/PptMcp.CLI/bin/Release/net10.0-windows/pptcli.exe" --help 2>&1
+          $helpOutput = & "src/PptMcp.CLI/bin/Release/net9.0-windows/pptcli.exe" --help 2>&1
           $exitCode = $LASTEXITCODE
 
           if ($exitCode -eq 0) {
@@ -101,4 +101,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: PptMcp-CLI-${{ github.sha }}
-        path: src/PptMcp.CLI/bin/Release/net10.0-windows/
+        path: src/PptMcp.CLI/bin/Release/net9.0-windows/
