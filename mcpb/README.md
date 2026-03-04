@@ -93,9 +93,7 @@ PowerPoint MCP Server runs **entirely on your computer**. Your PowerPoint data:
 - Is not sent to any external servers
 - Is not used for training AI models
 
-**Anonymous Telemetry:** We collect anonymous usage statistics (tool usage, performance metrics, error rates) to improve the software. No file contents, file names, or personal data are collected.
-
-See our complete [Privacy Policy](https://PptMcpserver.dev/privacy/).
+**Zero Logging:** This software does not collect any telemetry, usage statistics, or analytics data. No data is transmitted to external services.
 
 ## Troubleshooting
 

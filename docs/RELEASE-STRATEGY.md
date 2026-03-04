@@ -178,7 +178,6 @@ Configure these GitHub repository secrets:
 |--------|---------|
 | `NUGET_USER` | NuGet.org username (for OIDC trusted publishing) |
 | `VSCE_TOKEN` | VS Code Marketplace PAT |
-| `APPINSIGHTS_CONNECTION_STRING` | Application Insights (optional telemetry) |
 
 > **Note:** NuGet uses OIDC trusted publishing (no API key needed). The `NUGET_USER` is just the NuGet.org profile name for OIDC token exchange.
 

@@ -3,7 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2025-12-19
 
 ## Active Technologies
-- C# 14 / .NET 10.0 + ModelContextProtocol, Microsoft.Extensions.*, Application Insights (006-dotnet10-upgrade)
+- C# 14 / .NET 10.0 + ModelContextProtocol, Microsoft.Extensions.* (006-dotnet10-upgrade)
 - N/A (PowerPoint files managed via COM) (006-dotnet10-upgrade)
 - Markdown/YAML (documentation only, no code) + None (static files following agentskills.io spec) (007-agent-skills)
 - N/A (file-based skill package) (007-agent-skills)

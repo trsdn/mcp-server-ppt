@@ -384,7 +384,6 @@ Potential improvements:
 - [ ] Status bar item showing server status
 - [ ] Commands to restart/reload MCP server
 - [ ] Settings for custom tool arguments
-- [ ] Telemetry for usage insights
 - [ ] Automatic update notifications
 
 ## References

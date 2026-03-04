@@ -106,8 +106,6 @@ This extension includes an **Agent Skill** following the [agentskills.io](https:
 
 MIT License - see [LICENSE](https://github.com/trsdn/mcp-server-ppt/blob/main/LICENSE)
 
-Privacy Policy - see [PRIVACY.md](https://github.com/trsdn/mcp-server-ppt/blob/main/PRIVACY.md)
-
 ---
 
 **Built with GitHub Copilot** | **Powered by Model Context Protocol**

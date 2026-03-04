@@ -1,8 +1,6 @@
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using PptMcp.McpServer.Telemetry;
 
 #pragma warning disable IL2070 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' requirements
 
@@ -117,9 +115,8 @@ public static class PptToolsBase
 
     /// <summary>
     /// Executes a tool operation and serializes any exception using shared error formatting.
-    /// Tracks tool usage telemetry (if enabled).
     /// </summary>
-    /// <param name="toolName">Tool name for telemetry (e.g., "range").</param>
+    /// <param name="toolName">Tool name (e.g., "range").</param>
     /// <param name="actionName">Action string (kebab-case) included in error context.</param>
     /// <param name="operation">Synchronous operation to execute.</param>
     /// <param name="customHandler">Optional handler that can override default error serialization. Return null/empty to fall back to default.</param>
@@ -133,9 +130,8 @@ public static class PptToolsBase
 
     /// <summary>
     /// Executes a tool operation and serializes any exception using shared error formatting.
-    /// Tracks tool usage telemetry (if enabled).
     /// </summary>
-    /// <param name="toolName">Tool name for telemetry (e.g., "range").</param>
+    /// <param name="toolName">Tool name (e.g., "range").</param>
     /// <param name="actionName">Action string (kebab-case) included in error context.</param>
     /// <param name="path">Optional PowerPoint path for context in error messages.</param>
     /// <param name="operation">Synchronous operation to execute.</param>
@@ -148,14 +144,9 @@ public static class PptToolsBase
         Func<string> operation,
         Func<Exception, string?>? customHandler = null)
     {
-        var stopwatch = Stopwatch.StartNew();
-        var success = false;
-
         try
         {
-            var result = operation();
-            success = true;
-            return result;
+            return operation();
         }
         catch (Exception ex)
         {
@@ -183,11 +174,6 @@ public static class PptToolsBase
             }
 
             return SerializeToolError(actionName, path, ex);
-        }
-        finally
-        {
-            stopwatch.Stop();
-            PptMcpTelemetry.TrackToolInvocation(toolName, actionName, stopwatch.ElapsedMilliseconds, success, path);
         }
     }
 

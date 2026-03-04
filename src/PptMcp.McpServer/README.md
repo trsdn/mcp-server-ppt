@@ -113,6 +113,5 @@ dotnet tool install --global PptMcp.CLI
 - **[CLI Documentation](https://github.com/trsdn/mcp-server-ppt/blob/main/src/PptMcp.CLI/README.md)** - Comprehensive commands for RPA and CI/CD automation
 
 **License:** MIT  
-**Privacy:** [PRIVACY.md](https://github.com/trsdn/mcp-server-ppt/blob/main/PRIVACY.md)  
 **Platform:** Windows only (requires PowerPoint 2016+)  
 **Support:** [GitHub Issues](https://github.com/trsdn/mcp-server-ppt/issues)

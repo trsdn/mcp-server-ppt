@@ -15,7 +15,6 @@ name: Release All Components
 # Required GitHub Secrets:
 # - NUGET_USER: Your NuGet.org username (profile name, NOT email)
 # - VSCE_TOKEN: VS Code Marketplace PAT
-# - APPINSIGHTS_CONNECTION_STRING: Application Insights connection string
 #
 # npm publishing uses Trusted Publishing (OIDC) — no token needed.
 # Configure at npmjs.com → Package Settings → Trusted Publisher.
@@ -200,8 +199,6 @@ jobs:
 
     - name: Build
       run: dotnet build src/PptMcp.McpServer/PptMcp.McpServer.csproj --configuration Release --no-restore -p:Version=${{ env.VERSION }} -p:AssemblyVersion=${{ env.VERSION }}.0 -p:FileVersion=${{ env.VERSION }}.0
-      env:
-        APPINSIGHTS_CONNECTION_STRING: ${{ secrets.APPINSIGHTS_CONNECTION_STRING }}
 
     - name: Pack NuGet
       run: dotnet pack src/PptMcp.McpServer/PptMcp.McpServer.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ env.VERSION }}
@@ -291,8 +288,6 @@ jobs:
       run: |
         cd vscode-extension
         npm run package
-      env:
-        APPINSIGHTS_CONNECTION_STRING: ${{ secrets.APPINSIGHTS_CONNECTION_STRING }}
 
     - name: Rename VSIX
       run: |
@@ -340,8 +335,6 @@ jobs:
         cd mcpb
         .\Build-McpBundle.ps1 -Version $env:VERSION
       shell: pwsh
-      env:
-        APPINSIGHTS_CONNECTION_STRING: ${{ secrets.APPINSIGHTS_CONNECTION_STRING }}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4

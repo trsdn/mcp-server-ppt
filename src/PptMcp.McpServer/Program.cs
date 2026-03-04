@@ -1,12 +1,9 @@
 using System.IO.Pipelines;
 using System.Reflection;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using PptMcp.McpServer.Telemetry;
 
 namespace PptMcp.McpServer;
 
@@ -66,7 +63,7 @@ public class Program
             }
         }
 
-        // Register global exception handlers for unhandled exceptions (telemetry)
+        // Register global exception handlers for unhandled exceptions
         RegisterGlobalExceptionHandlers();
 
         var builder = Host.CreateApplicationBuilder(args);
@@ -95,9 +92,6 @@ public class Program
             consoleLogOptions.LogToStandardErrorThreshold = LogLevel.Warning;
         });
         builder.Logging.SetMinimumLevel(LogLevel.Warning);
-
-        // Configure Application Insights
-        ConfigureTelemetry(builder);
 
         // Configure MCP Server - use test transport if configured, otherwise stdio
         var mcpBuilder = builder.Services
@@ -139,9 +133,6 @@ public class Program
 
         var host = builder.Build();
 
-        // Initialize telemetry client for static access
-        InitializeTelemetryClient(host.Services);
-
         // Note: Update checks are handled by PptMcp Service (shown via Windows notification)
         // to avoid duplicate notifications when running in unified package mode
 
@@ -159,12 +150,9 @@ public class Program
 #pragma warning disable CA1031 // Catch general exception - this is a top-level handler that must not crash
         catch (Exception ex)
         {
-            // Track MCP SDK/transport errors (protocol errors, serialization errors, etc.)
-            PptMcpTelemetry.TrackUnhandledException(ex, "McpServer.RunAsync");
-            PptMcpTelemetry.Flush(); // Ensure telemetry is sent before exit
-
             // Return exit code 1 for fatal errors (FR-024, SC-015a)
             // Do NOT re-throw - deterministic exit code is more important for callers
+            Console.Error.WriteLine($"[PptMcp] Fatal error: {ex.Message}");
             return 1;
         }
 #pragma warning restore CA1031
@@ -176,65 +164,26 @@ public class Program
         }
     }
 
-    /// <summary>
-    /// Initializes the static TelemetryClient from DI container.
-    /// </summary>
-    private static void InitializeTelemetryClient(IServiceProvider services)
+    private static void RegisterGlobalExceptionHandlers()
     {
-        // Resolve TelemetryClient from DI and store for static access
-        // Worker Service SDK manages the TelemetryClient lifecycle including flush on shutdown
-        var telemetryClient = services.GetService<TelemetryClient>();
-        if (telemetryClient != null)
+        // Handle exceptions that escape all catch blocks
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
         {
-            PptMcpTelemetry.SetTelemetryClient(telemetryClient);
-        }
-    }
-
-    /// <summary>
-    /// Configures Application Insights Worker Service SDK for telemetry.
-    /// Uses AddApplicationInsightsTelemetryWorkerService() for proper host integration.
-    /// Enables Users/Sessions/Funnels/User Flows analytics in Azure Portal.
-    /// </summary>
-    private static void ConfigureTelemetry(HostApplicationBuilder builder)
-    {
-        var connectionString = PptMcpTelemetry.GetConnectionString();
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            return; // No connection string available (local dev build)
-        }
-
-        // Configure Application Insights Worker Service SDK
-        // This provides:
-        // - Proper DI integration with IHostApplicationLifetime
-        // - Automatic dependency tracking
-        // - Automatic performance counter collection (where available)
-        // - Proper telemetry channel with ServerTelemetryChannel (retries, local storage)
-        // - Automatic flush on host shutdown
-        var aiOptions = new ApplicationInsightsServiceOptions
-        {
-            // Set connection string if available
-            ConnectionString = connectionString,
-
-            // Disable features not needed for MCP server (reduces overhead)
-            EnableHeartbeat = true,  // Useful for monitoring server health
-            EnableAdaptiveSampling = true,  // Helps manage telemetry volume
-            EnableQuickPulseMetricStream = false,  // Live Metrics not needed for CLI tool
-            EnablePerformanceCounterCollectionModule = false,  // Perf counters not useful for short-lived CLI
-            EnableEventCounterCollectionModule = false,  // Event counters not needed
-
-            // Disable dependency tracking for HTTP calls
-            EnableDependencyTrackingTelemetryModule = false,
+            if (e.ExceptionObject is Exception ex)
+            {
+                Console.Error.WriteLine($"[PptMcp] Unhandled exception: {ex.Message}");
+            }
         };
 
-        builder.Services.AddApplicationInsightsTelemetryWorkerService(aiOptions);
-
-        // Add custom telemetry initializer for User.Id and Session.Id
-        // This enables the Users and Sessions blades in Azure Portal
-        builder.Services.AddSingleton<Microsoft.ApplicationInsights.Extensibility.ITelemetryInitializer, PptMcpTelemetryInitializer>();
+        // Handle unobserved task exceptions
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            Console.Error.WriteLine($"[PptMcp] Unobserved task exception: {e.Exception.Message}");
+        };
     }
 
     /// <summary>
-    /// Registers global exception handlers to capture unhandled exceptions.
+    /// Registers assembly resolver for office.dll (Microsoft.Office.Core).
     /// </summary>
     private static void RegisterOfficeAssemblyResolver()
     {
@@ -292,25 +241,6 @@ public class Program
         }
 
         return null;
-    }
-
-    private static void RegisterGlobalExceptionHandlers()
-    {
-        // Handle exceptions that escape all catch blocks
-        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
-        {
-            if (e.ExceptionObject is Exception ex)
-            {
-                PptMcpTelemetry.TrackUnhandledException(ex, "AppDomain.UnhandledException");
-            }
-        };
-
-        // Handle unobserved task exceptions
-        TaskScheduler.UnobservedTaskException += (sender, e) =>
-        {
-            PptMcpTelemetry.TrackUnhandledException(e.Exception, "TaskScheduler.UnobservedTaskException");
-            // Don't observe it - let the runtime handle it
-        };
     }
 
     /// <summary>
