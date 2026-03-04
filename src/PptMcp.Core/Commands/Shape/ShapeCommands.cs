@@ -853,4 +853,35 @@ public class ShapeCommands : IShapeCommands
             }
         });
     }
+
+    public OperationResult SetOpacity(IPptBatch batch, int slideIndex, string shapeName, float opacity)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        if (opacity < 0.0f || opacity > 1.0f)
+            throw new ArgumentOutOfRangeException(nameof(opacity), "opacity must be between 0.0 (transparent) and 1.0 (opaque)");
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                // COM uses Transparency (0=opaque, 1=transparent), which is the inverse of opacity
+                shape.Fill.Transparency = 1.0f - opacity;
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-opacity",
+                    Message = $"Set opacity of shape '{shapeName}' to {opacity:F2} on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
 }

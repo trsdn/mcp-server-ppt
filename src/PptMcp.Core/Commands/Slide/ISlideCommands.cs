@@ -85,4 +85,20 @@ public interface ISlideCommands
     /// <param name="replaceText">Text to replace with in each clone</param>
     [ServiceAction("clone-with-replace")]
     OperationResult CloneWithReplace(IPptBatch batch, int slideIndex, int count, string searchText, string replaceText);
+
+    /// <summary>
+    /// Hide a slide so it is skipped during slideshow playback.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    [ServiceAction("hide")]
+    OperationResult Hide(IPptBatch batch, int slideIndex);
+
+    /// <summary>
+    /// Unhide a slide so it is included during slideshow playback.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    [ServiceAction("unhide")]
+    OperationResult Unhide(IPptBatch batch, int slideIndex);
 }

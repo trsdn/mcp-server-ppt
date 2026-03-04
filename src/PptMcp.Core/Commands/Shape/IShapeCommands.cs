@@ -229,4 +229,14 @@ public interface IShapeCommands
     /// <param name="reflectionType">0=None, 1-9=msoReflectionType1 through msoReflectionType9</param>
     [ServiceAction("set-reflection")]
     OperationResult SetReflection(IPptBatch batch, int slideIndex, string shapeName, int reflectionType);
+
+    /// <summary>
+    /// Set the opacity (transparency) of a shape's fill.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    /// <param name="opacity">Opacity value from 0.0 (fully transparent) to 1.0 (fully opaque)</param>
+    [ServiceAction("set-opacity")]
+    OperationResult SetOpacity(IPptBatch batch, int slideIndex, string shapeName, float opacity);
 }

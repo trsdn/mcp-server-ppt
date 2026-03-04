@@ -365,6 +365,54 @@ public class SlideCommands : ISlideCommands
         });
     }
 
+    public OperationResult Hide(IPptBatch batch, int slideIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            try
+            {
+                // msoTrue = -1
+                slide.SlideShowTransition.Hidden = -1;
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "hide",
+                    Message = $"Hidden slide {slideIndex} from slideshow",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult Unhide(IPptBatch batch, int slideIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            try
+            {
+                // msoFalse = 0
+                slide.SlideShowTransition.Hidden = 0;
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "unhide",
+                    Message = $"Unhidden slide {slideIndex} for slideshow",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static dynamic? FindLayout(dynamic pres, string layoutName)
     {
         // PowerPoint COM: Presentation.Designs → Design.SlideMaster.CustomLayouts

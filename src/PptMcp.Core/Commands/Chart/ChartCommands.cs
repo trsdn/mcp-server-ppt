@@ -278,4 +278,51 @@ public class ChartCommands : IChartCommands
         -4120 => "xlXYScatter",
         _ => $"Unknown({chartType})"
     };
+
+    public OperationResult SetLegend(IPptBatch batch, int slideIndex, string shapeName, bool visible, int position)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? chart = null;
+            try
+            {
+                chart = shape.Chart;
+                chart.HasLegend = visible;
+                if (visible)
+                {
+                    chart.Legend.Position = position;
+                }
+
+                string posName = position switch
+                {
+                    -4107 => "Bottom",
+                    -4131 => "Left",
+                    -4152 => "Right",
+                    -4160 => "Top",
+                    -4161 => "TopRight",
+                    _ => $"Position({position})"
+                };
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-legend",
+                    Message = visible
+                        ? $"Set chart legend to '{posName}' on '{shapeName}' slide {slideIndex}"
+                        : $"Hidden chart legend on '{shapeName}' slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (chart != null) ComUtilities.Release(ref chart!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
 }

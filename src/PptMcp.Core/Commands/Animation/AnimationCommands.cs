@@ -175,6 +175,44 @@ public class AnimationCommands : IAnimationCommands
         });
     }
 
+    public OperationResult SetTiming(IPptBatch batch, int slideIndex, int effectIndex, float duration, float delay, int triggerType)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic? timeline = null;
+            dynamic? mainSequence = null;
+            dynamic? effect = null;
+            dynamic? timing = null;
+            try
+            {
+                timeline = slide.TimeLine;
+                mainSequence = timeline.MainSequence;
+                effect = mainSequence.Item(effectIndex);
+                timing = effect.Timing;
+                timing.Duration = duration;
+                timing.TriggerDelayTime = delay;
+                timing.TriggerType = triggerType;
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-timing",
+                    Message = $"Set timing on effect {effectIndex} on slide {slideIndex}: duration={duration}s, delay={delay}s, trigger={GetTriggerTypeName(triggerType)}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (timing != null) ComUtilities.Release(ref timing!);
+                if (effect != null) ComUtilities.Release(ref effect!);
+                if (mainSequence != null) ComUtilities.Release(ref mainSequence!);
+                if (timeline != null) ComUtilities.Release(ref timeline!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static string GetEffectTypeName(int effectType) => effectType switch
     {
         1 => "Appear",

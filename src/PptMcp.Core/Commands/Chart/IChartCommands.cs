@@ -62,4 +62,15 @@ public interface IChartCommands
     /// <param name="values">2D array of values (rows × columns)</param>
     [ServiceAction("set-data")]
     OperationResult SetData(IPptBatch batch, int slideIndex, string shapeName, List<List<object?>> values);
+
+    /// <summary>
+    /// Set chart legend visibility and position.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the chart shape</param>
+    /// <param name="visible">Whether the legend is visible</param>
+    /// <param name="position">Legend position: -4107=Bottom, -4131=Left, -4152=Right, -4160=Top, -4161=TopRight</param>
+    [ServiceAction("set-legend")]
+    OperationResult SetLegend(IPptBatch batch, int slideIndex, string shapeName, bool visible, int position);
 }

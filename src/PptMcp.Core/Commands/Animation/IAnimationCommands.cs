@@ -39,4 +39,16 @@ public interface IAnimationCommands
     /// </summary>
     [ServiceAction("clear")]
     OperationResult Clear(IPptBatch batch, int slideIndex);
+
+    /// <summary>
+    /// Set timing properties for an animation effect.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="effectIndex">1-based index of the effect in the animation sequence</param>
+    /// <param name="duration">Duration in seconds</param>
+    /// <param name="delay">Delay before start in seconds</param>
+    /// <param name="triggerType">1=OnClick, 2=WithPrevious, 3=AfterPrevious</param>
+    [ServiceAction("set-timing")]
+    OperationResult SetTiming(IPptBatch batch, int slideIndex, int effectIndex, float duration, float delay, int triggerType);
 }

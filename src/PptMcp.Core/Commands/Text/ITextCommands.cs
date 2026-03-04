@@ -111,4 +111,16 @@ public interface ITextCommands
     /// <param name="indentLevel">Indent level 0-4</param>
     [ServiceAction("set-bullets")]
     OperationResult SetBullets(IPptBatch batch, int slideIndex, string shapeName, int bulletType, string? bulletCharacter, int indentLevel);
+
+    /// <summary>
+    /// Insert a hyperlink on existing text within a shape.
+    /// Finds linkText within the shape's text and adds a hyperlink to it.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    /// <param name="linkText">Text to find and make into a hyperlink</param>
+    /// <param name="url">URL for the hyperlink</param>
+    [ServiceAction("insert-link")]
+    OperationResult InsertLink(IPptBatch batch, int slideIndex, string shapeName, string linkText, string url);
 }

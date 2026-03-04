@@ -888,4 +888,64 @@ public class TextCommands : ITextCommands
             ComUtilities.Release(ref allParagraphs!);
         }
     }
+
+    public OperationResult InsertLink(IPptBatch batch, int slideIndex, string shapeName, string linkText, string url)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(linkText);
+        ArgumentException.ThrowIfNullOrWhiteSpace(url);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? textFrame = null;
+            dynamic? textRange = null;
+            dynamic? found = null;
+            dynamic? actionSettings = null;
+            dynamic? actionSetting = null;
+            dynamic? hyperlink = null;
+            try
+            {
+                textFrame = shape.TextFrame;
+                textRange = textFrame.TextRange;
+                found = textRange.Find(linkText);
+
+                if (found == null)
+                {
+                    return new OperationResult
+                    {
+                        Success = false,
+                        ErrorMessage = $"Text '{linkText}' not found in shape '{shapeName}' on slide {slideIndex}",
+                        FilePath = ctx.PresentationPath
+                    };
+                }
+
+                // ppMouseClick = 1
+                actionSettings = found.ActionSettings;
+                actionSetting = actionSettings.Item(1);
+                hyperlink = actionSetting.Hyperlink;
+                hyperlink.Address = url;
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "insert-link",
+                    Message = $"Added hyperlink '{url}' to text '{linkText}' in shape '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (hyperlink != null) ComUtilities.Release(ref hyperlink!);
+                if (actionSetting != null) ComUtilities.Release(ref actionSetting!);
+                if (actionSettings != null) ComUtilities.Release(ref actionSettings!);
+                if (found != null) ComUtilities.Release(ref found!);
+                if (textRange != null) ComUtilities.Release(ref textRange!);
+                if (textFrame != null) ComUtilities.Release(ref textFrame!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
 }
