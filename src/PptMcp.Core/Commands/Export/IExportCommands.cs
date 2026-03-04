@@ -46,4 +46,15 @@ public interface IExportCommands
     /// <param name="toSlide">Last slide to print (0 = to end)</param>
     [ServiceAction("print")]
     OperationResult Print(IPptBatch batch, int copies, int fromSlide, int toSlide);
+
+    /// <summary>
+    /// Save the presentation as a different format.
+    /// Format: 1=pptx, 2=pptm (macro-enabled), 3=potx (template),
+    /// 4=ppsx (show), 5=pdf, 6=xps, 7=odp (OpenDocument).
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="destinationPath">Output file path</param>
+    /// <param name="format">Format code (1-7)</param>
+    [ServiceAction("save-as")]
+    ExportResult SaveAs(IPptBatch batch, string destinationPath, int format);
 }

@@ -29,4 +29,11 @@ public interface IBackgroundCommands
     /// <param name="slideIndex">1-based slide index</param>
     [ServiceAction("reset")]
     OperationResult Reset(IPptBatch batch, int slideIndex);
+
+    /// <summary>Set an image as slide background.</summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="imagePath">Path to the image file</param>
+    [ServiceAction("set-image")]
+    OperationResult SetImage(IPptBatch batch, int slideIndex, string imagePath);
 }

@@ -162,4 +162,12 @@ public interface IShapeCommands
     /// <param name="mergeType">1=Union, 2=Combine, 3=Fragment, 4=Intersect, 5=Subtract</param>
     [ServiceAction("merge")]
     OperationResult MergeShapes(IPptBatch batch, int slideIndex, string shapeNames, int mergeType);
+    /// <summary>
+    /// Duplicate a shape on the same slide.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape to duplicate</param>
+    [ServiceAction("duplicate")]
+    OperationResult Duplicate(IPptBatch batch, int slideIndex, string shapeName);
 }

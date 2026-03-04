@@ -103,6 +103,37 @@ public class BackgroundCommands : IBackgroundCommands
         });
     }
 
+    public OperationResult SetImage(IPptBatch batch, int slideIndex, string imagePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(imagePath);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            string fullPath = Path.GetFullPath(imagePath);
+            if (!System.IO.File.Exists(fullPath))
+                throw new FileNotFoundException($"Image file not found: '{fullPath}'");
+
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            try
+            {
+                slide.FollowMasterBackground = 0; // msoFalse
+                slide.Background.Fill.UserPicture(fullPath);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-image",
+                    Message = $"Set background image of slide {slideIndex} to '{Path.GetFileName(fullPath)}'",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static string GetFillTypeName(int msoFillType) => msoFillType switch
     {
         1 => "Solid",

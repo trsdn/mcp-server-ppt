@@ -126,4 +126,54 @@ public class ExportCommands : IExportCommands
             };
         });
     }
+
+    public ExportResult SaveAs(IPptBatch batch, string destinationPath, int format)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            string fullPath = Path.GetFullPath(destinationPath);
+            string? directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
+            // ppSaveAsDefault=11, ppSaveAsOpenXMLPresentation=24, ppSaveAsOpenXMLPresentationMacroEnabled=25,
+            // ppSaveAsTemplate=5, ppSaveAsOpenXMLShow=28, ppSaveAsPDF=32, ppSaveAsXPS=33, ppSaveAsODP=37
+            int ppFormat = format switch
+            {
+                1 => 24, // pptx
+                2 => 25, // pptm
+                3 => 5,  // potx (template)
+                4 => 28, // ppsx (show)
+                5 => 32, // pdf
+                6 => 33, // xps
+                7 => 37, // odp
+                _ => 24  // default to pptx
+            };
+
+            string formatName = format switch
+            {
+                1 => "PPTX",
+                2 => "PPTM",
+                3 => "POTX",
+                4 => "PPSX",
+                5 => "PDF",
+                6 => "XPS",
+                7 => "ODP",
+                _ => "PPTX"
+            };
+
+            dynamic pres = ctx.Presentation;
+            pres.SaveAs(fullPath, ppFormat);
+
+            return new ExportResult
+            {
+                Success = true,
+                FilePath = ctx.PresentationPath,
+                OutputPath = fullPath,
+                Format = formatName
+            };
+        });
+    }
 }

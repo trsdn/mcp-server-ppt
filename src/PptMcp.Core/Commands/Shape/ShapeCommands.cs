@@ -623,6 +623,40 @@ public class ShapeCommands : IShapeCommands
             }
         });
     }
+
+    public OperationResult Duplicate(IPptBatch batch, int slideIndex, string shapeName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? dup = null;
+            try
+            {
+                dup = shape.Duplicate();
+                // Duplicate returns a ShapeRange; get first item
+                dynamic newShape = dup.Item(1);
+                string newName = newShape.Name?.ToString() ?? "";
+                ComUtilities.Release(ref newShape!);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "duplicate",
+                    Message = $"Duplicated shape '{shapeName}' as '{newName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (dup != null) ComUtilities.Release(ref dup!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
     private static int HexToOleColor(string hex)
     {
         hex = hex.TrimStart('#');
