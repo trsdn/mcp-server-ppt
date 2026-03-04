@@ -48,7 +48,7 @@ git push origin feature/your-feature-name
 
 ### 4. **Create Pull Request**
 
-1. Go to [GitHub Repository](https://github.com/sbroenne/mcp-server-excel)
+1. Go to [GitHub Repository](https://github.com/trsdn/mcp-server-ppt)
 2. Click **"New Pull Request"**
 3. Select your feature branch
 4. Fill out the PR template:
@@ -122,23 +122,23 @@ The `main` branch is protected with:
 
 ### **Three-Tier Test Architecture**
 
-ExcelMcp uses a **production-ready three-tier testing approach** with organized directory structure:
+PptMcp uses a **production-ready three-tier testing approach** with organized directory structure:
 
 ```
 tests/
-├── ExcelMcp.Core.Tests/
-│   ├── Unit/           # Fast tests, no Excel required (~2-5 sec)
-│   ├── Integration/    # Medium speed, requires Excel (~1-15 min)
+├── PptMcp.Core.Tests/
+│   ├── Unit/           # Fast tests, no PowerPoint required (~2-5 sec)
+│   ├── Integration/    # Medium speed, requires PowerPoint (~1-15 min)
 │   └── RoundTrip/      # Slow, comprehensive workflows (~3-10 min each)
-├── ExcelMcp.Diagnostics.Tests/
+├── PptMcp.Diagnostics.Tests/
 │   └── Integration/Diagnostics/ # Research tests, manual only (excluded from CI)
-├── ExcelMcp.McpServer.Tests/
+├── PptMcp.McpServer.Tests/
 │   ├── Unit/           # Fast tests, no server required  
 │   ├── Integration/    # Medium speed, requires MCP server
 │   └── RoundTrip/      # Slow, end-to-end protocol testing
-└── ExcelMcp.CLI.Tests/
-    ├── Unit/           # Fast tests, no Excel required
-    └── Integration/    # Medium speed, requires Excel & CLI
+└── PptMcp.CLI.Tests/
+    ├── Unit/           # Fast tests, no PowerPoint required
+    └── Integration/    # Medium speed, requires PowerPoint & CLI
 ```
 
 ### **Development Workflow Commands**
@@ -158,7 +158,7 @@ dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Featur
 
 **Session/Batch Code Changes (MANDATORY):**
 ```powershell
-# When modifying ExcelSession.cs or ExcelBatch.cs
+# When modifying PptSession.cs or PptBatch.cs
 dotnet test --filter "RunType=OnDemand"
 ```
 
@@ -167,13 +167,13 @@ dotnet test --filter "RunType=OnDemand"
 **⚠️ No Unit Tests** - See `docs/ADR-001-NO-UNIT-TESTS.md` for architectural rationale
 
 **Integration Tests (`Category=Integration`)**
-- ✅ Test business logic with real Excel COM interaction
+- ✅ Test business logic with real PowerPoint COM interaction
 - ✅ Medium speed (10-20 minutes for full suite)
-- ✅ Requires Excel installation
-- ✅ These ARE our unit tests (Excel COM cannot be mocked)
+- ✅ Requires PowerPoint installation
+- ✅ These ARE our unit tests (PowerPoint COM cannot be mocked)
 - ✅ Run specific features during development
 - ✅ Slow execution (3-10 minutes each)
-- ✅ Verifies actual Excel state changes
+- ✅ Verifies actual PowerPoint state changes
 - ✅ Comprehensive scenario coverage
 
 ### **Adding New Tests**
@@ -187,24 +187,24 @@ When creating tests, follow these placement guidelines:
 [Trait("Layer", "Core")]
 public class CommandLogicTests 
 {
-    // Tests business logic without Excel
+    // Tests business logic without PowerPoint
 }
 
 // Integration Test Example  
 [Trait("Category", "Integration")]
 [Trait("Speed", "Medium")]
 [Trait("Feature", "PowerQuery")]
-[Trait("RequiresExcel", "true")]
+[Trait("RequiresPowerPoint", "true")]
 public class PowerQueryCommandsTests
 {
-    // Tests single Excel operations
+    // Tests single PowerPoint operations
 }
 
 // Round Trip Test Example
 [Trait("Category", "RoundTrip")]
 [Trait("Speed", "Slow")]
 [Trait("Feature", "EndToEnd")]
-[Trait("RequiresExcel", "true")]
+[Trait("RequiresPowerPoint", "true")]
 public class VbaWorkflowTests
 {
     // Tests complete workflows: import → run → verify → export
@@ -226,7 +226,7 @@ dotnet build -c Release
 ```
 
 **For Complex Features:**
-- ✅ Add integration tests for all Excel operations
+- ✅ Add integration tests for all PowerPoint operations
 - ✅ Test round-trip persistence (create → save → reload → verify)
 - ✅ Update documentation
 - ✅ No unit tests needed (see ADR-001-NO-UNIT-TESTS.md)
@@ -296,7 +296,7 @@ When adding a new service category to Core:
    - ServiceRegistry class in Core
    - Command class in CLI.Generated
    - Registration entry in CliCommandRegistration
-4. **Test** - verify `excelcli COMMAND_NAME --help` works
+4. **Test** - verify `pptcli COMMAND_NAME --help` works
 
 ### **Why Hard-Coded Categories?**
 
@@ -318,7 +318,7 @@ The categories are currently hard-coded in the CLI generator because:
 **Future improvement:** Could emit a manifest file from Core and parse it in CLI generator using source file inclusion.
 
 **For Complex Features:**
-- ✅ Add integration tests for all Excel operations
+- ✅ Add integration tests for all PowerPoint operations
 - ✅ Test round-trip persistence (create → save → reload → verify)
 - ✅ Update documentation
 - ✅ No unit tests needed (see ADR-001-NO-UNIT-TESTS.md)
@@ -328,7 +328,7 @@ The categories are currently hard-coded in the CLI generator because:
 
 ### **CRITICAL: Keep server.json in Sync**
 
-When modifying MCP Server functionality, **you must update** `src/ExcelMcp.McpServer/.mcp/server.json`:
+When modifying MCP Server functionality, **you must update** `src/PptMcp.McpServer/.mcp/server.json`:
 
 #### **When to Update server.json:**
 
@@ -344,13 +344,13 @@ When modifying MCP Server functionality, **you must update** `src/ExcelMcp.McpSe
 # After making MCP Server code changes, verify:
 
 # 1. Tool definitions match actual implementations
-Compare-Object (Get-Content "src/ExcelMcp.McpServer/.mcp/server.json" | ConvertFrom-Json).tools (Get-ChildItem "src/ExcelMcp.McpServer/Tools/*.cs")
+Compare-Object (Get-Content "src/PptMcp.McpServer/.mcp/server.json" | ConvertFrom-Json).tools (Get-ChildItem "src/PptMcp.McpServer/Tools/*.cs")
 
 # 2. Build succeeds with updated configuration
-dotnet build src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj
+dotnet build src/PptMcp.McpServer/PptMcp.McpServer.csproj
 
 # 3. Test MCP server starts without errors
-dnx Sbroenne.ExcelMcp.McpServer --yes
+dnx PptMcp.McpServer --yes
 ```
 
 #### **server.json Structure:**
@@ -450,8 +450,8 @@ When creating a PR, verify:
 
 ```powershell
 # Clone the repository
-git clone https://github.com/sbroenne/mcp-server-excel.git
-cd ExcelMcp
+git clone https://github.com/trsdn/mcp-server-ppt.git
+cd PptMcp
 
 # Install dependencies
 dotnet restore
@@ -463,12 +463,12 @@ dotnet test
 dotnet build -c Release
 
 # Test the built executable
-.\src\ExcelMcp.CLI\bin\Release\net10.0\excelcli.exe --version
+.\src\PptMcp.CLI\bin\Release\net10.0\pptcli.exe --version
 ```
 
 ## 📊 **Application Insights / Telemetry Setup**
 
-ExcelMcp uses Azure Application Insights (Classic SDK with WorkerService integration) for anonymous usage telemetry and crash reporting. Telemetry is **opt-out** (enabled by default in release builds).
+PptMcp uses Azure Application Insights (Classic SDK with WorkerService integration) for anonymous usage telemetry and crash reporting. Telemetry is **opt-out** (enabled by default in release builds).
 
 ### **How It Works**
 
@@ -490,7 +490,7 @@ The Application Insights connection string is **embedded at build time** via MSB
 
 - File paths, file names, or file contents
 - User identity, machine name, or IP address
-- Excel data, formulas, or cell values
+- PowerPoint data, formulas, or cell values
 - Connection strings, credentials, or passwords
 
 ### **Sensitive Data Redaction**
@@ -513,10 +513,10 @@ Copy-Item "Directory.Build.props.user.template" "Directory.Build.props.user"
 # <AppInsightsConnectionString>InstrumentationKey=xxx;IngestionEndpoint=...</AppInsightsConnectionString>
 
 # 3. Build - connection string is embedded at compile time
-dotnet build src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj
+dotnet build src/PptMcp.McpServer/PptMcp.McpServer.csproj
 
 # 4. Run - telemetry is automatically sent to Azure
-dotnet run --project src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj
+dotnet run --project src/PptMcp.McpServer/PptMcp.McpServer.csproj
 ```
 
 **Note:** `Directory.Build.props.user` is gitignored - your connection string won't be committed.
@@ -560,7 +560,7 @@ Runtime:
   MCP Tool Invocation
       │
       ▼
-  ExcelMcpTelemetry.TrackToolInvocation()
+  PptMcpTelemetry.TrackToolInvocation()
       │ (tracks: tool, action, duration, success)
       ▼
   SensitiveDataRedactingProcessor
@@ -573,11 +573,11 @@ Runtime:
 
 | File | Purpose |
 |------|---------|
-| `Telemetry/ExcelMcpTelemetry.cs` | Static helper for tracking events |
-| `Telemetry/ExcelMcpTelemetryInitializer.cs` | Sets User.Id and Session.Id on telemetry |
+| `Telemetry/PptMcpTelemetry.cs` | Static helper for tracking events |
+| `Telemetry/PptMcpTelemetryInitializer.cs` | Sets User.Id and Session.Id on telemetry |
 | `Telemetry/SensitiveDataRedactingProcessor.cs` | Redacts PII before transmission |
 | `Program.cs` | Application Insights WorkerService configuration |
-| `ExcelMcp.McpServer.csproj` | MSBuild target that generates TelemetryConfig.g.cs |
+| `PptMcp.McpServer.csproj` | MSBuild target that generates TelemetryConfig.g.cs |
 | `Directory.Build.props.user.template` | Template for local dev connection string |
 | `infrastructure/azure/appinsights.bicep` | Azure resource definitions |
 | `infrastructure/azure/deploy-appinsights.ps1` | Deployment script |
@@ -586,15 +586,15 @@ Runtime:
 
 ### **Why Trimming Is Not Supported**
 
-ExcelMcp **cannot be trimmed** due to fundamental architectural constraints of Excel COM automation. The IL trimmer removes unused code at publish time, but Excel COM interop requires dynamic code paths that the trimmer cannot statically analyze.
+PptMcp **cannot be trimmed** due to fundamental architectural constraints of PowerPoint COM automation. The IL trimmer removes unused code at publish time, but PowerPoint COM interop requires dynamic code paths that the trimmer cannot statically analyze.
 
 ### **Technical Constraints**
 
 **1. Runtime COM Activation**
 ```csharp
-// This code CANNOT be trimmed - Excel type comes from Windows Registry at runtime
-Type? excelType = Type.GetTypeFromProgID("Excel.Application");
-dynamic excel = Activator.CreateInstance(excelType)!;
+// This code CANNOT be trimmed - PowerPoint type comes from Windows Registry at runtime
+Type? pptType = Type.GetTypeFromProgID("PowerPoint.Application");
+dynamic ppt = Activator.CreateInstance(pptType)!;
 ```
 
 The trimmer cannot know:
@@ -603,20 +603,20 @@ The trimmer cannot know:
 
 **2. Late-Bound COM Calls**
 ```csharp
-// All Excel operations use dynamic dispatch - the trimmer can't trace these calls
-dynamic workbook = excel.Workbooks.Open(filePath);
-dynamic sheet = workbook.Worksheets.Item(1);
-sheet.Range["A1"].Value2 = "Hello";
+// All PowerPoint operations use dynamic dispatch - the trimmer can't trace these calls
+dynamic presentation = ppt.Presentations.Open(filePath);
+dynamic slide = presentation.Slides.Item(1);
+slide.Shapes[1].TextFrame.TextRange.Text = "Hello";
 ```
 
-**3. Excel is External**
-- Excel is not a .NET assembly - it's an out-of-process COM server
-- The .NET runtime uses the Dynamic Language Runtime (DLR) for all Excel calls
+**3. PowerPoint is External**
+- PowerPoint is not a .NET assembly - it's an out-of-process COM server
+- The .NET runtime uses the Dynamic Language Runtime (DLR) for all PowerPoint calls
 - No static type information exists for the trimmer to analyze
 
 ### **What We DID Modernize**
 
-While the Excel automation core cannot be trimmed, we modernized the OLE Message Filter to use .NET source-generated COM interop:
+While the PowerPoint automation core cannot be trimmed, we modernized the OLE Message Filter to use .NET source-generated COM interop:
 
 | Component | Before | After |
 |-----------|--------|-------|
@@ -642,17 +642,17 @@ The following warnings are suppressed in `Directory.Build.props` because they ca
 ### **Can We Ever Support Trimming?**
 
 **No**, unless one of these happens:
-1. **Excel exposes a .NET API** - Microsoft would need to create a managed Excel SDK
+1. **PowerPoint exposes a .NET API** - Microsoft would need to create a managed PowerPoint SDK
 2. **We abandon COM** - Would require a completely different architecture (file-based only, no live automation)
-3. **Excel is replaced** - Use a different spreadsheet engine with .NET bindings
+3. **PowerPoint is replaced** - Use a different presentation engine with .NET bindings
 
-**The current architecture is the standard approach** for Excel automation in .NET and is used by thousands of applications. Trimming is simply not compatible with COM automation.
+**The current architecture is the standard approach** for PowerPoint automation in .NET and is used by thousands of applications. Trimming is simply not compatible with COM automation.
 
 ### **Alternatives for Smaller Binaries**
 
 If deployment size is a concern:
 - Use **framework-dependent** deployment (default) - smallest option (~15 MB)
-- The .NET runtime is typically already installed on Windows machines with Excel
+- The .NET runtime is typically already installed on Windows machines with PowerPoint
 - Self-contained deployment is only needed for isolated environments
 
 ## 📞 **Need Help?**

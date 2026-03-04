@@ -1,7 +1,7 @@
 # Breaking Changes
 
 > **Version:** 1.7.0 (MCP-Daemon Unification)  
-> **PR:** [#433](https://github.com/sbroenne/mcp-server-excel/pull/433)  
+> **PR:** [#433](https://github.com/trsdn/mcp-server-ppt/pull/433)  
 > **Date:** February 2026
 
 **📌 Note for AI Assistants:** LLMs will automatically discover these changes via `tools/list` (MCP) and `--help` (CLI). This document is informational for human developers.
@@ -91,7 +91,7 @@ Merged actions from `pivottablefield` and `pivottablecalc` into single command. 
 **Update hardcoded scripts:**
 1. Remove `excelPath` from 11 session-based MCP tools
 2. Update `file`, `connection`, `datamodel`, `datamodel_relationship` parameter names
-3. Update CLI parameter names (use `excelcli <command> --help` to see current names)
+3. Update CLI parameter names (use `pptcli <command> --help` to see current names)
 4. Rename `add-to-datamodel` → `add-to-data-model` in table commands
 
 **For AI Assistants:**

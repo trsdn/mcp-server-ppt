@@ -123,8 +123,6 @@ Alternative path (for existing slide tables):
 
 ## M Code - Server-Specific Notes
 
-> For full M code language syntax, see [m-code-syntax reference](m-code-syntax.md).
-
 ### Column/Field Name Quoting (CRITICAL)
 
 M code requires special syntax for identifiers containing hyphens, spaces, or special characters:

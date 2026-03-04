@@ -1,19 +1,19 @@
 ---
-name: excel-cli
+name: ppt-cli
 description: >
-  Automate Microsoft Excel on Windows via CLI. Use when creating, reading,
-  or modifying Excel workbooks from scripts, CI/CD, or coding agents.
+  Automate Microsoft PowerPoint on Windows via CLI. Use when creating, reading,
+  or modifying PowerPoint presentations from scripts, CI/CD, or coding agents.
   Supports Power Query, DAX, PivotTables, Tables, Ranges, Charts, VBA.
-  Triggers: Excel, spreadsheet, workbook, xlsx, excelcli, CLI automation.
+  Triggers: PowerPoint, presentation, pptx, pptcli, CLI automation.
 ---
 
-# Excel Automation with excelcli
+# PowerPoint Automation with pptcli
 
 ## Preconditions
 
-- Windows host with Microsoft Excel installed (2016+)
+- Windows host with Microsoft PowerPoint installed (2016+)
 - Uses COM interop — does NOT work on macOS or Linux
-- Install: `dotnet tool install --global Sbroenne.ExcelMcp.CLI`
+- Install: `dotnet tool install --global PptMcp.CLI`
 
 ## Workflow Checklist
 
@@ -24,7 +24,7 @@ description: >
 | 3. Write data | See below | If writing values |
 | 4. Save & close | `session close --save` | Always last |
 
-> **10+ commands?** Use `excelcli -q batch --input commands.json` — sends all commands in one process with automatic session management. See Rule 8.
+> **10+ commands?** Use `pptcli -q batch --input commands.json` — sends all commands in one process with automatic session management. See Rule 8.
 
 **Writing Data (Step 3):**
 - `--values` takes a JSON 2D array string: `--values '[["Header1","Header2"],[1,2]]'`
@@ -42,9 +42,9 @@ Execute commands to discover the answer instead:
 
 | DON'T ASK | DO THIS INSTEAD |
 |-----------|-----------------|
-| "Which file should I use?" | `excelcli -q session list` |
-| "What table should I use?" | `excelcli -q table list --session <id>` |
-| "Which sheet has the data?" | `excelcli -q worksheet list --session <id>` |
+| "Which file should I use?" | `pptcli -q session list` |
+| "What table should I use?" | `pptcli -q table list --session <id>` |
+| "Which sheet has the data?" | `pptcli -q worksheet list --session <id>` |
 
 **You have commands to answer your own questions. USE THEM.**
 
@@ -57,10 +57,10 @@ Execute commands to discover the answer instead:
 **Creating vs Opening Files:**
 ```powershell
 # NEW file - use session create
-excelcli -q session create C:\path\newfile.xlsx  # Creates file + returns session ID
+pptcli -q session create C:\path\newfile.pptx  # Creates file + returns session ID
 
 # EXISTING file - use session open
-excelcli -q session open C:\path\existing.xlsx   # Opens file + returns session ID
+pptcli -q session open C:\path\existing.pptx   # Opens file + returns session ID
 ```
 
 **CRITICAL: Use `session create` for new files. `session open` on non-existent files will fail!**
@@ -69,20 +69,20 @@ excelcli -q session open C:\path\existing.xlsx   # Opens file + returns session 
 
 ```powershell
 # Example: capture session ID from output, then use it
-excelcli -q session create C:\path\file.xlsx     # Returns JSON with sessionId
-excelcli -q range set-values --session <returned-session-id> ...
-excelcli -q session close --session <returned-session-id> --save
+pptcli -q session create C:\path\file.pptx     # Returns JSON with sessionId
+pptcli -q range set-values --session <returned-session-id> ...
+pptcli -q session close --session <returned-session-id> --save
 ```
 
-**Unclosed sessions leave Excel processes running, locking files.**
+**Unclosed sessions leave PowerPoint processes running, locking files.**
 
 ### Rule 4: Data Model Prerequisites
 
 DAX operations require tables in the Data Model:
 
 ```powershell
-excelcli -q table add-to-data-model --session <id> --table-name Sales  # Step 1
-excelcli -q datamodel create-measure --session <id> ...               # Step 2 - NOW works
+pptcli -q table add-to-data-model --session <id> --table-name Sales  # Step 1
+pptcli -q datamodel create-measure --session <id> ...               # Step 2 - NOW works
 ```
 
 ### Rule 5: Power Query Development Lifecycle
@@ -91,13 +91,13 @@ excelcli -q datamodel create-measure --session <id> ...               # Step 2 -
 
 ```powershell
 # Step 1: Test M code without persisting (catches errors early)
-excelcli -q powerquery evaluate --session 1 --m-code-file query.m
+pptcli -q powerquery evaluate --session 1 --m-code-file query.m
 
 # Step 2: Create permanent query with validated code
-excelcli -q powerquery create --session 1 --query-name Q1 --m-code-file query.m
+pptcli -q powerquery create --session 1 --query-name Q1 --m-code-file query.m
 
 # Step 3: Load data to destination
-excelcli -q powerquery refresh --session 1 --query-name Q1
+pptcli -q powerquery refresh --session 1 --query-name Q1
 ```
 
 ### Rule 6: Report File Errors Immediately
@@ -110,28 +110,28 @@ When writing many values/formulas (10+ cells), disable auto-recalc for performan
 
 ```powershell
 # 1. Set manual mode
-excelcli -q calculationmode set-mode --session 1 --mode manual
+pptcli -q calculationmode set-mode --session 1 --mode manual
 
 # 2. Write data row by row for reliability
-excelcli -q range set-values --session 1 --sheet-name Sheet1 --range-address A1:B1 --values '[["Name","Amount"]]'
-excelcli -q range set-values --session 1 --sheet-name Sheet1 --range-address A2:B2 --values '[["Salary",5000]]'
+pptcli -q range set-values --session 1 --sheet-name Sheet1 --range-address A1:B1 --values '[["Name","Amount"]]'
+pptcli -q range set-values --session 1 --sheet-name Sheet1 --range-address A2:B2 --values '[["Salary",5000]]'
 
 # 3. Recalculate once at end
-excelcli -q calculationmode calculate --session 1 --scope workbook
+pptcli -q calculationmode calculate --session 1 --scope workbook
 
 # 4. Restore automatic mode
-excelcli -q calculationmode set-mode --session 1 --mode automatic
+pptcli -q calculationmode set-mode --session 1 --mode automatic
 ```
 
 ### Rule 8: Use Batch Mode for Bulk Operations (10+ commands)
 
-When executing 10+ commands on the same file, use `excelcli batch` to send all commands in a single process launch. This avoids per-process startup overhead and terminal buffer saturation.
+When executing 10+ commands on the same file, use `pptcli batch` to send all commands in a single process launch. This avoids per-process startup overhead and terminal buffer saturation.
 
 ```powershell
 # Create a JSON file with all commands
 @'
 [
-  {"command": "session.open", "args": {"filePath": "C:\\path\\file.xlsx"}},
+  {"command": "session.open", "args": {"filePath": "C:\\path\\file.pptx"}},
   {"command": "range.set-values", "args": {"sheetName": "Sheet1", "rangeAddress": "A1", "values": [["Hello"]]}},
   {"command": "range.set-values", "args": {"sheetName": "Sheet1", "rangeAddress": "A2", "values": [["World"]]}},
   {"command": "session.close", "args": {"save": true}}
@@ -139,7 +139,7 @@ When executing 10+ commands on the same file, use `excelcli batch` to send all c
 '@ | Set-Content commands.json
 
 # Execute all commands at once
-excelcli -q batch --input commands.json
+pptcli -q batch --input commands.json
 ```
 
 **Key features:**
@@ -149,12 +149,12 @@ excelcli -q batch --input commands.json
 - **`--session <id>`**: Pre-set session ID for all commands (skip session.open)
 
 **Input formats:**
-- JSON array from file: `excelcli -q batch --input commands.json`
-- NDJSON from stdin: `Get-Content commands.ndjson | excelcli -q batch`
+- JSON array from file: `pptcli -q batch --input commands.json`
+- NDJSON from stdin: `Get-Content commands.ndjson | pptcli -q batch`
 
 ## CLI Command Reference
 
-> Auto-generated from `excelcli --help`. Use these exact parameter names.
+> Auto-generated from `pptcli --help`. Use these exact parameter names.
 
 {{ for cmd in clicommands }}
 ### {{ cmd.name }}
@@ -232,4 +232,4 @@ Parameters that accept lists (e.g., `--selected-items` for slicers) require JSON
 - [Screenshot and visual verification](./references/screenshot.md)
 - [Slicer operations](./references/slicer.md)
 - [Table operations](./references/table.md)
-- [Worksheet operations](./references/worksheet.md)
+- [Slide operations](./references/slide.md)

@@ -9,7 +9,7 @@ description: >
 
 # PowerPoint MCP Server Skill
 
-Provides {{ operationcount }} PowerPoint operations via Model Context Protocol. The MCP Server forwards all requests to the shared PptMcp Service, enabling session sharing with CLI. Tools are auto-discovered - this documents quirks, workflows, and gotchas.
+Provides 226 PowerPoint operations via Model Context Protocol. The MCP Server forwards all requests to the shared PptMcp Service, enabling session sharing with CLI. Tools are auto-discovered - this documents quirks, workflows, and gotchas.
 
 ## Workflow Checklist
 

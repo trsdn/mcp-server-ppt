@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to ExcelMcp will be documented in this file.
+All notable changes to PptMcp will be documented in this file.
 
 This changelog covers all components:
 - **MCP Server** - Model Context Protocol server for AI assistants
@@ -12,9 +12,9 @@ This changelog covers all components:
 
 ### Fixed
 
-- **`range set-formulas` and `range get-formulas` injected `@` implicit intersection operator inside Excel Tables**: The legacy `Range.Formula` COM property automatically prepends `@` to formulas inside structured tables, causing `#FIELD!` errors with custom functions that return entity cards (e.g., Office Add-in rich data types). Switched to `Range.Formula2` (Excel 365+) which respects dynamic array semantics and does not inject `@`.
+- **`range set-formulas` and `range get-formulas` injected `@` implicit intersection operator inside PowerPoint Tables**: The legacy `Range.Formula` COM property automatically prepends `@` to formulas inside structured tables, causing `#FIELD!` errors with custom functions that return entity cards (e.g., Office Add-in rich data types). Switched to `Range.Formula2` (PowerPoint 365+) which respects dynamic array semantics and does not inject `@`.
 
-- **Connection `refresh` and PowerQuery `refresh` / `refresh-all` could hang or miss cancellation on async data sources**: `WorkbookConnection.Refresh()` returns immediately when the provider runs asynchronously, leaving the STA thread without a way to detect completion or honour the operation timeout. Both Connection and PowerQuery refresh now set the sub-connection's `BackgroundQuery = true`, call `Refresh()`, then poll `.Refreshing` in a loop that responds to cancellation and calls `.CancelRefresh()` when the timeout fires. `powerquery refresh-all` was also updated to use the same robust `RefreshConnectionByQueryName` path (which includes `QueryTable.Refresh(false)` for worksheet queries) instead of a bare `connection.Refresh()`.
+- **Connection `refresh` and PowerQuery `refresh` / `refresh-all` could hang or miss cancellation on async data sources**: `PresentationConnection.Refresh()` returns immediately when the provider runs asynchronously, leaving the STA thread without a way to detect completion or honour the operation timeout. Both Connection and PowerQuery refresh now set the sub-connection's `BackgroundQuery = true`, call `Refresh()`, then poll `.Refreshing` in a loop that responds to cancellation and calls `.CancelRefresh()` when the timeout fires. `powerquery refresh-all` was also updated to use the same robust `RefreshConnectionByQueryName` path (which includes `QueryTable.Refresh(false)` for worksheet queries) instead of a bare `connection.Refresh()`.
 
 - **CLI and MCP Server version always reported as 1.0.0** (#523): The update check and About dialog always showed version 1.0.0 instead of the actual installed version. Fixed by removing hardcoded version properties from project files so they inherit from the central version configuration.
 
@@ -22,7 +22,7 @@ This changelog covers all components:
 
 - **`--values`/`--rows` inline JSON: PowerShell quote-stripping + stdin sentinel** (#521): Windows `CreateProcess` strips inner double-quotes when PowerShell passes arguments to native executables, so `--values '[["ACD Full Term",0.26]]'` arrives as `[[ACD Full Term,0.26]]` (invalid JSON). The generated `DeserializeNestedCollection<T>` now: (1) emits a clear error message that mentions `--values-file` and `--values -` as workarounds, and (2) supports a stdin sentinel — passing `--values -` (or `--rows -`) reads the JSON from `Console.In`, avoiding shell quoting entirely.
 
-- **Table `add-to-data-model` bracket column names block DAX formulas**: Excel table columns with literal bracket characters in their names (e.g., from OLEDB import sources) cannot be referenced in DAX formulas after being added to the Data Model. Added new `stripBracketColumnNames` parameter (default: `false`). When `false`, bracket column names are reported in `bracketColumnsFound` so users are aware of the issue. When `true`, the source table column headers are renamed (brackets removed) before adding to the Data Model, enabling full DAX access. The `add-to-data-model` result now includes `bracketColumnsFound` and `bracketColumnsRenamed` fields.
+- **Table `add-to-data-model` bracket column names block DAX formulas**: PowerPoint table columns with literal bracket characters in their names (e.g., from OLEDB import sources) cannot be referenced in DAX formulas after being added to the Data Model. Added new `stripBracketColumnNames` parameter (default: `false`). When `false`, bracket column names are reported in `bracketColumnsFound` so users are aware of the issue. When `true`, the source table column headers are renamed (brackets removed) before adding to the Data Model, enabling full DAX access. The `add-to-data-model` result now includes `bracketColumnsFound` and `bracketColumnsRenamed` fields.
 
 - **PowerQuery `load-to data-model` silently succeeded without loading data**: `powerquery load-to` with `data-model` destination returned `success: true` but the table never appeared in the Power Pivot Data Model. The connection was registered via `Connections.Add2()` but `connection.Refresh()` was never called, so data was not actually loaded. Fixed by calling `connection.Refresh()` after creating the connection, consistent with how `load-to worksheet` works.
 
@@ -36,27 +36,27 @@ This changelog covers all components:
 
 - **`screenshot` CLI `--output` flag documentation clarified**: The `--output <path>` flag saves the screenshot directly to a PNG or JPEG file instead of printing base64 JSON to stdout. This was already functional but was documented as "For CLI: saved to file" without explaining that `--output` is required to save to a file.
 
-- **office.dll not found when opening workbooks with connections/data model** (#487 follow-up): The `AssemblyResolve` handler only searched `AppContext.BaseDirectory` for `office.dll`. In NuGet-installed tool deployments, `office.dll` is never copied there (it is only present in local dev builds via `Directory.Build.targets`). Opening workbooks with external connections, Power Query, or a Data Model triggered code paths that caused the CLR to load `Microsoft.Office.Interop.Excel.dll`, which in turn requested `office.dll v16`. The handler returned `null` → `FileNotFoundException`. Fixed by adding fallback search order: (1) `AppContext.BaseDirectory`, (2) .NET Framework GAC v16, (3) GAC v15 (accepted by CLR as substitute), (4) Office 365 click-to-run installation directories. `Directory.Build.targets` also updated to prefer v16 GAC when available.
+- **office.dll not found when opening presentations with connections/data model** (#487 follow-up): The `AssemblyResolve` handler only searched `AppContext.BaseDirectory` for `office.dll`. In NuGet-installed tool deployments, `office.dll` is never copied there (it is only present in local dev builds via `Directory.Build.targets`). Opening presentations with external connections, Power Query, or a Data Model triggered code paths that caused the CLR to load `Microsoft.Office.Interop.PowerPoint.dll`, which in turn requested `office.dll v16`. The handler returned `null` → `FileNotFoundException`. Fixed by adding fallback search order: (1) `AppContext.BaseDirectory`, (2) .NET Framework GAC v16, (3) GAC v15 (accepted by CLR as substitute), (4) Office 365 click-to-run installation directories. `Directory.Build.targets` also updated to prefer v16 GAC when available.
 
 ### Changed
 
-- **Migrated Excel COM interop to strongly-typed Microsoft Office PIA**: Replaced dynamic late-binding throughout the codebase with strongly-typed `Microsoft.Office.Interop.Excel` types for improved reliability and compile-time error detection. Power Query APIs (`Workbook.Queries`) and VBA project access remain as dynamic calls where PIA coverage is unavailable.
+- **Migrated PowerPoint COM interop to strongly-typed Microsoft Office PIA**: Replaced dynamic late-binding throughout the codebase with strongly-typed `Microsoft.Office.Interop.PowerPoint` types for improved reliability and compile-time error detection. Power Query APIs (`Presentation.Queries`) and VBA project access remain as dynamic calls where PIA coverage is unavailable.
 
 ### Fixed
 
-- **All Excel sessions crashed with FileNotFoundException for office.dll** (#487): After PIA migration, `ExcelBatch` STA thread declared `tempExcel` as typed `Excel.Application`. Casting a typed COM interop object to `(dynamic)` retains PIA type metadata; the DLR then resolved `MsoAutomationSecurity` from `office.dll` (Microsoft.Office.Core v16.0.0.0) at runtime, which is not bundled with the deployed .NET tool. Every session (create and open) crashed before opening any workbook. Fixed by casting to `(object)` first before `(dynamic)` to force pure IDispatch binding. Also removed a broken `<Reference>` to office.dll with a wrong v15.0.0.0 hint path (runtime required v16.0.0.0).
+- **All PowerPoint sessions crashed with FileNotFoundException for office.dll** (#487): After PIA migration, `PptBatch` STA thread declared `tempPowerPoint` as typed `PowerPoint.Application`. Casting a typed COM interop object to `(dynamic)` retains PIA type metadata; the DLR then resolved `MsoAutomationSecurity` from `office.dll` (Microsoft.Office.Core v16.0.0.0) at runtime, which is not bundled with the deployed .NET tool. Every session (create and open) crashed before opening any presentation. Fixed by casting to `(object)` first before `(dynamic)` to force pure IDispatch binding. Also removed a broken `<Reference>` to office.dll with a wrong v15.0.0.0 hint path (runtime required v16.0.0.0).
 
-- **STA Deadlock on Conditional Formatting and Other Re-entrant COM Operations**: `OleMessageFilter.MessagePending` was returning `2` (`PENDINGMSG_WAITNOPROCESS`) instead of `1` (`PENDINGMSG_WAITDEFPROCESS`). When Excel fires a re-entrant callback (e.g. `Calculate`/`SheetChange` event) during a `FormatConditions.Add()` call, `WAITNOPROCESS` blocked COM from delivering the callback — Excel waited for the callback while the STA thread waited for Excel, causing a permanent deadlock. Any operation that triggers Excel's internal event loop (conditional formatting on formula cells, PivotTable refresh, Power Query refresh) was affected. Fixed by returning `1` so COM delivers pending inbound calls during the outgoing `IDispatch.Invoke`.
+- **STA Deadlock on Conditional Formatting and Other Re-entrant COM Operations**: `OleMessageFilter.MessagePending` was returning `2` (`PENDINGMSG_WAITNOPROCESS`) instead of `1` (`PENDINGMSG_WAITDEFPROCESS`). When PowerPoint fires a re-entrant callback (e.g. `Calculate`/`SheetChange` event) during a `FormatConditions.Add()` call, `WAITNOPROCESS` blocked COM from delivering the callback — PowerPoint waited for the callback while the STA thread waited for PowerPoint, causing a permanent deadlock. Any operation that triggers PowerPoint's internal event loop (conditional formatting on formula cells, PivotTable refresh, Power Query refresh) was affected. Fixed by returning `1` so COM delivers pending inbound calls during the outgoing `IDispatch.Invoke`.
 - **Hung Session After Tool Call Cancellation**: When a user cancelled a tool call while the STA thread was stuck in `IDispatch.Invoke`, `WithSessionAsync` had no `catch (OperationCanceledException)` handler — the session remained alive with a permanently blocked STA thread, causing all subsequent operations to hang. Fixed by adding `catch (OperationCanceledException)` that force-closes the session (same pattern as the existing `TimeoutException` handler).
 - **Slow Fail on Successive Calls After Timeout/Cancellation**: After a timeout or cancellation, `Execute<T>` would queue new work on a permanently stuck STA thread, forcing each subsequent caller to wait for its own full timeout before failing. Fixed by adding a fail-fast pre-check: if `_operationTimedOut` is set, throw `TimeoutException` immediately.
 
-- **COM Apartment Boundary in SaveWorkbook** (#482): Removed `Task.Run(() => workbook.Save())` in `ExcelShutdownService` — this marshalled the COM call from the STA thread to an MTA thread-pool thread, which is incorrect and fragile in .NET 8+. Save is now called directly on the STA thread, which is always the case inside `ExcelBatch.Execute()`.
-- **Wrong-Process Force-Kill from Fallback PID** (#482): Removed the "newest EXCEL.EXE process" fallback PID detection in `ExcelBatch`. When the `Hwnd` path fails, force-kill is now disabled with a warning rather than risking killing an unrelated Excel workbook the user has open.
-- **Redundant `Thread.Sleep` in Dispose** (#482): Removed 100 ms `Thread.Sleep` from `ExcelBatch.Dispose()`. The preceding `_shutdownCts.Cancel()` call immediately wakes the STA thread from `WaitToReadAsync`, making the sleep redundant and adding unnecessary latency.
-- **Exception Type Lost in Service Error Responses** (#482): `ExcelMcpService` top-level `catch` blocks now return `"{ExType}: {ex.Message}"` instead of just `ex.Message`, making unexpected failures distinguishable without a full stack trace.
-- **COM Timeout Hang** — ExcelBatch now force-kills Excel process on timeout instead of hanging indefinitely on `WaitForSingleObject`; ExcelMcpService catches `TimeoutException` to prevent unhandled exceptions
+- **COM Apartment Boundary in SavePresentation** (#482): Removed `Task.Run(() => presentation.Save())` in `PptShutdownService` — this marshalled the COM call from the STA thread to an MTA thread-pool thread, which is incorrect and fragile in .NET 8+. Save is now called directly on the STA thread, which is always the case inside `PptBatch.Execute()`.
+- **Wrong-Process Force-Kill from Fallback PID** (#482): Removed the "newest POWERPNT.EXE process" fallback PID detection in `PptBatch`. When the `Hwnd` path fails, force-kill is now disabled with a warning rather than risking killing an unrelated PowerPoint presentation the user has open.
+- **Redundant `Thread.Sleep` in Dispose** (#482): Removed 100 ms `Thread.Sleep` from `PptBatch.Dispose()`. The preceding `_shutdownCts.Cancel()` call immediately wakes the STA thread from `WaitToReadAsync`, making the sleep redundant and adding unnecessary latency.
+- **Exception Type Lost in Service Error Responses** (#482): `PptMcpService` top-level `catch` blocks now return `"{ExType}: {ex.Message}"` instead of just `ex.Message`, making unexpected failures distinguishable without a full stack trace.
+- **COM Timeout Hang** — PptBatch now force-kills PowerPoint process on timeout instead of hanging indefinitely on `WaitForSingleObject`; PptMcpService catches `TimeoutException` to prevent unhandled exceptions
 - **FileSystemWatcher CPU Spin** — Disabled `IConfiguration` reload-on-change in MCP Server to prevent 85%+ CPU usage from `FileSystemWatcher` polling
-- **Process Handle Leak** — Fixed `Process` object not being disposed in `ExcelBatch.ForceKillExcelProcess()`
+- **Process Handle Leak** — Fixed `Process` object not being disposed in `PptBatch.ForceKillPowerPointProcess()`
 - **Configuration Sources Cleared** — Re-add environment variables and command-line args after clearing config sources (were accidentally removed)
 - **Source Generator Type Aggregation** — Fixed nullable type upgrade logic in `ServiceInfoExtractor` that could lose type information across partial interfaces
 - **Chart Trendline Parameter Name** — Renamed `type` → `trendlineType` in `IChartConfigCommands` to avoid COM parameter ambiguity
@@ -65,45 +65,45 @@ This changelog covers all components:
 
 ### Changed
 
-- **Chart Test Performance** — Refactored 80 chart tests to share a single pre-populated fixture file via `File.Copy()` instead of creating individual files via COM, eliminating ~74 redundant Excel sessions
+- **Chart Test Performance** — Refactored 80 chart tests to share a single pre-populated fixture file via `File.Copy()` instead of creating individual files via COM, eliminating ~74 redundant PowerPoint sessions
 
 ### Added
 
 - **Screenshot quality parameter**: New `quality` parameter on screenshot tool (`High`/`Medium`/`Low`). Default is `Medium` (JPEG at 75% scale, ~4–8x smaller than original PNG). Use `High` (PNG, full scale) when fine text needs careful inspection, `Low` (JPEG at 50% scale) for layout overviews.
-- **Window Management Tool** (#470): New `window` tool with 9 operations to control Excel window visibility, position, state, and status bar — enabling "Agent Mode" where users watch AI work in Excel
-  - `show` / `hide` — Toggle Excel visibility (syncs with session metadata)
-  - `bring-to-front` — Bring Excel to foreground
+- **Window Management Tool** (#470): New `window` tool with 9 operations to control PowerPoint window visibility, position, state, and status bar — enabling "Agent Mode" where users watch AI work in PowerPoint
+  - `show` / `hide` — Toggle PowerPoint visibility (syncs with session metadata)
+  - `bring-to-front` — Bring PowerPoint to foreground
   - `get-info` — Query window state (visibility, position, size, foreground status)
   - `set-state` — Set normal / minimized / maximized
   - `set-position` — Set window left, top, width, height
   - `arrange` — Preset layouts: left-half, right-half, top-half, bottom-half, center, full-screen
-  - `set-status-bar` — Display live operation status text in Excel's status bar
+  - `set-status-bar` — Display live operation status text in PowerPoint's status bar
   - `clear-status-bar` — Restore default status bar text
-  - MCP Server proactively asks users about showing Excel for visual tasks (charts, dashboards)
+  - MCP Server proactively asks users about showing PowerPoint for visual tasks (charts, dashboards)
   - Agent Mode, Presentation Mode, and Debug Mode workflow guidance
 - **CLI `--output` flag** for all commands: Save command output directly to a file. Screenshot commands automatically save decoded PNG images instead of base64 JSON
-- **CLI Batch Mode** (#463): New `excelcli batch` command executes multiple CLI commands from a JSON file in a single process launch
+- **CLI Batch Mode** (#463): New `pptcli batch` command executes multiple CLI commands from a JSON file in a single process launch
   - Session auto-capture from `session.open`/`session.create`, auto-clear on `session.close`
   - NDJSON output for machine-readable results
   - `--stop-on-error` flag to halt on first failure (default: continue all)
 
 ### Fixed
 
-- **Screenshot reliability**: Screenshots now work reliably regardless of whether Excel is visible or hidden. Added automatic retry for transient capture failures
+- **Screenshot reliability**: Screenshots now work reliably regardless of whether PowerPoint is visible or hidden. Added automatic retry for transient capture failures
 - **CLI `--help` crash** (#463): Fixed Spectre.Console markup crash when parameter descriptions contain `[`/`]` characters (e.g., `[A1 notation]`)
 - **Source generator tool filtering**: Fixed `mcpTool ?? "unknown"` fallback; added `HasMcpToolAttribute` to correctly filter MCP-only tools
 - **Skills docs parameter names**: Fixed wrong CLI parameter names in `conditionalformat.md` and `slicer.md` reference files
 - **Auto-save on shutdown**: Sessions are now auto-saved before closing when MCP server exits or client disconnects, preventing silent data loss from session timeouts
-- **Session creation resilience**: Added retry logic (Polly) for transient COM failures (`CO_E_SERVER_EXEC_FAILURE`, `RPC_E_CALL_FAILED`) during Excel process startup under resource constraints
+- **Session creation resilience**: Added retry logic (Polly) for transient COM failures (`CO_E_SERVER_EXEC_FAILURE`, `RPC_E_CALL_FAILED`) during PowerPoint process startup under resource constraints
 
 ## [1.7.2] - 2026-02-15
 
 ### Added
 
-- **In-Process Service Architecture** (#454): MCP Server and CLI each host ExcelMCP Service in-process instead of sharing a separate service process
+- **In-Process Service Architecture** (#454): MCP Server and CLI each host PptMcp Service in-process instead of sharing a separate service process
   - Eliminates service discovery failures (especially NuGet tool installs) and cross-process coordination
 
-- **Separate CLI NuGet Package** (#452): CLI published as `Sbroenne.ExcelMcp.CLI` alongside MCP Server
+- **Separate CLI NuGet Package** (#452): CLI published as `PptMcp.CLI` alongside MCP Server
   - Service version negotiation: client validates exact version match with running service on connect
 
 ### Fixed
@@ -123,21 +123,21 @@ This changelog covers all components:
 **See [BREAKING-CHANGES.md](docs/BREAKING-CHANGES.md) for complete migration guide.**
 LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CLI).
 
-- **Tool Names Simplified**: Removed `excel_` prefix from all 23 MCP tool names (e.g., `excel_range` → `range`, `excel_file` → `file`). Titles also shortened (e.g., `"Chart Operations"`). VS Code extension server name → `excel-mcp`.
+- **Tool Names Simplified**: Removed `ppt_` prefix from all 23 MCP tool names (e.g., `ppt_range` → `range`, `ppt_file` → `file`). Titles also shortened (e.g., `"Chart Operations"`). VS Code extension server name → `ppt-mcp`.
 
 ### Added
 
 - **CLI Code Generation** (#433): CLI commands auto-generated from Core via Roslyn source generators — guarantees 1:1 MCP/CLI parity
-- **Calculation Mode Control** (#430): New `calculation_mode` tool/CLI command (automatic, manual, semi-automatic modes; workbook/sheet/range scopes)
+- **Calculation Mode Control** (#430): New `calculation_mode` tool/CLI command (automatic, manual, semi-automatic modes; presentation/sheet/range scopes)
 - **Installation via npx** (#449): Added `npx add-mcp` as primary installation method in docs
 
 ### Changed
 
-- **MCP Prompt Reduction** (#442): Reduced prompts from 7 to 4 with ~76% content reduction; removed `excel_` prefix from prompt names
+- **MCP Prompt Reduction** (#442): Reduced prompts from 7 to 4 with ~76% content reduction; removed `ppt_` prefix from prompt names
 - **VS Code Extension**: Self-contained publishing (no .NET runtime needed), CLI removed from extension, skills use `chatSkills` contribution point
 - **LLM Tests** (#446): Migrated to pytest-aitest v0.3.x from PyPI with unified MCP/CLI test suite
 - **Release Workflow** (#443): Switched to workflow_dispatch with version bump UI; added stale issue workflow
-- **Terminology**: "Daemon" → "ExcelMCP Service" throughout docs
+- **Terminology**: "Daemon" → "PptMcp Service" throughout docs
 - **MCP SKILL template** (#448): Added Workflow Checklist table for quick reference (open → create → write → format → save)
 - **CLI SKILL template** (#448): Added "List Parameters Use JSON Arrays" to Common Pitfalls section
 - **Slicer reference doc**: Added CLI JSON Array Quoting section with PowerShell escaping examples
@@ -160,7 +160,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
   - Added "Update CLI" menu option when updates are available (detects global vs local .NET tool install)
   - Added save dialog (Yes/No/Cancel) when closing individual sessions from tray
   - Added save dialog (Yes/No/Cancel) when stopping daemon with active sessions
-  - Removed redundant disabled "Excel CLI Daemon" status menu entry
+  - Removed redundant disabled "PowerPoint CLI Daemon" status menu entry
   - Toast notifications now mention the Update CLI menu option for easier access
   - Update command shows in confirmation dialog before execution
   - Auto-restart daemon after successful update
@@ -201,11 +201,11 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 
 ## [1.6.5] - 2026-02-03
 
-- **Dead Session Detection** (#414): Auto-detect and cleanup sessions when Excel process dies
-  - ROOT CAUSE: `SessionManager` never checked if Excel process was alive, leaving dead sessions in dictionary
+- **Dead Session Detection** (#414): Auto-detect and cleanup sessions when PowerPoint process dies
+  - ROOT CAUSE: `SessionManager` never checked if PowerPoint process was alive, leaving dead sessions in dictionary
   - FIX: `GetSession()`, `GetActiveSessions()`, and `IsSessionAlive()` now check process health and auto-cleanup
-  - `ExcelBatch.Execute()` validates Excel is alive before queueing operations
-  - Users now get clear error: "Excel process is no longer running" instead of confusing timeouts
+  - `PptBatch.Execute()` validates PowerPoint is alive before queueing operations
+  - Users now get clear error: "PowerPoint process is no longer running" instead of confusing timeouts
   - Dead sessions no longer block reopening the same file
   - Affects both CLI and MCP Server (shared `SessionManager`)
 
@@ -214,7 +214,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 ### Fixed
 
 - **COM Timeout with Data Model Dependencies** (#412): Fixed timeout when setting formulas/values that trigger Data Model recalculation
-  - ROOT CAUSE: Excel's automatic calculation blocks COM interface during DAX recalculation
+  - ROOT CAUSE: PowerPoint's automatic calculation blocks COM interface during DAX recalculation
   - FIX: Temporarily disable calculation mode (xlCalculationManual) during write operations
   - Affected methods: `SetFormulas`, `SetValues`, `Table.Append`, `NamedRange.Write`
   - Formulas like `=INDEX(KPIs[Total_ACR],1)` now work without "The operation was canceled" error
@@ -238,7 +238,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
   - Errors now surface clearly: `"[Expression.Error] The name 'Source' wasn't recognized..."`
 
 - **Table Create Auto-Expand from Single Cell**: Fixed issue where `table create --range A1` created single-cell table
-  - ROOT CAUSE: Excel's `ListObjects.Add()` doesn't auto-expand from a single cell
+  - ROOT CAUSE: PowerPoint's `ListObjects.Add()` doesn't auto-expand from a single cell
   - FIX: Now uses `Range.CurrentRegion` when single cell provided, capturing all contiguous data
   - Prevents Data Model issues where tables only contain header column
 
@@ -249,7 +249,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
   - Returns tabular results (columns, rows) in JSON format
   - Automatically cleans up temporary query and worksheet
   - Errors propagate properly (e.g., invalid M syntax throws with error message)
-  - Example: `excelcli powerquery evaluate --file data.xlsx --mcode "let Source = #table({\"Name\",...})"`
+  - Example: `pptcli powerquery evaluate --file data.pptx --mcode "let Source = #table({\"Name\",...})"`
 
 - **MCP Power Query mCodeFile Parameter**: Read M code from file instead of inline string
   - New `mCodeFile` parameter on `powerquery` tool for `create`, `update`, `evaluate` actions
@@ -285,13 +285,13 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
   - All commands now use `--session` parameter (was positional in some commands)
   - Comprehensive `--help` descriptions on all commands synced with MCP tool descriptions
   - All `--file` parameters support both new file creation and existing files
-  - New `excelcli list-actions` command to discover all available operations
+  - New `pptcli list-actions` command to discover all available operations
   - Exit code standardization (0=success, 1=error, 2=validation)
 
 - **Quiet Mode**: `-q`/`--quiet` flag suppresses banner for agent-friendly JSON-only output
   - Auto-detects piped/redirected stdout and suppresses banner automatically
 
-- **Version Check**: `excelcli version --check` queries NuGet to show if update available
+- **Version Check**: `pptcli version --check` queries NuGet to show if update available
 
 - **Session Close --save**: Single `--save` flag for atomic save-and-close workflow
   - Replaces separate save + close sequence for cleaner scripting
@@ -316,13 +316,13 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 
 #### Testing & Quality
 - **LLM Integration Tests**: Comprehensive pytest-aitest test suite for CLI
-  - 9 test scenarios covering all major Excel operations
+  - 9 test scenarios covering all major PowerPoint operations
   - Chart positioning, PivotTable layout, Power Query, slicers, tables, ranges
   - Financial report automation workflow tests
 
 - **Agent Skills**: New structured skills documentation for AI assistants
-  - `skills/excel-cli/` - CLI-specific skill with commands reference
-  - `skills/excel-mcp/` - MCP Server skill with tools reference
+  - `skills/ppt-cli/` - CLI-specific skill with commands reference
+  - `skills/ppt-mcp/` - MCP Server skill with tools reference
   - `skills/shared/` - Shared workflows, anti-patterns, behavioral rules
 
 ### Fixed
@@ -369,7 +369,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 ### Added
 - **PivotTable & Table Slicers** (#363): New `slicer` tool for interactive filtering
   - **PivotTable Slicers**: Create, list, filter, and delete slicers for PivotTable fields
-  - **Table Slicers**: Create, list, filter, and delete slicers for Excel Table columns
+  - **Table Slicers**: Create, list, filter, and delete slicers for PowerPoint Table columns
   - 8 new operations for interactive data filtering
 
 ## [1.5.5] - 2025-01-19
@@ -384,7 +384,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 ### Added
 - **DAX EVALUATE Query Execution** (#356): Execute DAX queries against the Data Model
   - New `evaluate` action on `datamodel` tool for ad-hoc DAX queries
-- **DAX-Backed Excel Tables** (#356): Create worksheet tables populated by DAX queries
+- **DAX-Backed PowerPoint Tables** (#356): Create worksheet tables populated by DAX queries
   - New `create-from-dax`, `update-dax`, `get-dax` actions
 
 ## [1.5.0] - 2025-01-10
@@ -414,7 +414,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 ## [1.4.41] - 2025-12-14
 
 ### Fixed
-- **Power Query Data Model Fix** (#324): Fixed "0x800A03EC" error when updating Power Query in workbooks with Data Model present
+- **Power Query Data Model Fix** (#324): Fixed "0x800A03EC" error when updating Power Query in presentations with Data Model present
 
 ## [1.4.40] - 2025-12-14
 
@@ -443,7 +443,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 
 ### Added
 - **Data Model Relationships** (#278): Full support for creating, updating, and deleting relationships
-- **Custom Domain** (#276): excelmcpserver.dev
+- **Custom Domain** (#276): PptMcpserver.dev
 
 ## [1.4.34] - 2025-12-05
 
@@ -472,7 +472,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 - **OLAP PivotTable AddValueField** (#261): Fixed errors when adding value fields to Data Model PivotTables
 
 ### Added
-- **Show Excel Mode**: Open with `showExcel: true` to watch AI changes live
+- **Show PowerPoint Mode**: Open with `showPowerPoint: true` to watch AI changes live
 
 ## [1.4.28] - 2025-12-01
 
@@ -487,7 +487,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 ## [1.4.24] - 2025-12-01
 
 ### Fixed
-- **Session Stability** (#245): Fixed Excel MCP Server stopping due to network errors
+- **Session Stability** (#245): Fixed PowerPoint MCP Server stopping due to network errors
 
 ### Added
 - **PivotTable Grand Totals Control**: Show/hide row and column grand totals
@@ -499,7 +499,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 ## [1.4.0] - 2025-11-24
 
 ### Added
-- **Excel Table Get Data** (#234): New `get-data` action returns table rows
+- **PowerPoint Table Get Data** (#234): New `get-data` action returns table rows
 
 ### Fixed
 - **Power Query Error Query Fix** (#236): Fixed spurious "Error Query" entries
@@ -538,7 +538,7 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 - **PivotTable Discovery** (#155): Improved LLM discoverability
 - **CLI Batch Support** (#152): Batch mode for bulk operations
 - **Timeout Support** (#131): Configurable timeouts for all tools
-- **QueryTable Support** (#129): New `excel_querytable` tool
+- **QueryTable Support** (#129): New `ppt_querytable` tool
 - **Connection Create** (#127): New `create` action
 - **PivotTable from Data Model** (#109): Create PivotTables from Power Pivot
 
@@ -548,13 +548,13 @@ LLMs pick up these changes automatically via `tools/list` (MCP) and `--help` (CL
 ## [1.0.0] - 2025-10-29
 
 ### Added
-- Initial release of ExcelMcp
+- Initial release of PptMcp
 - MCP Server with 11 tools and 100+ operations
 - CLI for command-line scripting
 - VS Code Extension for one-click installation
 - Power Query management
 - Data Model / Power Pivot support
-- Excel Tables and PivotTables
+- PowerPoint Tables and PivotTables
 - Range operations with formulas
 - Chart creation
 - Named ranges and parameters

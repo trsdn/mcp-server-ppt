@@ -1,21 +1,5 @@
 # DMV Query Reference (PowerPoint's Embedded Analysis Services)
 
-## When to Use DMV Queries
-
-Use DMV queries (via the `datamodel` tool with `execute-dmv` action) when you need metadata that is NOT accessible through regular datamodel actions:
-
-| Use Case | DMV to Use |
-|----------|-----------|
-| List all DAX measures with their formulas | `TMSCHEMA_MEASURES` |
-| Discover all relationships (including hidden) | `TMSCHEMA_RELATIONSHIPS` |
-| Impact analysis — what depends on a measure/column | `DISCOVER_CALC_DEPENDENCY` |
-| List all available DMV views on this presentation | `DISCOVER_SCHEMA_ROWSETS` |
-
-**Do NOT use DMV queries for:**
-- Reading regular slide data → use `range` tool
-- Listing Power Query queries → use `powerquery list`
-- Reading PivotTable data → use `pivottable` tool
-
 SYNTAX: `SELECT * FROM $SYSTEM.<SchemaRowset>`
 
 LIMITATIONS:
