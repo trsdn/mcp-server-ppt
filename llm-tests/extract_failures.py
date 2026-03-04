@@ -1,13 +1,13 @@
 import json, glob, os
 
 target_tests = [
-    "test_cli_file_and_worksheet_workflow",
-    "test_cli_financial_report_automation",
-    "test_cli_star_schema_workflow",
-    "test_cli_powerquery_products_workflow",
-    "test_cli_sales_report_workflow",
-    "test_cli_pivottable_slicer_workflow",
-    "test_cli_table_slicer_workflow",
+    "test_cli_file_and_slide_workflow",
+    "test_cli_table_create_query",
+    "test_cli_chart_workflows",
+    "test_cli_range_set_get",
+    "test_cli_range_updates",
+    "test_cli_table_updates",
+    "test_cli_chart_updates",
 ]
 
 # Find the most recent file with CLI tests

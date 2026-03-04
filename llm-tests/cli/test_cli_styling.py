@@ -24,18 +24,17 @@ async def test_cli_styling_table_style(aitest_run, ppt_cli_server, ppt_cli_skill
     )
 
     prompt = f"""
-Create a new Excel file at {unique_path('llm-test-styling-table')}
+Create a new PowerPoint presentation at {unique_path('llm-test-styling-table')}
 
-Enter this quarterly sales dataon Sheet1:
+Add a slide with this quarterly sales data as a table:
 Region, Q1, Q2, Q3, Q4
 North, 120000, 135000, 118000, 142000
 South, 98000, 102000, 115000, 128000
 West, 85000, 91000, 99000, 108000
 
-Format the data as a professional Excel Table named "QuarterlySales"
-with a visually appealing style.
+Name the table "QuarterlySales" and apply a visually appealing style.
 
-Close the file without saving.
+Close the presentation without saving.
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
@@ -56,20 +55,20 @@ async def test_cli_styling_semantic_status(aitest_run, ppt_cli_server, ppt_cli_s
     )
 
     prompt = f"""
-Create a new Excel file at {unique_path('llm-test-styling-status')}
+Create a new PowerPoint presentation at {unique_path('llm-test-styling-status')}
 
-Enter this project status data on Sheet1:
+Add a slide with this project status data as a table:
 Task, Owner, Status
 Design, Alice, Complete
 Development, Bob, In Progress
 Testing, Carol, Overdue
 Deployment, Dave, Complete
 
-Format the Status column cells with distinct colours to make the status
+Format the Status column shapes with distinct colours to make the status
 visually clear at a glance — green for Complete, red for Overdue,
 yellow or neutral for In Progress.
 
-Close the file without saving.
+Close the presentation without saving.
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
@@ -90,18 +89,18 @@ async def test_cli_styling_header_fill(aitest_run, ppt_cli_server, ppt_cli_skill
     )
 
     prompt = f"""
-Create a new Excel file at {unique_path('llm-test-styling-header')}
+Create a new PowerPoint presentation at {unique_path('llm-test-styling-header')}
 
-Enter this data on Sheet1:
+Add a slide with this data as a table:
 Product, Units, Revenue
 Widget, 450, 13500
 Gadget, 280, 19600
 Doohickey, 175, 8750
 
-Give the header row (row 1) a dark blue background with white bold text,
+Give the header row a dark blue background with white bold text,
 centred horizontally.
 
-Close the file without saving.
+Close the presentation without saving.
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success

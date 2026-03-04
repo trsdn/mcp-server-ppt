@@ -2,6 +2,7 @@ using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using PptMcp.ComInterop.Session;
+using PptMcp.Core.Commands.Accessibility;
 using PptMcp.Core.Commands.Animation;
 using PptMcp.Core.Commands.Chart;
 using PptMcp.Core.Commands.Design;
@@ -13,6 +14,7 @@ using PptMcp.Core.Commands.Image;
 using PptMcp.Core.Commands.Master;
 using PptMcp.Core.Commands.Media;
 using PptMcp.Core.Commands.Notes;
+using PptMcp.Core.Commands.Proofing;
 using PptMcp.Core.Commands.Section;
 using PptMcp.Core.Commands.Shape;
 using PptMcp.Core.Commands.Slide;
@@ -65,6 +67,8 @@ public sealed class PptMcpService : IDisposable
     private readonly SectionCommands _sectionCommands = new();
     private readonly DocumentPropertyCommands _documentPropertyCommands = new();
     private readonly MediaCommands _mediaCommands = new();
+    private readonly ProofingCommands _proofingCommands = new();
+    private readonly AccessibilityCommands _accessibilityCommands = new();
 
     public PptMcpService()
     {
@@ -270,6 +274,12 @@ public sealed class PptMcpService : IDisposable
                 "media" => await DispatchSimpleAsync<MediaAction>(action, request,
                     ServiceRegistry.Media.TryParseAction,
                     (a, batch) => ServiceRegistry.Media.DispatchToCore(_mediaCommands, a, batch, request.Args)),
+                "proofing" => await DispatchSimpleAsync<ProofingAction>(action, request,
+                    ServiceRegistry.Proofing.TryParseAction,
+                    (a, batch) => ServiceRegistry.Proofing.DispatchToCore(_proofingCommands, a, batch, request.Args)),
+                "accessibility" => await DispatchSimpleAsync<AccessibilityAction>(action, request,
+                    ServiceRegistry.Accessibility.TryParseAction,
+                    (a, batch) => ServiceRegistry.Accessibility.DispatchToCore(_accessibilityCommands, a, batch, request.Args)),
                 _ => new ServiceResponse { Success = false, ErrorMessage = $"Unknown command category: {category}" }
             };
         }

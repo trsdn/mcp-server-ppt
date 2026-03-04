@@ -7,7 +7,7 @@
 
 **Automate PowerPoint with AI — A Model Context Protocol (MCP) server for comprehensive PowerPoint automation through conversational AI.**
 
-**MCP Server for PowerPoint** enables AI assistants (GitHub Copilot, Claude, ChatGPT) to automate PowerPoint through natural language commands. Manage slides, shapes, text, charts, tables, animations, transitions, VBA macros, and more (30 tools with 156 operations).
+**MCP Server for PowerPoint** enables AI assistants (GitHub Copilot, Claude, ChatGPT) to automate PowerPoint through natural language commands. Manage slides, shapes, text, charts, tables, animations, transitions, VBA macros, and more (32 tools with 162 operations).
 
 **🛡️ 100% Safe — Uses PowerPoint's Native COM API** — Zero risk of file corruption. Uses PowerPoint's official COM API ensuring complete safety and compatibility.
 
@@ -20,7 +20,7 @@
 
 ## 🎯 What You Can Do
 
-**30 specialized tools with 156 operations:**
+**32 specialized tools with 162 operations:**
 
 - 📄 **Slides** (1 tool, 8 ops) — Create, duplicate, move, delete, apply layouts, set name
 - 🔷 **Shapes** (1 tool, 19 ops) — Add, move, resize, fill, line, shadow, rotation, z-order, grouping, copy, connectors, merge, flip, duplicate

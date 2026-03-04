@@ -55,6 +55,7 @@ public class McpServerIntegrationTests(ITestOutputHelper output) : IAsyncLifetim
     /// </summary>
     private static readonly HashSet<string> ExpectedToolNames =
     [
+        "accessibility",
         "animation",
         "background",
         "chart",
@@ -72,6 +73,7 @@ public class McpServerIntegrationTests(ITestOutputHelper output) : IAsyncLifetim
         "notes",
         "pagesetup",
         "placeholder",
+        "proofing",
         "section",
         "shape",
         "shapealign",

@@ -553,3 +553,37 @@ public class ColorSchemeInfo
     public int Index { get; set; }
     public Dictionary<string, string> Colors { get; set; } = [];
 }
+
+// ── Accessibility ────────────────────────────────────────
+
+public class AccessibilityAuditResult : OperationResult
+{
+    public int TotalSlides { get; set; }
+    public int IssueCount { get; set; }
+    public List<AccessibilityIssue> Issues { get; set; } = [];
+}
+
+public class AccessibilityIssue
+{
+    public int SlideIndex { get; set; }
+    public string IssueType { get; set; } = string.Empty;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ShapeName { get; set; }
+
+    public string Description { get; set; } = string.Empty;
+}
+
+public class ReadingOrderResult : ResultBase
+{
+    public int SlideIndex { get; set; }
+    public List<ReadingOrderEntry> Shapes { get; set; } = [];
+}
+
+public class ReadingOrderEntry
+{
+    public int Position { get; set; }
+    public string ShapeName { get; set; } = string.Empty;
+    public string ShapeType { get; set; } = string.Empty;
+    public int ZOrderPosition { get; set; }
+}

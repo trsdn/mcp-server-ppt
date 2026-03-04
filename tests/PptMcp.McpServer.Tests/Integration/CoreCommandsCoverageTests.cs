@@ -1,6 +1,7 @@
 // Suppress IDE0005 (unnecessary using) – explicit usings kept for clarity in test reflection code
 #pragma warning disable IDE0005
 using System.Reflection;
+using PptMcp.Core.Commands.Accessibility;
 using PptMcp.Core.Commands.Animation;
 using PptMcp.Core.Commands.Background;
 using PptMcp.Core.Commands.Chart;
@@ -18,6 +19,7 @@ using PptMcp.Core.Commands.Media;
 using PptMcp.Core.Commands.Notes;
 using PptMcp.Core.Commands.PageSetup;
 using PptMcp.Core.Commands.Placeholder;
+using PptMcp.Core.Commands.Proofing;
 using PptMcp.Core.Commands.Section;
 using PptMcp.Core.Commands.Shape;
 using PptMcp.Core.Commands.ShapeAlign;

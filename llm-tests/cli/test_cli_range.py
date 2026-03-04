@@ -31,14 +31,14 @@ async def test_cli_range_set_get(aitest_run, ppt_cli_server, ppt_cli_skill, fixt
     values_file= (fixtures_dir / "range-test-data.json").as_posix()
 
     prompt = f"""
-1. Create a new empty Excel file at {unique_path('llm-test-range-cli')}
-2. Write data to Sheet1 range A1:C2 using the values from this JSON file:
+1. Create a new empty PowerPoint presentation at {unique_path('llm-test-range-cli')}
+2. Add a slide and place a text shape with this data using the values from this JSON file:
    {values_file}
 
    IMPORTANT: JSON arrays with commas break CLI argument parsing.
    You MUST use --values-file with the path above instead of --values with inline JSON.
-3. Read back the data from A1:C2 to verify it was written correctly
-4. Close the file without saving
+3. Read back the shape content to verify it was written correctly
+4. Close the presentation without saving
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
@@ -59,9 +59,9 @@ async def test_cli_range_error_handling(aitest_run, ppt_cli_server, ppt_cli_skil
     )
 
     prompt = f"""
-1. Create a new empty Excel file at {unique_path('llm-test-range-error-cli')}
-2. Try to get values from a large range like A1:Z1000 to see what happens
-3. Then close the file without saving
+1. Create a new empty PowerPoint presentation at {unique_path('llm-test-range-error-cli')}
+2. Try to read content from a shape that may not exist to see what happens
+3. Then close the presentation without saving
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
