@@ -8,7 +8,7 @@ PowerPoint MCP Server lets you automate PowerPoint through conversation with Cla
 
 - **Create & Edit** - Build presentations, slides, and shapes
 - **Analyze Data** - Charts, tables, and SmartArt
-- **Transform Data** - Power Query imports and transformations
+- **Transform Data** - Slide animations and transitions
 - **Format & Style** - Themes, layouts, transitions, animations
 - **Automate** - VBA macros, batch operations
 - **Agent Mode** - Say "show me PowerPoint" and watch AI work in real-time, side-by-side with Claude
@@ -33,55 +33,55 @@ That's it! Start a new conversation and ask Claude to work with PowerPoint.
 
 These examples work with any PowerPoint file, including a new empty presentation.
 
-### Example 1: Create a Sales Tracker
+### Example 1: Create a Sales Presentation
 
-**You say:** *"Create a new PowerPoint file called SalesTracker.pptx with slides for tracking sales. Include columns for Date, Product, Quantity, Unit Price, and Total. Add some sample data and a formula for the Total column."*
+**You say:** *"Create a new PowerPoint file called SalesPresentation.pptx with a title slide, a slide with bullet points summarizing Q1 results, and a slide with a bar chart comparing sales by region."*
 
 **What happens:**
 - Creates a new presentation
-- Adds column headers (Date, Product, Quantity, Unit Price, Total)
-- Enters sample sales data
-- Creates formulas in the Total column (Quantity × Unit Price)
-- Formats the data as a PowerPoint Table
+- Adds a title slide with the presentation name
+- Creates a content slide with Q1 summary bullet points
+- Adds a chart slide with a bar chart comparing regional sales
+- Applies consistent formatting and theme
 - Confirms completion with file location
 
-### Example 2: Build a Dashboard with PivotTable and Chart
+### Example 2: Build a Dashboard Slide
 
-**You say:** *"I want to analyze this data. Create a PivotTable that shows total sales by Product, then add a bar chart to visualize the results."*
-
-**What happens:**
-- Creates a PivotTable from the data
-- Configures Product as rows and Total as sum values
-- Creates a new slide for the PivotTable
-- Adds a bar chart based on the PivotTable
-- Returns confirmation with locations of both
-
-### Example 3: Power Query and Data Model Analysis
-
-**You say:** *"Use Power Query to import this CSV file: C:/Data/products.csv. Add the data to the Data Model and create measures for Total Revenue and Average Rating."*
+**You say:** *"Add a new slide with a table showing product sales data and a pie chart next to it visualizing the breakdown by category."*
 
 **What happens:**
-- Imports the CSV using Power Query
-- Loads the data to a slide as a PowerPoint Table
-- Adds the table to the Power Pivot Data Model
-- Creates DAX measures for analysis
-- Confirms the data is ready for PivotTable analysis
+- Creates a new slide with a split layout
+- Adds a table with product sales data
+- Creates a pie chart showing category breakdown
+- Positions both elements side by side
+- Returns confirmation with slide number
+
+### Example 3: Create Professional Presentation
+
+**You say:** *"Create a 10-slide investor pitch deck with a title slide, agenda, market overview with a chart, product features with SmartArt, team bios, and a closing slide. Use a professional blue theme with slide transitions."*
+
+**What happens:**
+- Creates a new presentation with a professional blue theme
+- Builds all 10 slides with appropriate layouts
+- Adds charts and SmartArt graphics where specified
+- Applies consistent formatting and slide transitions
+- Confirms the presentation is ready for review
 
 ---
 
 **More things you can ask:**
 
-- *"Show me PowerPoint side-by-side while you build this dashboard"* - Agent Mode: watch every step happen live
-- *"Put this data in A1:C4 - Name, Age, City / Alice, 30, Seattle / Bob, 25, Portland"*
-- *"Create a slicer for the Region field so I can filter the PivotTable interactively"*
-- *"Format the Price column as currency and highlight values over $500 in green"*
-- *"Create a relationship between the Orders and Products tables using ProductID"*
-- *"Run the UpdatePrices macro"*
+- *"Show me PowerPoint side-by-side while you build this presentation"* - Agent Mode: watch every step happen live
+- *"Add a slide with a table showing Name, Role, and Department for the team"*
+- *"Add slide transitions and entrance animations to all slides"*
+- *"Apply the company brand colors and format the title slides consistently"*
+- *"Create a SmartArt diagram showing our organizational structure"*
+- *"Run the UpdateSlides macro"*
 - *"Show me PowerPoint while you work"* - watch changes in real-time
 
 ## Tips for Best Results
 
-- **Be specific** - Include file paths, sheet names, and column references when you know them
+- **Be specific** - Include file paths, slide numbers, and shape references when you know them
 - **Start simple** - Build complex presentations step by step
 - **Ask to see PowerPoint** - Say *"Show me PowerPoint while you work"* to watch changes in real-time
 - **Close files first** - PowerPoint MCP needs exclusive access to presentations during automation
