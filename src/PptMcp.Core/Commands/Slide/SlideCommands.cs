@@ -282,6 +282,89 @@ public class SlideCommands : ISlideCommands
         });
     }
 
+    public OperationResult CloneWithReplace(IPptBatch batch, int slideIndex, int count, string searchText, string replaceText)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(searchText);
+        ArgumentException.ThrowIfNullOrWhiteSpace(replaceText);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic slides = pres.Slides;
+            dynamic sourceSlide = slides.Item(slideIndex);
+            try
+            {
+                int created = 0;
+                for (int c = 0; c < count; c++)
+                {
+                    dynamic duplicated = sourceSlide.Duplicate();
+                    dynamic newSlide = duplicated.Item(1);
+                    try
+                    {
+                        dynamic shapes = newSlide.Shapes;
+                        try
+                        {
+                            int shapeCount = (int)shapes.Count;
+                            for (int i = 1; i <= shapeCount; i++)
+                            {
+                                dynamic shape = shapes.Item(i);
+                                try
+                                {
+                                    if ((bool)shape.HasTextFrame)
+                                    {
+                                        dynamic textFrame = shape.TextFrame;
+                                        dynamic textRange = textFrame.TextRange;
+                                        try
+                                        {
+                                            string text = textRange.Text?.ToString() ?? "";
+                                            if (text.Contains(searchText))
+                                            {
+                                                textRange.Text = text.Replace(searchText, replaceText);
+                                            }
+                                        }
+                                        finally
+                                        {
+                                            ComUtilities.Release(ref textRange!);
+                                            ComUtilities.Release(ref textFrame!);
+                                        }
+                                    }
+                                }
+                                finally
+                                {
+                                    ComUtilities.Release(ref shape!);
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref shapes!);
+                        }
+
+                        created++;
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref newSlide!);
+                        ComUtilities.Release(ref duplicated!);
+                    }
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "clone-with-replace",
+                    Message = $"Created {created} clone(s) of slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref sourceSlide!);
+                ComUtilities.Release(ref slides!);
+            }
+        });
+    }
+
     private static dynamic? FindLayout(dynamic pres, string layoutName)
     {
         // PowerPoint COM: Presentation.Designs → Design.SlideMaster.CustomLayouts

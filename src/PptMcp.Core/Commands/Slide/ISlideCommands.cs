@@ -74,4 +74,15 @@ public interface ISlideCommands
     /// <param name="name">New name for the slide</param>
     [ServiceAction("set-name")]
     OperationResult SetName(IPptBatch batch, int slideIndex, string name);
+
+    /// <summary>
+    /// Clone a slide multiple times and replace text placeholders in each clone.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based index of the source slide to clone</param>
+    /// <param name="count">Number of clones to create</param>
+    /// <param name="searchText">Text to search for in each clone</param>
+    /// <param name="replaceText">Text to replace with in each clone</param>
+    [ServiceAction("clone-with-replace")]
+    OperationResult CloneWithReplace(IPptBatch batch, int slideIndex, int count, string searchText, string replaceText);
 }

@@ -40,4 +40,12 @@ public interface IHyperlinkCommands
     /// </summary>
     [ServiceAction("list")]
     HyperlinkListResult List(IPptBatch batch);
+
+    /// <summary>
+    /// Validate all hyperlinks in the presentation and report broken or empty ones.
+    /// Checks every slide and shape for hyperlinks, classifying each as valid, broken, empty, external, or internal.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    [ServiceAction("validate")]
+    OperationResult Validate(IPptBatch batch);
 }

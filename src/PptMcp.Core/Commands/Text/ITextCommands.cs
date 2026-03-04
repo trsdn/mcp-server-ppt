@@ -62,4 +62,28 @@ public interface ITextCommands
     /// <param name="superscript">Set superscript (null = don't change)</param>
     [ServiceAction("format-advanced")]
     OperationResult FormatAdvanced(IPptBatch batch, int slideIndex, string shapeName, bool? underline, bool? strikethrough, bool? subscript, bool? superscript);
+
+    /// <summary>
+    /// Count words across all slides or a specific slide.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">0 for all slides, or specific 1-based index</param>
+    [ServiceAction("word-count")]
+    OperationResult WordCount(IPptBatch batch, int slideIndex);
+
+    /// <summary>
+    /// Report shapes missing alt text (AlternativeText).
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">0 for all slides, or specific 1-based index</param>
+    [ServiceAction("alt-text-audit")]
+    OperationResult AltTextAudit(IPptBatch batch, int slideIndex);
+
+    /// <summary>
+    /// Find unfilled placeholders with empty text.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">0 for all slides, or specific 1-based index</param>
+    [ServiceAction("empty-placeholder-audit")]
+    OperationResult EmptyPlaceholderAudit(IPptBatch batch, int slideIndex);
 }

@@ -36,74 +36,7 @@ public class TextCommands : ITextCommands
                 {
                     result.Text = textRange.Text?.ToString() ?? "";
 
-                    // Read paragraphs
-                    dynamic paragraphs = textRange.Paragraphs();
-                    try
-                    {
-                        int paraCount = (int)paragraphs.Count;
-                        for (int p = 1; p <= paraCount; p++)
-                        {
-                            dynamic para = textRange.Paragraphs(p, 1);
-                            try
-                            {
-                                var paraInfo = new TextParagraphInfo
-                                {
-                                    Index = p,
-                                    Text = para.Text?.ToString() ?? ""
-                                };
-
-                                try { paraInfo.Alignment = Convert.ToInt32(para.ParagraphFormat.Alignment); } catch { }
-
-                                // Read runs
-                                dynamic runs = para.Runs();
-                                try
-                                {
-                                    int runCount = (int)runs.Count;
-                                    for (int r = 1; r <= runCount; r++)
-                                    {
-                                        dynamic run = para.Runs(r, 1);
-                                        try
-                                        {
-                                            var runInfo = new TextRunInfo
-                                            {
-                                                Text = run.Text?.ToString() ?? ""
-                                            };
-                                            try { runInfo.FontName = run.Font.Name?.ToString(); } catch { }
-                                            try { runInfo.FontSize = Convert.ToSingle(run.Font.Size); } catch { }
-                                            try { runInfo.Bold = Convert.ToInt32(run.Font.Bold) != 0; } catch { }
-                                            try { runInfo.Italic = Convert.ToInt32(run.Font.Italic) != 0; } catch { }
-                                            try
-                                            {
-                                                int rgb = Convert.ToInt32(run.Font.Color.RGB);
-                                                runInfo.Color = $"#{rgb:X6}";
-                                            }
-                                            catch { }
-
-                                            paraInfo.Runs.Add(runInfo);
-                                        }
-                                        finally
-                                        {
-                                            ComUtilities.Release(ref run!);
-                                        }
-                                    }
-                                }
-                                finally
-                                {
-                                    ComUtilities.Release(ref runs!);
-                                }
-
-                                result.Paragraphs.Add(paraInfo);
-                            }
-                            finally
-                            {
-                                ComUtilities.Release(ref para!);
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        ComUtilities.Release(ref paragraphs!);
-                    }
+                    ReadParagraphs(textRange, result.Paragraphs);
 
                     return result;
                 }
@@ -475,5 +408,354 @@ public class TextCommands : ITextCommands
                 ComUtilities.Release(ref slide!);
             }
         });
+    }
+
+    public OperationResult WordCount(IPptBatch batch, int slideIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            int totalWords = 0;
+
+            void CountInSlide(dynamic s)
+            {
+                dynamic shapes = s.Shapes;
+                try
+                {
+                    int count = (int)shapes.Count;
+                    for (int i = 1; i <= count; i++)
+                    {
+                        dynamic shape = shapes.Item(i);
+                        try
+                        {
+                            if (Convert.ToInt32(shape.HasTextFrame) != 0)
+                            {
+                                dynamic textRange = shape.TextFrame.TextRange;
+                                try
+                                {
+                                    string text = textRange.Text?.ToString() ?? "";
+                                    if (!string.IsNullOrWhiteSpace(text))
+                                    {
+                                        totalWords += text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
+                                    }
+                                }
+                                finally
+                                {
+                                    ComUtilities.Release(ref textRange!);
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref shape!);
+                        }
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref shapes!);
+                }
+            }
+
+            if (slideIndex > 0)
+            {
+                dynamic slide = pres.Slides.Item(slideIndex);
+                try
+                {
+                    CountInSlide(slide);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref slide!);
+                }
+            }
+            else
+            {
+                dynamic slides = pres.Slides;
+                try
+                {
+                    int slideCount = (int)slides.Count;
+                    for (int i = 1; i <= slideCount; i++)
+                    {
+                        dynamic slide = slides.Item(i);
+                        try
+                        {
+                            CountInSlide(slide);
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref slide!);
+                        }
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref slides!);
+                }
+            }
+
+            string scope = slideIndex > 0 ? $"slide {slideIndex}" : "all slides";
+            return new OperationResult
+            {
+                Success = true,
+                Action = "word-count",
+                Message = $"Total word count ({scope}): {totalWords}",
+                FilePath = ctx.PresentationPath
+            };
+        });
+    }
+
+    public OperationResult AltTextAudit(IPptBatch batch, int slideIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            var missing = new List<string>();
+
+            void AuditSlide(dynamic s, int idx)
+            {
+                dynamic shapes = s.Shapes;
+                try
+                {
+                    int count = (int)shapes.Count;
+                    for (int i = 1; i <= count; i++)
+                    {
+                        dynamic shape = shapes.Item(i);
+                        try
+                        {
+                            string altText = shape.AlternativeText?.ToString() ?? "";
+                            if (string.IsNullOrWhiteSpace(altText))
+                            {
+                                missing.Add($"Slide {idx}, Shape '{shape.Name}'");
+                            }
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref shape!);
+                        }
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref shapes!);
+                }
+            }
+
+            if (slideIndex > 0)
+            {
+                dynamic slide = pres.Slides.Item(slideIndex);
+                try
+                {
+                    AuditSlide(slide, slideIndex);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref slide!);
+                }
+            }
+            else
+            {
+                dynamic slides = pres.Slides;
+                try
+                {
+                    int slideCount = (int)slides.Count;
+                    for (int i = 1; i <= slideCount; i++)
+                    {
+                        dynamic slide = slides.Item(i);
+                        try
+                        {
+                            AuditSlide(slide, i);
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref slide!);
+                        }
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref slides!);
+                }
+            }
+
+            return new OperationResult
+            {
+                Success = true,
+                Action = "alt-text-audit",
+                Message = missing.Count > 0
+                    ? $"{missing.Count} shape(s) missing alt text:\n" + string.Join("\n", missing)
+                    : "All shapes have alt text.",
+                FilePath = ctx.PresentationPath
+            };
+        });
+    }
+
+    public OperationResult EmptyPlaceholderAudit(IPptBatch batch, int slideIndex)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            var empty = new List<string>();
+
+            void AuditSlide(dynamic s, int idx)
+            {
+                dynamic placeholders = s.Shapes.Placeholders;
+                try
+                {
+                    int count = (int)placeholders.Count;
+                    for (int i = 1; i <= count; i++)
+                    {
+                        dynamic ph = placeholders.Item(i);
+                        try
+                        {
+                            if (Convert.ToInt32(ph.HasTextFrame) != 0)
+                            {
+                                dynamic textRange = ph.TextFrame.TextRange;
+                                try
+                                {
+                                    string text = textRange.Text?.ToString() ?? "";
+                                    if (string.IsNullOrWhiteSpace(text))
+                                    {
+                                        empty.Add($"Slide {idx}, Placeholder '{ph.Name}'");
+                                    }
+                                }
+                                finally
+                                {
+                                    ComUtilities.Release(ref textRange!);
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref ph!);
+                        }
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref placeholders!);
+                }
+            }
+
+            if (slideIndex > 0)
+            {
+                dynamic slide = pres.Slides.Item(slideIndex);
+                try
+                {
+                    AuditSlide(slide, slideIndex);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref slide!);
+                }
+            }
+            else
+            {
+                dynamic slides = pres.Slides;
+                try
+                {
+                    int slideCount = (int)slides.Count;
+                    for (int i = 1; i <= slideCount; i++)
+                    {
+                        dynamic slide = slides.Item(i);
+                        try
+                        {
+                            AuditSlide(slide, i);
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref slide!);
+                        }
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref slides!);
+                }
+            }
+
+            return new OperationResult
+            {
+                Success = true,
+                Action = "empty-placeholder-audit",
+                Message = empty.Count > 0
+                    ? $"{empty.Count} empty placeholder(s) found:\n" + string.Join("\n", empty)
+                    : "No empty placeholders found.",
+                FilePath = ctx.PresentationPath
+            };
+        });
+    }
+
+    /// <summary>
+    /// Read paragraph and run details from a COM TextRange into the provided list.
+    /// </summary>
+    private static void ReadParagraphs(dynamic textRange, List<TextParagraphInfo> paragraphs)
+    {
+        dynamic allParagraphs = textRange.Paragraphs();
+        try
+        {
+            int paraCount = (int)allParagraphs.Count;
+            for (int p = 1; p <= paraCount; p++)
+            {
+                dynamic para = textRange.Paragraphs(p, 1);
+                try
+                {
+                    var paraInfo = new TextParagraphInfo
+                    {
+                        Index = p,
+                        Text = para.Text?.ToString() ?? ""
+                    };
+
+                    try { paraInfo.Alignment = Convert.ToInt32(para.ParagraphFormat.Alignment); } catch { }
+
+                    dynamic runs = para.Runs();
+                    try
+                    {
+                        int runCount = (int)runs.Count;
+                        for (int r = 1; r <= runCount; r++)
+                        {
+                            dynamic run = para.Runs(r, 1);
+                            try
+                            {
+                                var runInfo = new TextRunInfo
+                                {
+                                    Text = run.Text?.ToString() ?? ""
+                                };
+                                try { runInfo.FontName = run.Font.Name?.ToString(); } catch { }
+                                try { runInfo.FontSize = Convert.ToSingle(run.Font.Size); } catch { }
+                                try { runInfo.Bold = Convert.ToInt32(run.Font.Bold) != 0; } catch { }
+                                try { runInfo.Italic = Convert.ToInt32(run.Font.Italic) != 0; } catch { }
+                                try
+                                {
+                                    int rgb = Convert.ToInt32(run.Font.Color.RGB);
+                                    runInfo.Color = $"#{rgb:X6}";
+                                }
+                                catch { }
+
+                                paraInfo.Runs.Add(runInfo);
+                            }
+                            finally
+                            {
+                                ComUtilities.Release(ref run!);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref runs!);
+                    }
+
+                    paragraphs.Add(paraInfo);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref para!);
+                }
+            }
+        }
+        finally
+        {
+            ComUtilities.Release(ref allParagraphs!);
+        }
     }
 }
