@@ -24,4 +24,12 @@ public interface IPlaceholderCommands
     /// <param name="text">Text to set</param>
     [ServiceAction("set-text")]
     OperationResult SetText(IPptBatch batch, int slideIndex, int placeholderIndex, string text);
+
+    /// <summary>Replace placeholder content with an image from a file path.</summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="placeholderIndex">1-based placeholder index</param>
+    /// <param name="imagePath">Absolute path to the image file</param>
+    [ServiceAction("set-image")]
+    OperationResult SetImage(IPptBatch batch, int slideIndex, int placeholderIndex, string imagePath);
 }

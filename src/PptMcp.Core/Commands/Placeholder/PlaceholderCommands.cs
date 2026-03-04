@@ -99,6 +99,52 @@ public class PlaceholderCommands : IPlaceholderCommands
         });
     }
 
+    public OperationResult SetImage(IPptBatch batch, int slideIndex, int placeholderIndex, string imagePath)
+    {
+        if (!System.IO.File.Exists(imagePath))
+            throw new FileNotFoundException($"Image file not found: {imagePath}");
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic? ph = null;
+            try
+            {
+                ph = slide.Shapes.Placeholders.Item(placeholderIndex);
+
+                // Capture placeholder position and size
+                float left = (float)ph.Left;
+                float top = (float)ph.Top;
+                float width = (float)ph.Width;
+                float height = (float)ph.Height;
+
+                // Delete the placeholder
+                ph.Delete();
+                ComUtilities.Release(ref ph!);
+                ph = null;
+
+                // Insert picture at the same position
+                // AddPicture(FileName, LinkToFile, SaveWithDocument, Left, Top, Width, Height)
+                // msoFalse = 0, msoTrue = -1
+                dynamic pic = slide.Shapes.AddPicture(imagePath, 0, -1, left, top, width, height);
+                ComUtilities.Release(ref pic!);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-image",
+                    Message = $"Replaced placeholder {placeholderIndex} on slide {slideIndex} with image",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (ph != null) ComUtilities.Release(ref ph!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static string GetPlaceholderTypeName(int ppPlaceholderType) => ppPlaceholderType switch
     {
         1 => "Title",

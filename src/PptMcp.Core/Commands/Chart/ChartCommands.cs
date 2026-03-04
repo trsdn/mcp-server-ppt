@@ -179,6 +179,91 @@ public class ChartCommands : IChartCommands
         });
     }
 
+    public OperationResult SetData(IPptBatch batch, int slideIndex, string shapeName, List<List<object?>> values)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+        ArgumentNullException.ThrowIfNull(values);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? chart = null;
+            dynamic? chartData = null;
+            dynamic? workbook = null;
+            dynamic? dataSheet = null;
+            try
+            {
+                chart = shape.Chart;
+                chartData = chart.ChartData;
+                chartData.Activate();
+                workbook = chartData.Workbook;
+                dataSheet = workbook.Worksheets(1);
+
+                int rowCount = values.Count;
+                int colCount = 0;
+                for (int r = 0; r < rowCount; r++)
+                {
+                    int rowLen = values[r].Count;
+                    if (rowLen > colCount) colCount = rowLen;
+                }
+
+                for (int r = 0; r < rowCount; r++)
+                {
+                    var row = values[r];
+                    for (int c = 0; c < colCount; c++)
+                    {
+                        object? cellValue = c < row.Count ? row[c] : null;
+                        // Convert JsonElement to primitive if needed
+                        if (cellValue is System.Text.Json.JsonElement jsonElement)
+                        {
+                            cellValue = jsonElement.ValueKind switch
+                            {
+                                System.Text.Json.JsonValueKind.String => jsonElement.GetString(),
+                                System.Text.Json.JsonValueKind.Number => jsonElement.TryGetInt64(out var i64) ? (object)i64 : jsonElement.GetDouble(),
+                                System.Text.Json.JsonValueKind.True => true,
+                                System.Text.Json.JsonValueKind.False => false,
+                                System.Text.Json.JsonValueKind.Null => null,
+                                _ => jsonElement.ToString()
+                            };
+                        }
+
+                        // Excel COM cells are 1-based
+                        dynamic? cell = null;
+                        try
+                        {
+                            cell = dataSheet.Cells(r + 1, c + 1);
+                            cell.Value2 = cellValue ?? string.Empty;
+                        }
+                        finally
+                        {
+                            if (cell != null) ComUtilities.Release(ref cell!);
+                        }
+                    }
+                }
+
+                workbook.Close(false);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-data",
+                    Message = $"Set chart data ({rowCount} rows × {colCount} columns) on '{shapeName}' slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (dataSheet != null) ComUtilities.Release(ref dataSheet!);
+                if (workbook != null) ComUtilities.Release(ref workbook!);
+                if (chartData != null) ComUtilities.Release(ref chartData!);
+                if (chart != null) ComUtilities.Release(ref chart!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static string GetChartTypeName(int chartType) => chartType switch
     {
         1 => "xlArea",

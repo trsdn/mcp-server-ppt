@@ -51,4 +51,15 @@ public interface IChartCommands
     /// </summary>
     [ServiceAction("delete")]
     OperationResult Delete(IPptBatch batch, int slideIndex, string shapeName);
+
+    /// <summary>
+    /// Set chart data from a 2D array of values.
+    /// Opens the embedded data worksheet, writes values, then closes.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the chart shape</param>
+    /// <param name="values">2D array of values (rows × columns)</param>
+    [ServiceAction("set-data")]
+    OperationResult SetData(IPptBatch batch, int slideIndex, string shapeName, List<List<object?>> values);
 }
