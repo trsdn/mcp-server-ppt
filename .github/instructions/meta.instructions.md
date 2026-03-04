@@ -10,7 +10,7 @@ applyTo: ".github/**/*.md,.github/instructions/**"
 
 ### File Naming
 - ✅ MUST end with `.instructions.md`
-- ✅ Use descriptive names: `excel-com-interop.instructions.md`
+- ✅ Use descriptive names: `ppt-com-interop.instructions.md`
 - ❌ DON'T use generic names: `notes.instructions.md`
 
 ### Frontmatter Required

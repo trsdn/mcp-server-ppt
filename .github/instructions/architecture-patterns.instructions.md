@@ -75,7 +75,7 @@ return args[0] switch
 
 ## Resource Management Pattern
 
-**See excel-com-interop.instructions.md** for complete WithPowerPoint() pattern and COM object lifecycle management.
+**See ppt-com-interop.instructions.md** for complete WithPowerPoint() pattern and COM object lifecycle management.
 
 ---
 
@@ -221,7 +221,7 @@ SavePassword = false  // Never export credentials by default
 
 ## Key Principles
 
-1. **WithPowerPoint() for everything** - See excel-com-interop.instructions.md
+1. **WithPowerPoint() for everything** - See ppt-com-interop.instructions.md
 2. **Release intermediate objects** - Prevents PowerPoint hanging
 3. **Batch/Session for MCP** - Multiple operations in single session
 4. **Resource-based tools** - 19 tools, not 33+ operations

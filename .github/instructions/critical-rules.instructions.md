@@ -769,7 +769,7 @@ finally
 
 **See Also:**
 - Rule 1b: Exception propagation pattern
-- excel-com-interop.instructions.md for complete patterns
+- ppt-com-interop.instructions.md for complete patterns
 
 ---
 

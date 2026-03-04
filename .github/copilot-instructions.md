@@ -9,14 +9,14 @@
 - [Architecture Patterns](instructions/architecture-patterns.instructions.md) - Batch API, command pattern, resource management
 
 **Read based on task type:**
-- Adding/fixing commands → [PowerPoint COM Interop](instructions/excel-com-interop.instructions.md)
+- Adding/fixing commands → [PowerPoint COM Interop](instructions/ppt-com-interop.instructions.md)
 - Writing tests → [Testing Strategy](instructions/testing-strategy.instructions.md)
 - MCP Server work → [MCP Server Guide](instructions/mcp-server-guide.instructions.md)
 - Creating PR → [Development Workflow](instructions/development-workflow.instructions.md)
 - Fixing bugs → [Bug Fixing Checklist](instructions/bug-fixing-checklist.instructions.md)
 
 **Less frequently needed:**
-- [PowerPoint Connection Types](instructions/excel-connection-types-guide.instructions.md) - Only for connection-specific work
+- [PowerPoint Connection Types](instructions/ppt-com-patterns-guide.instructions.md) - Only for connection-specific work
 - [README Management](instructions/readme-management.instructions.md) - Only when updating READMEs
 - [Documentation Structure](instructions/documentation-structure.instructions.md) - Only when creating docs
 
@@ -143,7 +143,7 @@ public void TestMethod()
 GitHub Copilot auto-loads instructions based on files you're editing:
 
 - `tests/**/*.cs` → [Testing Strategy](instructions/testing-strategy.instructions.md)
-- `src/PptMcp.Core/**/*.cs` → [PowerPoint COM Interop](instructions/excel-com-interop.instructions.md)
+- `src/PptMcp.Core/**/*.cs` → [PowerPoint COM Interop](instructions/ppt-com-interop.instructions.md)
 - `src/PptMcp.McpServer/**/*.cs` → [MCP Server Guide](instructions/mcp-server-guide.instructions.md)
 - `.github/workflows/**/*.yml` → [Development Workflow](instructions/development-workflow.instructions.md)
 - `**` (all files) → [CRITICAL-RULES.md](instructions/critical-rules.instructions.md)

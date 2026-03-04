@@ -2,21 +2,27 @@
 #pragma warning disable IDE0005
 using System.Reflection;
 using PptMcp.Core.Commands.Animation;
+using PptMcp.Core.Commands.Background;
 using PptMcp.Core.Commands.Chart;
+using PptMcp.Core.Commands.Comment;
 using PptMcp.Core.Commands.Design;
 using PptMcp.Core.Commands.DocumentProperty;
 using PptMcp.Core.Commands.Export;
 using PptMcp.Core.Commands.File;
+using PptMcp.Core.Commands.HeaderFooter;
 using PptMcp.Core.Commands.Hyperlink;
 using PptMcp.Core.Commands.Image;
 using PptMcp.Core.Commands.Master;
 using PptMcp.Core.Commands.Media;
 using PptMcp.Core.Commands.Notes;
+using PptMcp.Core.Commands.Placeholder;
 using PptMcp.Core.Commands.Section;
 using PptMcp.Core.Commands.Shape;
+using PptMcp.Core.Commands.ShapeAlign;
 using PptMcp.Core.Commands.Slide;
 using PptMcp.Core.Commands.Slideshow;
 using PptMcp.Core.Commands.SlideTable;
+using PptMcp.Core.Commands.SmartArt;
 using PptMcp.Core.Commands.Text;
 using PptMcp.Core.Commands.Transition;
 using PptMcp.Core.Commands.Vba;
@@ -215,6 +221,60 @@ public class CoreCommandsCoverageTests
         var enumValueCount = Enum.GetValues<FileAction>().Length;
         Assert.True(enumValueCount >= coreMethodCount,
             $"IFileCommands has {coreMethodCount} [ServiceAction] methods but FileAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void ICommentCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(ICommentCommands));
+        var enumValueCount = Enum.GetValues<CommentAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"ICommentCommands has {coreMethodCount} [ServiceAction] methods but CommentAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void IPlaceholderCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(IPlaceholderCommands));
+        var enumValueCount = Enum.GetValues<PlaceholderAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"IPlaceholderCommands has {coreMethodCount} [ServiceAction] methods but PlaceholderAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void IBackgroundCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(IBackgroundCommands));
+        var enumValueCount = Enum.GetValues<BackgroundAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"IBackgroundCommands has {coreMethodCount} [ServiceAction] methods but BackgroundAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void IHeaderFooterCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(IHeaderFooterCommands));
+        var enumValueCount = Enum.GetValues<HeaderfooterAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"IHeaderFooterCommands has {coreMethodCount} [ServiceAction] methods but HeaderfooterAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void ISmartArtCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(ISmartArtCommands));
+        var enumValueCount = Enum.GetValues<SmartartAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"ISmartArtCommands has {coreMethodCount} [ServiceAction] methods but SmartartAction has only {enumValueCount} enum values.");
+    }
+
+    [Fact]
+    public void IShapeAlignCommands_AllMethodsHaveEnumValues()
+    {
+        var coreMethodCount = GetServiceActionMethodCount(typeof(IShapeAlignCommands));
+        var enumValueCount = Enum.GetValues<ShapealignAction>().Length;
+        Assert.True(enumValueCount >= coreMethodCount,
+            $"IShapeAlignCommands has {coreMethodCount} [ServiceAction] methods but ShapealignAction has only {enumValueCount} enum values.");
     }
 
     // ── Existing mapping tests ───────────────────────────────
@@ -441,6 +501,72 @@ public class CoreCommandsCoverageTests
             var exception = Record.Exception(() => ServiceRegistry.File.ToActionString(action));
             Assert.Null(exception);
             Assert.NotEmpty(ServiceRegistry.File.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void CommentAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<CommentAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Comment.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Comment.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void PlaceholderAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<PlaceholderAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Placeholder.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Placeholder.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void BackgroundAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<BackgroundAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Background.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Background.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void HeaderfooterAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<HeaderfooterAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Headerfooter.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Headerfooter.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void SmartartAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<SmartartAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Smartart.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Smartart.ToActionString(action));
+        }
+    }
+
+    [Fact]
+    public void ShapealignAction_AllEnumValuesHaveMappings()
+    {
+        foreach (var action in Enum.GetValues<ShapealignAction>())
+        {
+            var exception = Record.Exception(() => ServiceRegistry.Shapealign.ToActionString(action));
+            Assert.Null(exception);
+            Assert.NotEmpty(ServiceRegistry.Shapealign.ToActionString(action));
         }
     }
 

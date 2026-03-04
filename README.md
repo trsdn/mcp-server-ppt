@@ -20,7 +20,7 @@
 
 ## 🎯 What You Can Do
 
-**20 specialized tools with 84 operations:**
+**26 specialized tools with 101 operations:**
 
 - 📄 **Slides** (1 tool, 7 ops) — Create, duplicate, move, delete, apply layouts
 - 🔷 **Shapes** (1 tool, 13 ops) — Add textboxes/shapes, move, resize, fill, line, rotation, z-order, grouping
@@ -42,8 +42,14 @@
 - 🪟 **Window** (1 tool, 4 ops) — Show/hide, minimize, maximize, get window info
 - 📁 **Files** (1 tool, 1 op) — File validation and info
 - 📑 **Document Properties** (1 tool, 2 ops) — Get/set title, author, subject, etc.
+- 💬 **Comments** (1 tool, 4 ops) — Add, list, delete, clear slide comments
+- 📌 **Placeholders** (1 tool, 2 ops) — List placeholders, set placeholder text
+- 🎨 **Slide Background** (1 tool, 3 ops) — Get info, set solid color, reset to master
+- 📋 **Headers & Footers** (1 tool, 2 ops) — Get/set footer text, slide numbers, date
+- 🧩 **SmartArt** (1 tool, 2 ops) — Get diagram info, add nodes
+- 📐 **Shape Alignment** (1 tool, 2 ops) — Align and distribute shapes on slides
 
-📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 84 operations
+📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 101 operations
 
 
 ## 💬 Example Prompts
