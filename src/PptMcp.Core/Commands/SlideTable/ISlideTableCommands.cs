@@ -98,4 +98,19 @@ public interface ISlideTableCommands
     /// <param name="endColumn">1-based end column</param>
     [ServiceAction("merge-cells")]
     OperationResult MergeCells(IPptBatch batch, int slideIndex, string shapeName, int startRow, int startColumn, int endRow, int endColumn);
+
+    /// <summary>
+    /// Set formatting on a table cell (fill color, text alignment).
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the table shape</param>
+    /// <param name="row">1-based row index</param>
+    /// <param name="column">1-based column index</param>
+    /// <param name="fillColor">Hex fill color (#RRGGBB) or null to skip</param>
+    /// <param name="fontBold">Set bold (null = don't change)</param>
+    /// <param name="fontSize">Set font size (0 = don't change)</param>
+    /// <param name="textAlign">Text alignment: left, center, right (null = don't change)</param>
+    [ServiceAction("format-cell")]
+    OperationResult FormatCell(IPptBatch batch, int slideIndex, string shapeName, int row, int column, string? fillColor, bool? fontBold, float fontSize, string? textAlign);
 }

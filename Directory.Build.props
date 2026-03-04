@@ -61,8 +61,8 @@
   </PropertyGroup>
 
   <!--
-    Pre-build cleanup: gracefully stop PptMcp Service and kill Excel processes.
-    Prevents file locking during build. Skipped in CI (no Excel/Service there).
+    Pre-build cleanup: gracefully stop PptMcp Service and kill PowerPoint processes.
+    Prevents file locking during build. Skipped in CI (no PowerPoint/Service there).
   -->
   <Target Name="StopPptMcpProcesses" BeforeTargets="Build" Condition="'$(CI)' != 'true' AND '$(PptMcpSkipCleanup)' != 'true'">
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)scripts\Stop-PptMcpProcesses.ps1&quot;"

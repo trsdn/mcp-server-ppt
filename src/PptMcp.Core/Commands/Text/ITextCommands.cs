@@ -49,4 +49,17 @@ public interface ITextCommands
     /// </summary>
     [ServiceAction("format")]
     OperationResult Format(IPptBatch batch, int slideIndex, string shapeName, string? fontName, float? fontSize, bool? bold, bool? italic, string? color, string? alignment, string? verticalAlignment);
+
+    /// <summary>
+    /// Set advanced text formatting: underline, strikethrough, subscript, superscript.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    /// <param name="underline">Set underline (null = don't change)</param>
+    /// <param name="strikethrough">Set strikethrough (null = don't change)</param>
+    /// <param name="subscript">Set subscript (null = don't change)</param>
+    /// <param name="superscript">Set superscript (null = don't change)</param>
+    [ServiceAction("format-advanced")]
+    OperationResult FormatAdvanced(IPptBatch batch, int slideIndex, string shapeName, bool? underline, bool? strikethrough, bool? subscript, bool? superscript);
 }

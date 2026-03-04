@@ -430,4 +430,50 @@ public class TextCommands : ITextCommands
             }
         });
     }
+
+    public OperationResult FormatAdvanced(IPptBatch batch, int slideIndex, string shapeName, bool? underline, bool? strikethrough, bool? subscript, bool? superscript)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                if (Convert.ToInt32(shape.HasTextFrame) == 0)
+                    throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
+
+                dynamic font = shape.TextFrame.TextRange.Font;
+                try
+                {
+                    if (underline.HasValue)
+                        font.Underline = underline.Value ? -1 : 0;
+                    if (strikethrough.HasValue)
+                        font.Strikethrough = strikethrough.Value ? -1 : 0;
+                    if (subscript.HasValue)
+                        font.Subscript = subscript.Value ? -1 : 0;
+                    if (superscript.HasValue)
+                        font.Superscript = superscript.Value ? -1 : 0;
+                }
+                finally
+                {
+                    ComUtilities.Release(ref font!);
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "format-advanced",
+                    Message = $"Applied advanced formatting to shape '{shapeName}' (slide {slideIndex})",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
 }

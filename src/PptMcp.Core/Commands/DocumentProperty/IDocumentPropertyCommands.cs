@@ -30,4 +30,21 @@ public interface IDocumentPropertyCommands
     /// <param name="category">Category</param>
     [ServiceAction("set")]
     OperationResult SetAll(IPptBatch batch, string title, string subject, string author, string keywords, string comments, string company, string category);
+
+    /// <summary>
+    /// Get a custom document property by name.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="propertyName">Custom property name</param>
+    [ServiceAction("get-custom")]
+    OperationResult GetCustom(IPptBatch batch, string propertyName);
+
+    /// <summary>
+    /// Set a custom document property (creates if not exists).
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="propertyName">Custom property name</param>
+    /// <param name="propertyValue">Property value (string)</param>
+    [ServiceAction("set-custom")]
+    OperationResult SetCustom(IPptBatch batch, string propertyName, string propertyValue);
 }

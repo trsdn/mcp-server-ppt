@@ -43,9 +43,9 @@ public static class PptResourceProvider
                 },
                 new
                 {
-                    type = "Worksheets",
-                    toolAction = "Use worksheet tool with action='list' to see all worksheets",
-                    example = "worksheet(action: 'list', presentationPath: 'presentation.pptx')"
+                    type = "Slides",
+                    toolAction = "Use slide tool with action='list' to see all slides",
+                    example = "slide(action: 'list', presentationPath: 'presentation.pptx')"
                 },
                 new
                 {
@@ -131,10 +131,10 @@ public static class PptResourceProvider
                 },
                 new
                 {
-                    task = "List all worksheets",
-                    tool = "worksheet",
+                    task = "List all slides",
+                    tool = "slide",
                     action = "list",
-                    example = "worksheet(action: 'list', presentationPath: 'presentation.pptx')"
+                    example = "slide(action: 'list', presentationPath: 'presentation.pptx')"
                 },
                 new
                 {

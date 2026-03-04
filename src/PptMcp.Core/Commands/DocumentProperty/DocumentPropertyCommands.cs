@@ -108,4 +108,75 @@ public class DocumentPropertyCommands : IDocumentPropertyCommands
             if (prop != null) ComUtilities.Release(ref prop!);
         }
     }
+
+    public OperationResult GetCustom(IPptBatch batch, string propertyName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(propertyName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic customProps = pres.CustomDocumentProperties;
+            try
+            {
+                dynamic prop = customProps.Item(propertyName);
+                string value = prop.Value?.ToString() ?? "";
+                ComUtilities.Release(ref prop!);
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "get-custom",
+                    Message = $"{propertyName} = {value}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref customProps!);
+            }
+        });
+    }
+
+    public OperationResult SetCustom(IPptBatch batch, string propertyName, string propertyValue)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(propertyName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic customProps = pres.CustomDocumentProperties;
+            try
+            {
+                // Try to update existing property first
+                bool exists = false;
+                try
+                {
+                    dynamic existing = customProps.Item(propertyName);
+                    existing.Value = propertyValue;
+                    ComUtilities.Release(ref existing!);
+                    exists = true;
+                }
+                catch { /* Property doesn't exist yet */ }
+
+                if (!exists)
+                {
+                    // Add new custom property (Type 4 = msoPropertyTypeString)
+                    customProps.Add(propertyName, false, 4, propertyValue);
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-custom",
+                    Message = $"Set custom property '{propertyName}' = '{propertyValue}'",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref customProps!);
+            }
+        });
+    }
 }

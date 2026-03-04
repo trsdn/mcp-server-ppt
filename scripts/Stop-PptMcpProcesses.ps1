@@ -108,10 +108,10 @@ function Stop-PptMcpServiceFallback {
 # 2. Kill PowerPoint processes
 # ----------------------------------------------
 function Stop-PowerPointProcesses {
-    $excelProcs = Get-Process -Name 'EXCEL' -ErrorAction SilentlyContinue
-    if ($excelProcs) {
-        $count = $excelProcs.Count
-        $excelProcs | Stop-Process -Force -ErrorAction SilentlyContinue
+    $pptProcs = Get-Process -Name 'POWERPNT' -ErrorAction SilentlyContinue
+    if ($pptProcs) {
+        $count = $pptProcs.Count
+        $pptProcs | Stop-Process -Force -ErrorAction SilentlyContinue
         Start-Sleep -Milliseconds 500
         Write-Host "  Killed $count PowerPoint process(es)" -ForegroundColor Yellow
     }

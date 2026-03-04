@@ -280,4 +280,83 @@ public class SlideTableCommands : ISlideTableCommands
             }
         });
     }
+
+    public OperationResult FormatCell(IPptBatch batch, int slideIndex, string shapeName, int row, int column, string? fillColor, bool? fontBold, float fontSize, string? textAlign)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? table = null;
+            dynamic? cell = null;
+            try
+            {
+                table = shape.Table;
+                cell = table.Cell(row, column);
+
+                if (!string.IsNullOrEmpty(fillColor))
+                {
+                    dynamic fill = cell.Shape.Fill;
+                    fill.Visible = -1;
+                    fill.Solid();
+                    fill.ForeColor.RGB = HexToOleColor(fillColor);
+                    ComUtilities.Release(ref fill!);
+                }
+
+                if (fontBold.HasValue || fontSize > 0)
+                {
+                    dynamic font = cell.Shape.TextFrame.TextRange.Font;
+                    try
+                    {
+                        if (fontBold.HasValue) font.Bold = fontBold.Value ? -1 : 0;
+                        if (fontSize > 0) font.Size = fontSize;
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref font!);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(textAlign))
+                {
+                    int align = textAlign.ToLowerInvariant() switch
+                    {
+                        "left" => 1,
+                        "center" => 2,
+                        "right" => 3,
+                        _ => 1
+                    };
+                    cell.Shape.TextFrame.TextRange.ParagraphFormat.Alignment = align;
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "format-cell",
+                    Message = $"Formatted cell ({row},{column}) in table '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (cell != null) ComUtilities.Release(ref cell!);
+                if (table != null) ComUtilities.Release(ref table!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    private static int HexToOleColor(string hex)
+    {
+        hex = hex.TrimStart('#');
+        if (hex.Length == 3)
+            hex = string.Concat(hex[0], hex[0], hex[1], hex[1], hex[2], hex[2]);
+        int r = Convert.ToInt32(hex[..2], 16);
+        int g = Convert.ToInt32(hex[2..4], 16);
+        int b = Convert.ToInt32(hex[4..6], 16);
+        return r | (g << 8) | (b << 16);
+    }
 }

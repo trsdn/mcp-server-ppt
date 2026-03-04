@@ -21,7 +21,7 @@ public class SkillTemplateModel
 /// </summary>
 public class CliCommand
 {
-    /// <summary>Command name (e.g., "worksheet", "range")</summary>
+    /// <summary>Command name (e.g., "slide", "range")</summary>
     public string Name { get; set; } = "";
 
     /// <summary>Command description from interface XML doc</summary>

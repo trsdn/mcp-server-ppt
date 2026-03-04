@@ -24,16 +24,15 @@
     "office",
     "presentation",
     "automation",
-    "power query",
-    "m language",
-    "dax",
-    "data model",
-    "power pivot",
     "vba",
     "macro",
     "table",
-    "data analysis",
-    "pivot table"
+    "slides",
+    "shapes",
+    "animations",
+    "transitions",
+    "smartart",
+    "presentations"
   ],
   "server": {
     "type": "binary",

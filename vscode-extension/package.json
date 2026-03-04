@@ -33,18 +33,18 @@
     "office",
     "presentation",
     "automation",
-    "power query",
-    "m language",
-    "dax",
-    "data model",
-    "power pivot",
     "vba",
     "macro",
     "table",
     "copilot",
     "ai",
     "github copilot",
-    "data analysis"
+    "slides",
+    "shapes",
+    "animations",
+    "transitions",
+    "smartart",
+    "presentations"
   ],
   "activationEvents": [
     "onStartupFinished"
