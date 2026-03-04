@@ -18,7 +18,7 @@ public class SkillMdQualityTests
     [Trait("Feature", "SkillGeneration")]
     public void CliSkill_Exists()
     {
-        var skillPath = Path.Combine(SkillsFolder, "excel-cli", "SKILL.md");
+        var skillPath = Path.Combine(SkillsFolder, "ppt-cli", "SKILL.md");
         Assert.True(File.Exists(skillPath), $"CLI SKILL.md should exist at {skillPath}");
     }
 
@@ -36,7 +36,7 @@ public class SkillMdQualityTests
     [Trait("Feature", "SkillGeneration")]
     public void CliSkill_HasNoEmptyParameterDescriptions()
     {
-        var skillPath = Path.Combine(SkillsFolder, "excel-cli", "SKILL.md");
+        var skillPath = Path.Combine(SkillsFolder, "ppt-cli", "SKILL.md");
         AssertNoEmptyDescriptions(skillPath, "CLI");
     }
 
@@ -55,7 +55,7 @@ public class SkillMdQualityTests
     [Trait("Feature", "SkillGeneration")]
     public void CliSkill_HasCommands()
     {
-        var skillPath = Path.Combine(SkillsFolder, "excel-cli", "SKILL.md");
+        var skillPath = Path.Combine(SkillsFolder, "ppt-cli", "SKILL.md");
         var content = File.ReadAllText(skillPath);
         var commandMatches = Regex.Matches(content, @"^### \w+", RegexOptions.Multiline);
         Assert.True(commandMatches.Count > 0, "CLI SKILL.md should have command headings");
@@ -82,7 +82,7 @@ public class SkillMdQualityTests
     [Trait("Feature", "SkillGeneration")]
     public void CliSkill_HasParameterTables()
     {
-        var skillPath = Path.Combine(SkillsFolder, "excel-cli", "SKILL.md");
+        var skillPath = Path.Combine(SkillsFolder, "ppt-cli", "SKILL.md");
         var content = File.ReadAllText(skillPath);
         Assert.Contains("| Parameter | Description |", content);
     }
@@ -103,7 +103,7 @@ public class SkillMdQualityTests
     [Trait("Feature", "SkillGeneration")]
     public void CliSkill_HasActionsList()
     {
-        var skillPath = Path.Combine(SkillsFolder, "excel-cli", "SKILL.md");
+        var skillPath = Path.Combine(SkillsFolder, "ppt-cli", "SKILL.md");
         var content = File.ReadAllText(skillPath);
         Assert.Contains("**Actions:**", content);
     }

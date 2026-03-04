@@ -25,7 +25,7 @@ public class PptContextTests
         var ex = Assert.Throws<ArgumentNullException>(() =>
             new PptContext(presentationPath, null!, null!));
 
-        // When null is passed, the constructor throws on the first null param (excel)
+        // When null is passed, the constructor throws on the first null param (powerpoint)
         Assert.NotNull(ex);
     }
 
@@ -85,7 +85,7 @@ public class PptContextTests
     [InlineData(@"presentation.pptx")] // Relative path
     public void Constructor_WithNullPowerPointAnyPath_ThrowsArgumentNullException(string presentationPath)
     {
-        // Act & Assert - Path is validated, then excel COM object is validated
+        // Act & Assert - Path is validated, then PowerPoint COM object is validated
         var ex = Assert.Throws<ArgumentNullException>(() =>
             new PptContext(presentationPath, null!, null!));
 

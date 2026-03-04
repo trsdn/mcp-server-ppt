@@ -115,11 +115,11 @@ public class PptBatchMessagePumpTests : IAsyncLifetime
         var wallBefore = Stopwatch.GetTimestamp();
 
         // Also measure PowerPoint's CPU
-        TimeSpan excelCpuBefore;
-        using (var excelProcess = Process.GetProcessById(pptPid.Value))
+        TimeSpan pptCpuBefore;
+        using (var pptProcess = Process.GetProcessById(pptPid.Value))
         {
-            excelProcess.Refresh();
-            excelCpuBefore = excelProcess.TotalProcessorTime;
+            pptProcess.Refresh();
+            pptCpuBefore = pptProcess.TotalProcessorTime;
         }
 
         // Idle period — the message pump should be sleeping, not spinning
@@ -128,11 +128,11 @@ public class PptBatchMessagePumpTests : IAsyncLifetime
         var cpuAfter = currentProcess.TotalProcessorTime;
         var wallAfter = Stopwatch.GetTimestamp();
 
-        TimeSpan excelCpuAfter;
-        using (var excelProcess = Process.GetProcessById(pptPid.Value))
+        TimeSpan pptCpuAfter;
+        using (var pptProcess = Process.GetProcessById(pptPid.Value))
         {
-            excelProcess.Refresh();
-            excelCpuAfter = excelProcess.TotalProcessorTime;
+            pptProcess.Refresh();
+            pptCpuAfter = pptProcess.TotalProcessorTime;
         }
 
         // Calculate
@@ -140,12 +140,12 @@ public class PptBatchMessagePumpTests : IAsyncLifetime
         var wallElapsed = Stopwatch.GetElapsedTime(wallBefore, wallAfter).TotalMilliseconds;
         var cpuPercent = (cpuUsed / wallElapsed) * 100.0;
 
-        var excelCpuUsed = (excelCpuAfter - excelCpuBefore).TotalMilliseconds;
-        var excelCpuPercent = (excelCpuUsed / wallElapsed) * 100.0;
+        var pptCpuUsed = (pptCpuAfter - pptCpuBefore).TotalMilliseconds;
+        var pptCpuPercent = (pptCpuUsed / wallElapsed) * 100.0;
 
         _output.WriteLine($"Idle period: {wallElapsed:F0}ms wall time");
         _output.WriteLine($"MCP process CPU: {cpuUsed:F1}ms ({cpuPercent:F1}%)");
-        _output.WriteLine($"PowerPoint process CPU: {excelCpuUsed:F1}ms ({excelCpuPercent:F1}%)");
+        _output.WriteLine($"PowerPoint process CPU: {pptCpuUsed:F1}ms ({pptCpuPercent:F1}%)");
 
         // Assert — CPU should be well under 5% during idle.
         // The original bug showed ~100% (one full core). Even with test runner overhead,

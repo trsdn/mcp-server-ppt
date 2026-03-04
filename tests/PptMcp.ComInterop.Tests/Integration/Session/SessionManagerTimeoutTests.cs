@@ -126,8 +126,8 @@ public class SessionManagerTimeoutTests : IDisposable
 
         var sessionId = manager.CreateSession(testFile, operationTimeout: TimeSpan.FromSeconds(3));
         var batch = manager.GetSession(sessionId)!;
-        int? excelPid = batch.PowerPointProcessId;
-        _output.WriteLine($"Session {sessionId}, PowerPoint PID: {excelPid}");
+        int? pptPid = batch.PowerPointProcessId;
+        _output.WriteLine($"Session {sessionId}, PowerPoint PID: {pptPid}");
 
         // Warm up
         batch.Execute((ctx, ct) => { _ = ctx.Presentation.Slides.Count; return 0; });
@@ -152,12 +152,12 @@ public class SessionManagerTimeoutTests : IDisposable
         Thread.Sleep(2000);
 
         // Assert — PowerPoint process should be dead
-        if (excelPid.HasValue)
+        if (pptPid.HasValue)
         {
             bool processAlive;
             try
             {
-                using var process = Process.GetProcessById(excelPid.Value);
+                using var process = Process.GetProcessById(pptPid.Value);
                 processAlive = !process.HasExited;
             }
             catch (ArgumentException)
@@ -166,10 +166,10 @@ public class SessionManagerTimeoutTests : IDisposable
             }
 
             Assert.False(processAlive,
-                $"REGRESSION: PowerPoint process {excelPid.Value} still alive after timeout + force close. " +
+                $"REGRESSION: PowerPoint process {pptPid.Value} still alive after timeout + force close. " +
                 "The pre-emptive kill in Dispose() may not be working.");
 
-            _output.WriteLine($"✓ PowerPoint process {excelPid.Value} terminated");
+            _output.WriteLine($"✓ PowerPoint process {pptPid.Value} terminated");
         }
     }
 

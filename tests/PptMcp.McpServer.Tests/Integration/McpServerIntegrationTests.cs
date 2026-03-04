@@ -281,7 +281,7 @@ public class McpServerIntegrationTests(ITestOutputHelper output) : IAsyncLifetim
         output.WriteLine("=== TOOL INVOCATION VIA MCP PROTOCOL ===\n");
 
         // Arrange - Test action doesn't require an actual file
-        // Parameter names shortened for token optimization: excelPath -> path
+        // Parameter names shortened for token optimization: presentationPath -> path
         var arguments = new Dictionary<string, object?>
         {
             ["action"] = "test",

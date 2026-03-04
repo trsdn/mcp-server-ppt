@@ -139,8 +139,8 @@ public class PptBatchTimeoutTests : IAsyncLifetime
             _testFileCopy!);
 
         // Get the PowerPoint process ID before timeout
-        int? excelPid = batch.PowerPointProcessId;
-        _output.WriteLine($"PowerPoint PID for this session: {excelPid}");
+        int? pptPid = batch.PowerPointProcessId;
+        _output.WriteLine($"PowerPoint PID for this session: {pptPid}");
 
         // Warm up
         batch.Execute((ctx, ct) => { _ = ctx.Presentation.Slides.Count; return 0; });
@@ -162,12 +162,12 @@ public class PptBatchTimeoutTests : IAsyncLifetime
         Thread.Sleep(2000);
 
         // Assert — PowerPoint process from this session should be gone
-        if (excelPid.HasValue)
+        if (pptPid.HasValue)
         {
             bool processAlive;
             try
             {
-                using var process = Process.GetProcessById(excelPid.Value);
+                using var process = Process.GetProcessById(pptPid.Value);
                 processAlive = !process.HasExited;
             }
             catch (ArgumentException)
@@ -176,10 +176,10 @@ public class PptBatchTimeoutTests : IAsyncLifetime
             }
 
             Assert.False(processAlive,
-                $"REGRESSION: PowerPoint process {excelPid.Value} is still alive after timeout + dispose. " +
+                $"REGRESSION: PowerPoint process {pptPid.Value} is still alive after timeout + dispose. " +
                 "Pre-emptive kill in Dispose() may not be working.");
 
-            _output.WriteLine($"✓ PowerPoint process {excelPid.Value} was cleaned up after timeout");
+            _output.WriteLine($"✓ PowerPoint process {pptPid.Value} was cleaned up after timeout");
         }
 
         // Also check total count hasn't leaked
