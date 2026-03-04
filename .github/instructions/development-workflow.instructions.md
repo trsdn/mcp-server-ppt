@@ -29,10 +29,10 @@ Enforced: PR reviews, CI/CD checks, create a branch first, up-to-date branches, 
 # ⚠️ IMPORTANT: gh CLI requires authentication with a PERSONAL GitHub account.
 # Enterprise Managed User (EMU) accounts cannot access public repos via gh CLI.
 # Use: gh auth login --with-token (with a personal access token)
-gh api repos/sbroenne/mcp-server-excel/pulls/PULL_NUMBER/comments --paginate
+gh api repos/trsdn/mcp-server-ppt/pulls/PULL_NUMBER/comments --paginate
 
 # Or use the mcp_github tool if available
-mcp_github_github_pull_request_read(method="get_review_comments", owner="sbroenne", repo="mcp-server-excel", pullNumber=PULL_NUMBER)
+mcp_github_github_pull_request_read(method="get_review_comments", owner="trsdn", repo="mcp-server-ppt", pullNumber=PULL_NUMBER)
 ```
 
 **Common automated reviewers:**
@@ -68,7 +68,7 @@ Quick reference:
 - `dependency-review.yml` - Dependency security scanning
 
 **Disabled Workflows:**
-- `integration-tests.yml.disabled` - Excel COM integration tests (Azure runner undeployed)
+- `integration-tests.yml.disabled` - PowerPoint COM integration tests (Azure runner undeployed)
 - `deploy-azure-runner.yml.disabled` - Azure runner deployment (infrastructure removed)
 
 **Note:** Integration tests are currently disabled. The Azure self-hosted runner has been undeployed. To re-enable, see `docs/AZURE_SELFHOSTED_RUNNER_SETUP.md`.

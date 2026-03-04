@@ -1,98 +1,43 @@
 ---
-applyTo: "src/ExcelMcp.Core/Commands/ConnectionCommands.cs,src/ExcelMcp.Core/Connections/**/*.cs,tests/**/ConnectionCommands*.cs,tests/**/ConnectionTestHelper.cs"
+applyTo: "src/PptMcp.Core/Commands/**/*.cs,tests/**/*.cs"
 ---
 
-# Excel Connection Types - LLM Quick Reference
+# PowerPoint COM Patterns - LLM Quick Reference
 
-> **What works, what doesn't, and what to do instead**
+> **PowerPoint-specific COM patterns and what to watch for**
 
-## CRITICAL: LoadTo Operation Limitations
+## NOTE: PowerPoint vs Excel Differences
 
-**LoadTo action only works with OLEDB/ODBC connections:**
+PowerPoint does not have the same data connection model as Excel. The concepts of Power Query, OLEDB/ODBC connections, QueryTables, and data loading do not apply to PowerPoint presentations.
 
-| Connection Type | LoadTo Support | What to Use Instead |
-|----------------|----------------|---------------------|
-| OLEDB | Works | Primary use case |
-| ODBC | Works | Primary use case |
-| TEXT | FAILS | Use powerquery create + refresh |
-| WEB | FAILS | Use powerquery create + refresh |
-| Power Query | Works | Use powerquery refresh |
+## PowerPoint-Specific COM Patterns
 
-**Error pattern:** If LoadTo returns "Value does not fall within the expected range" then connection type doesn't support QueryTable pattern - use Power Query instead.
-
-## Connection Action Compatibility
-
-| Action | OLEDB/ODBC | TEXT | WEB | Power Query |
-|--------|-----------|------|-----|-------------|
-| List | Works | Works | Works | Works |
-| View | Works | Works | Works | Works |
-| Create | Works | Works | Works | Use powerquery |
-| Delete | Works | Works | Works | Use powerquery |
-| LoadTo | Works | FAILS | FAILS | Use powerquery refresh |
-| Refresh | Works | Works* | Works* | Use powerquery refresh |
-| Test | Works | Works | Works | Works |
-
-*TEXT/WEB Refresh succeeds but doesn't validate data source existence until actual data access
-
-## Decision Tree: Connection vs Power Query
-
+### Slide Operations
 ```
-Need to import data from file/URL?
-├─ OLEDB/ODBC data source?
-│  └─ Use connection (LoadTo, Refresh)
-│
-├─ TEXT file (CSV, TXT)?
-│  └─ Use powerquery (create with M code, refresh)
-│
-├─ Web API/URL?
-│  └─ Use powerquery (create with M code, refresh)
-│
-└─ Already has Power Query?
-   └─ Use powerquery (refresh)
+1. Add slide → presentation.Slides.Add(index, layout)
+2. Delete slide → slide.Delete()
+3. Duplicate slide → slide.Duplicate()
+4. Move slide → slide.MoveTo(newIndex)
 ```
 
-## Recommended Workflows
-
-**OLEDB/ODBC Data Loading:**
+### Shape Operations
 ```
-1. connection create → Creates connection object
-2. connection loadto → Loads data to worksheet
-3. connection refresh → Updates data from source
-```
-
-**TEXT/CSV File Import:**
-```
-1. powerquery create → Import CSV with M code
-2. powerquery refresh → Reload data
-   (Don't use connection loadto - will fail!)
+1. Add shape → slide.Shapes.AddShape(type, left, top, width, height)
+2. Add text box → slide.Shapes.AddTextbox(orientation, left, top, width, height)
+3. Add picture → slide.Shapes.AddPicture(filename, linkToFile, saveWithDocument, left, top)
+4. Add table → slide.Shapes.AddTable(numRows, numColumns, left, top, width, height)
 ```
 
-**Web Data Import:**
-```
-1. powerquery create → Import from URL with M code
-2. powerquery refresh → Update data
-   (Don't use connection loadto - will fail!)
-```
+### Common Mistakes to Avoid
 
-## Common Mistakes to Avoid
-
-1. **Using LoadTo with TEXT connections** - Will fail with E_INVALIDARG - Use Power Query instead
-2. **Using LoadTo with WEB connections** - Will fail - Use Power Query instead
-3. **Assuming Refresh validates TEXT file existence** - Excel doesn't check until data access
-4. **Mixing connection and Power Query operations** - Power Query connections need powerquery tool
-
-## Connection String Examples
-
-```
-OLEDB:  "Provider=SQLOLEDB;Data Source=server;Initial Catalog=db;..."
-ODBC:   "DSN=MyDataSource;UID=username;PWD=password;..."
-TEXT:   "TEXT;C:\\path\\to\\file.csv"
-WEB:    "URL;https://example.com/data.xml"
-```
+1. **Using 0-based indexing** - PowerPoint collections are 1-based
+2. **Not releasing COM objects** - Always use try-finally with ComUtilities.Release()
+3. **Assuming integer return types** - COM numeric properties return `double`
+4. **Forgetting to save** - Call `presentation.Save()` before close for persistence
 
 ## Security
 
-**Always sanitize connection strings before displaying** - Never expose passwords or sensitive credentials in error messages or logs.
+**Always validate file paths before operations** - Never allow path traversal or access to unexpected directories.
 
 ---
 
@@ -103,28 +48,24 @@ WEB:    "URL;https://example.com/data.xml"
 
 ### Implementation Notes
 
-**Connections.Add2() method required for OLEDB/ODBC:**
+**Slides.Add() method:**
 
-Use the COM Add2 method with parameters: Name, Description, ConnectionString, CommandText (empty), lCmdtype (auto-detect), CreateModelConnection (false), ImportRelationships (false).
+Use the COM Add method with parameters: Index (1-based position), Layout (ppLayoutEnum value).
 
-### Type 3/4 Ambiguity
+### Shape Type Detection
 
-TEXT connections created with "TEXT;path" may return type 4 (WEB) instead of 3 (TEXT) - handle both types interchangeably in type detection logic.
+Shape types are identified via `shape.Type` property which returns `MsoShapeType` enum values. Common types:
+- 1 (msoAutoShape) - Basic shapes
+- 6 (msoGroup) - Grouped shapes  
+- 13 (msoPicture) - Images
+- 14 (msoPlaceholder) - Placeholder shapes
+- 17 (msoTextBox) - Text boxes
+- 19 (msoTable) - Tables
 
 ### Test Strategy
 
-- **OLEDB** - Use for LoadTo, Refresh, and QueryTable operation tests
-- **TEXT** - Use for connection lifecycle tests (List, View, Delete) without LoadTo
-- **ODBC** - Use for validation of multiple connection types
-
-### Connection String Internal Formats
-
-```
-OLEDB:        "Provider=SQLOLEDB;Data Source=server;Initial Catalog=db;..."
-ODBC:         "DSN=MyDataSource;UID=username;PWD=password;..."
-TEXT:         "TEXT;C:\\path\\to\\file.csv"
-WEB:          "URL;https://example.com/data.xml"
-Power Query:  "OLEDB;Provider=Microsoft.Mashup.OleDb.1;Data Source=$Workbook$;Location=QueryName"
-```
+- **Slide operations** - Use for lifecycle tests (Add, Delete, Move, Duplicate)
+- **Shape operations** - Use for shape CRUD and property tests
+- **Text operations** - Use for TextFrame/TextRange manipulation tests
 
 </details>

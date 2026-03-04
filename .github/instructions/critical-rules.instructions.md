@@ -4,7 +4,7 @@ applyTo: "**"
 
 # CRITICAL RULES - MUST FOLLOW
 
-> **⚠️ NON-NEGOTIABLE rules for all ExcelMcp development**
+> **⚠️ NON-NEGOTIABLE rules for all PptMcp development**
 
 ## Rule 0: NEVER Commit Without Running Tests (CRITICAL)
 
@@ -46,19 +46,19 @@ applyTo: "**"
 
 **Forbidden in commits/PRs/issues:**
 - Customer project names (e.g., "CP Toolkit", "Contoso Deal")
-- Specific file paths from customer projects (e.g., "MSX Plan.xlsx", "Milestone_Export")
+- Specific file paths from customer projects (e.g., "MSX Plan.pptx", "Milestone_Export")
 - Internal tool names that reveal customer context
 - Any information that could identify a specific customer engagement
 
 **Allowed:**
-- Generic descriptions ("a Power Query", "an Excel workbook")
+- Generic descriptions ("a Power Query", "a PowerPoint presentation")
 - Technical details that don't identify the source ("a column with a hyphen in the name")
 - Error messages and stack traces (sanitized of paths/names)
 
 **Example:**
 ```
 # ❌ WRONG: Reveals confidential project
-Discovered while debugging Milestone_Export query in CP Toolkit's MSX Plan.xlsx
+Discovered while debugging Milestone_Export query in CP Toolkit's MSX Plan.pptx
 
 # ✅ CORRECT: Generic description
 Discovered while debugging a Power Query that referenced a column with a hyphen
@@ -90,7 +90,7 @@ Discovered while debugging a Power Query that referenced a column with a hyphen
 | 29. TDD | Write test FIRST → RED → implement → GREEN | Proves tests catch real bugs |
 | 30. Integration tests | NEVER write unit tests — integration tests only | Unit tests prove nothing for COM interop |
 | 22. COM cleanup | ALWAYS use try-finally, NEVER swallow exceptions | Prevents leaks and silent failures |
-| 7. COM API | Use Excel COM first, validate docs | Prevents wrong dependencies |
+| 7. COM API | Use PowerPoint COM first, validate docs | Prevents wrong dependencies |
 | 9. GitHub search | Search OTHER repos for VBA/COM examples FIRST | Learn from working code |
 | 2. NotImplementedException | Never use, full implementation only | No placeholders allowed |
 | 15. Enum mappings | All enum values mapped in ToActionString() | Runtime errors otherwise |
@@ -199,7 +199,7 @@ try {
 
 ```csharp
 // ❌ CRITICAL BUG: Suppressing exceptions with error result
-public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
+public async Task<OperationResult> CreateAsync(IPptBatch batch, string name)
 {
     try
     {
@@ -221,7 +221,7 @@ public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
 }
 
 // ✅ CORRECT: Let exception propagate to batch.Execute()
-public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
+public async Task<OperationResult> CreateAsync(IPptBatch batch, string name)
 {
     return await batch.Execute((ctx, ct) => {
         var sheet = ctx.Book.Worksheets.Add();
@@ -232,7 +232,7 @@ public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
 }
 
 // ✅ CORRECT: Finally blocks are allowed for COM resource cleanup
-public async Task<OperationResult> ComplexAsync(IExcelBatch batch, dynamic item)
+public async Task<OperationResult> ComplexAsync(IPptBatch batch, dynamic item)
 {
     dynamic? temp = null;
     try
@@ -283,7 +283,7 @@ Core Command Method (NO try-catch wrapping)
 
 ## Rule 2: No NotImplementedException
 
-**Every feature must be fully implemented with real Excel COM operations and passing tests. No placeholders.**
+**Every feature must be fully implemented with real PowerPoint COM operations and passing tests. No placeholders.**
 
 ---
 
@@ -305,7 +305,7 @@ Core Command Method (NO try-catch wrapping)
 
 All `dynamic` COM objects must be released in `finally` blocks using `ComUtilities.Release(ref obj!)`.
 
-Exception: Session management files (ExcelBatch.cs, ExcelSession.cs).
+Exception: Session management files (PptBatch.cs, PptSession.cs).
 
 ---
 
@@ -328,9 +328,9 @@ git commit -m "your message"                 # Commit to feature branch
 
 ## Rule 7: COM API First
 
-**Use Excel COM API for everything it supports. Only use external libraries (TOM) for features Excel COM doesn't provide.**
+**Use PowerPoint COM API for everything it supports. Only use external libraries (TOM) for features PowerPoint COM doesn't provide.**
 
-Validate against [Microsoft docs](https://learn.microsoft.com/office/vba/api/overview/excel) before adding dependencies.
+Validate against [Microsoft docs](https://learn.microsoft.com/office/vba/api/overview/powerpoint) before adding dependencies.
 
 ---
 
@@ -344,21 +344,21 @@ Delete commented-out code (use git history). Exception: Documentation files only
 
 ## Rule 9: Search External GitHub Repositories for Working Examples First
 
-**BEFORE creating new Excel COM Interop code or troubleshooting COM issues:**
+**BEFORE creating new PowerPoint COM Interop code or troubleshooting COM issues:**
 
 - **ALWAYS** search OTHER open source GitHub repositories for working examples
 - **NEVER** search your own repository - only search external projects
 - **NetOffice is THE BEST source for ALL COM Interop work**: https://github.com/NetOfficeFw/NetOffice
   - Strongly-typed C# wrappers for ALL Office COM APIs (Excel, Word, PowerPoint, Outlook, etc.)
-  - Search for ANY Excel COM operation: ranges, worksheets, PivotTables, Power Query, charts, VBA, connections, formatting, etc.
+  - Search for ANY PowerPoint COM operation: slides, shapes, animations, transitions, text frames, formatting, etc.
   - Study their patterns for dynamic interop conversion and proper COM object handling
-  - NetOffice source code is essentially a comprehensive reference for every Excel COM API
-- Look for repositories with Excel automation, VBA code, or Office interop projects
-- Search for the specific COM object/method you need (e.g., "PivotTable CreatePivotTable VBA", "QueryTable Refresh VBA", "Range.Value2 NetOffice")
+  - NetOffice source code is essentially a comprehensive reference for every PowerPoint COM API
+- Look for repositories with PowerPoint automation, VBA code, or Office interop projects
+- Search for the specific COM object/method you need (e.g., "Slide AddShape VBA", "Shape TextFrame VBA", "Presentation.Slides NetOffice")
 - Study proven patterns from other projects before writing new code
 - Avoid reinventing solutions - learn from working implementations in the wild
 
-**Why:** Excel COM is quirky. Real-world VBA examples from other projects prevent common pitfalls (1-based indexing, object cleanup, async issues, variant types, etc.)
+**Why:** PowerPoint COM is quirky. Real-world VBA examples from other projects prevent common pitfalls (1-based indexing, object cleanup, async issues, variant types, etc.)
 
 ---
 
@@ -382,7 +382,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 
 **Violations:**
 - ❌ `<InternalsVisibleTo Include="*.Tests" />` in production `.csproj`
-- ❌ `using Sbroenne.ExcelMcp.*.Tests` in production code
+- ❌ `using PptMcp.*.Tests` in production code
 - ❌ Production code calling test helper methods
 - ❌ Production business logic in helper classes that tests use
 
@@ -404,7 +404,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 - ✅ Uses `IClassFixture<TempDirectoryFixture>` (NOT manual IDisposable)
 - ✅ Each test creates unique file via `CoreTestHelper.CreateUniqueTestFile()`
 - ✅ NEVER shares test files between tests
-- ✅ VBA tests use `.xlsm` extension (NOT .xlsx renamed)
+- ✅ VBA tests use `.pptm` extension (NOT .pptx renamed)
 - ✅ Binary assertions only (NO "accept both" patterns)
 - ✅ All required traits present (Category, Speed, Layer, RequiresExcel, Feature)
 - ✅ Batch API pattern used correctly (no ValueTask.FromResult wrapper)
@@ -442,7 +442,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 
 **Quick Rules:**
 - ❌ FORBIDDEN: Tests only verifying operation success or in-memory state
-- ✅ REQUIRED: Round-trip tests verifying data persists after workbook close/reopen
+- ✅ REQUIRED: Round-trip tests verifying data persists after presentation close/reopen
 - ⚡ REASON: Save is slow (~2-5s). Removing unnecessary saves makes tests 50%+ faster
 
 **See:** [testing-strategy.instructions.md](testing-strategy.instructions.md) for complete Save patterns, when to use, and detailed examples.
@@ -460,7 +460,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 | 4. Instructions | Update after significant work | 5-10 min |
 | 5. COM leaks | Run `scripts\check-com-leaks.ps1` | 1 min |
 | 6. PRs | Always use PRs, never direct commit | Always |
-| 7. COM API | Use Excel COM first, validate docs | Always |
+| 7. COM API | Use PowerPoint COM first, validate docs | Always |
 | 8. TODO markers | Must resolve before commit | 1 min |
 | 9. GitHub search | Search OTHER repos for VBA/COM examples FIRST | 1-2 min |
 | 10. Test debugging | Run tests one by one, never all together | Per test |
@@ -537,7 +537,7 @@ dotnet test --filter "Feature=Connection&RunType!=OnDemand"  # Connection change
 dotnet test --filter "Feature=Sheet&RunType!=OnDemand"       # Sheet changes only
 ```
 
-**Why Critical:** Integration tests require Excel COM automation and are SLOW. Running all tests wastes time and resources.
+**Why Critical:** Integration tests require PowerPoint COM automation and are SLOW. Running all tests wastes time and resources.
 
 **Enforcement:**
 - Only run tests for files you modified
@@ -619,7 +619,7 @@ if (string.IsNullOrWhiteSpace(tableName))
    
    // ✅ CORRECT: Clear purpose and use cases
    /// <summary>
-   /// Manage Excel worksheet lifecycle: create, rename, copy, delete sheets.
+   /// Manage PowerPoint slide lifecycle: create, rename, copy, delete slides.
    /// </summary>
    ```
 
@@ -633,7 +633,7 @@ if (string.IsNullOrWhiteSpace(tableName))
    /// Import Power Query.
    /// 
    /// LOAD DESTINATIONS:
-   /// - 'worksheet': Load to worksheet (DEFAULT)
+   /// - 'slide': Load to slide (DEFAULT)
    /// - 'data-model': Load to Power Pivot
    /// - 'both': Load to BOTH
    /// - 'connection-only': Don't load data
@@ -646,7 +646,7 @@ if (string.IsNullOrWhiteSpace(tableName))
    /// <summary>Default: loadDestination='connection-only'</summary>  // Wrong!
    
    // ✅ CORRECT: Description reflects actual default
-   /// <summary>Default: loadDestination='worksheet'</summary>
+   /// <summary>Default: loadDestination='slide'</summary>
    ```
 
 **What NOT to include:**
@@ -678,10 +678,10 @@ if (string.IsNullOrWhiteSpace(tableName))
 # ⚠️ IMPORTANT: gh CLI requires authentication with a PERSONAL GitHub account.
 # Enterprise Managed User (EMU) accounts cannot access public repos via gh CLI.
 # Use: gh auth login --with-token (with a personal access token)
-gh api repos/sbroenne/mcp-server-excel/pulls/PULL_NUMBER/comments --paginate
+gh api repos/sbroenne/mcp-server-ppt/pulls/PULL_NUMBER/comments --paginate
 
 # Or use the mcp_github tool if available
-mcp_github_github_pull_request_read(method="get_review_comments", owner="sbroenne", repo="mcp-server-excel", pullNumber=PULL_NUMBER)
+mcp_github_github_pull_request_read(method="get_review_comments", owner="sbroenne", repo="mcp-server-ppt", pullNumber=PULL_NUMBER)
 ```
 
 **Common automated reviewers:**
@@ -878,24 +878,24 @@ Result: Caught during commit review, required additional fixes.
 
 ## Rule 25: Use PowerShell Syntax in Documentation (CRITICAL)
 
-**ExcelMcp is Windows-only. ALL documentation code blocks MUST use PowerShell syntax, NOT bash.**
+**PptMcp is Windows-only. ALL documentation code blocks MUST use PowerShell syntax, NOT bash.**
 
 ```markdown
 # ❌ WRONG: bash syntax
 ```bash
 dotnet build
-excelcli sheet list --file "test.xlsx"
+pptcli sheet list --file "test.pptx"
 ```
 
 # ✅ CORRECT: PowerShell syntax
 ```powershell
 dotnet build
-excelcli sheet list --file "test.xlsx"
+pptcli sheet list --file "test.pptx"
 ```
 ```
 
 **Why Critical:**
-- ExcelMcp requires Windows + Excel COM interop
+- PptMcp requires Windows + PowerPoint COM interop
 - bash syntax confuses Windows users
 - PowerShell is the native Windows shell
 - Syntax highlighting differs between bash/powershell
@@ -979,19 +979,19 @@ Select-String -Path "**/*.md" -Pattern '```bash' -Recurse
 | `Names.Add(Name)` | `Name` | `name` | ✅ Clear in flat schema — "name of the named range" |
 | `PivotTable.RowAxisLayout(RowLayout)` | `RowLayout` | `rowLayout` | ✅ `row_layout` values 0/1/2 are self-describing in tool schema |
 | `Range.Value2` | (property) | `value` | ✅ Clear in context |
-| `Workbook.Connections` | (collection) | `connectionName` | ✅ Keep descriptive — COM's `Name` property is too generic |
+| `Presentation.Connections` | (collection) | `connectionName` | ✅ Keep descriptive — COM's `Name` property is too generic |
 | `PivotField.Subtotals` | (property) | `subtotalFunction` | ✅ Keep descriptive — `subtotals` alone is ambiguous |
 
 **Implementation Pattern:**
 ```csharp
 // ✅ COM name is clear → use it directly
-void Write(IExcelBatch batch, [FromString("name")] string name, ...);
+void Write(IPptBatch batch, [FromString("name")] string name, ...);
 
 // ✅ COM name works in flat schema → use it
-OperationResult SetLayout(IExcelBatch batch, string pivotTableName, int rowLayout);
+OperationResult SetLayout(IPptBatch batch, string pivotTableName, int rowLayout);
 
 // ✅ COM name too generic → keep descriptive
-void AddField(IExcelBatch batch, string pivotTableName, string fieldName, string fieldArea);
+void AddField(IPptBatch batch, string pivotTableName, string fieldName, string fieldArea);
 ```
 
 **When Adding New Parameters:**
@@ -1077,9 +1077,9 @@ public void ProgressAdapter_Maps_Current_To_Progress()
 
 ## Rule 30: Integration Tests Over Unit Tests (CRITICAL)
 
-**NEVER write unit tests. Unit tests that mock COM objects, fake contexts, or test adapter mappings in isolation prove NOTHING. Write integration tests that exercise real Excel COM automation.**
+**NEVER write unit tests. Unit tests that mock COM objects, fake contexts, or test adapter mappings in isolation prove NOTHING. Write integration tests that exercise real PowerPoint COM automation.**
 
-**Why Critical:** ExcelMcp is a COM interop project. The bugs that matter — STA threading deadlocks, COM object leaks, OleMessageFilter re-entrancy, type conversion failures (`double` vs `int`), QueryTable persistence — **only manifest when real Excel is running**. A unit test that verifies an adapter maps field A to field B catches zero real bugs. An integration test that opens a workbook, refreshes a Power Query, and verifies the result catches ALL of them.
+**Why Critical:** PptMcp is a COM interop project. The bugs that matter — STA threading deadlocks, COM object leaks, OleMessageFilter re-entrancy, type conversion failures (`double` vs `int`), QueryTable persistence — **only manifest when real PowerPoint is running**. A unit test that verifies an adapter maps field A to field B catches zero real bugs. An integration test that opens a presentation, refreshes a Power Query, and verifies the result catches ALL of them.
 
 ```csharp
 // ❌ WRONG: Unit test that proves nothing
@@ -1098,31 +1098,31 @@ public void Adapter_Maps_Field_A_To_Field_B()
 [Trait("Feature", "PowerQuery")]
 public void Refresh_ReportsProgress_DuringExecution()
 {
-    using var batch = ExcelSession.BeginBatch(_testFile);
+    using var batch = PptSession.BeginBatch(_testFile);
     var progress = new List<ProgressInfo>();
     var result = _commands.Refresh(batch, "TestQuery",
         new Progress<ProgressInfo>(p => progress.Add(p)));
     Assert.True(result.Success);
-    Assert.NotEmpty(progress);  // Real Excel, real refresh, real progress
+    Assert.NotEmpty(progress);  // Real PowerPoint, real refresh, real progress
 }
 ```
 
 **What Counts as Integration:**
-- ✅ Opens a real Excel workbook via COM
+- ✅ Opens a real PowerPoint presentation via COM
 - ✅ Exercises real batch.Execute() on STA thread
 - ✅ Verifies real data flows through the full pipeline
 - ✅ Catches COM threading, type conversion, and persistence bugs
 
 **What Does NOT Count:**
-- ❌ Mocking IProgress, IExcelBatch, or any COM interface
+- ❌ Mocking IProgress, IPptBatch, or any COM interface
 - ❌ Testing adapter/mapper classes in isolation
 - ❌ Verifying AsyncLocal behavior without COM context
-- ❌ Any test that passes without Excel.exe running
+- ❌ Any test that passes without PowerPoint.exe running
 
 **Enforcement:**
 - Code review MUST reject unit tests for COM-dependent features
 - All new tests MUST have `[Trait("Category", "Integration")]`
-- If a test doesn't require Excel, question whether it tests anything meaningful
+- If a test doesn't require PowerPoint, question whether it tests anything meaningful
 - The only acceptable non-integration tests are for pure algorithmic utilities with zero COM dependency (e.g., string parsing, enum mapping validation)
 
 **Historical Lesson:** 10 unit tests were written for the MCP progress feature (McpProgressAdapter mapping, ProgressContext AsyncLocal). All 10 passed. Zero of them would have caught the real bugs: STA thread affinity issues, COM callback re-entrancy during refresh, or progress notifications not flowing through the generated code pipeline. The unit tests tested the unit tests.

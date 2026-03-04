@@ -1,27 +1,25 @@
 ---
-applyTo: "src/ExcelMcp.Core/**/*.cs"
+applyTo: "src/PptMcp.Core/**/*.cs"
 ---
 
-# Excel COM Interop Patterns
+# PowerPoint COM Interop Patterns
 
-> **Essential patterns for Excel COM automation**
+> **Essential patterns for PowerPoint COM automation**
 
 ## Core Principles
 
 1. **Use Late Binding** - `dynamic` types with `Type.GetTypeFromProgID()`
-2. **1-Based Indexing** - Excel collections start at 1, not 0
+2. **1-Based Indexing** - PowerPoint collections start at 1, not 0
 3. **Exception Propagation** - Never wrap in try-catch, let batch.Execute() handle exceptions (see Exception Propagation section)
-4. **QueryTable Refresh REQUIRED** - `.Refresh(false)` synchronous for persistence
-5. **NEVER use RefreshAll()** - Async/unreliable; use individual `connection.Refresh()` or `queryTable.Refresh(false)`
 
 ## Reference Resources
 
-**NetOffice Library** - THE BEST source for ALL Excel COM Interop patterns:
+**NetOffice Library** - THE BEST source for ALL PowerPoint COM Interop patterns:
 - GitHub: https://github.com/NetOfficeFw/NetOffice
-- **Use for ALL COM Interop work** - ranges, worksheets, workbooks, charts, PivotTables, Power Query, VBA, connections, everything
+- **Use for ALL COM Interop work** - slides, shapes, presentations, charts, tables, VBA, everything
 - NetOffice wraps Office COM APIs in strongly-typed C# - study their patterns for dynamic interop conversion
-- Search NetOffice repository BEFORE implementing any Excel COM automation
-- Particularly valuable for: PivotTables, OLAP CubeFields, Data Model operations, QueryTables, complex COM scenarios
+- Search NetOffice repository BEFORE implementing any PowerPoint COM automation
+- Particularly valuable for: Shapes, Slide layouts, Masters, Animations, complex COM scenarios
 
 ## Exception Propagation Pattern (CRITICAL)
 
@@ -29,7 +27,7 @@ applyTo: "src/ExcelMcp.Core/**/*.cs"
 
 ```csharp
 // ❌ WRONG: Catching and wrapping exceptions
-public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
+public async Task<OperationResult> CreateAsync(IPptBatch batch, string name)
 {
     try
     {
@@ -46,7 +44,7 @@ public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
 }
 
 // ✅ CORRECT: Let batch.Execute() handle exceptions via TaskCompletionSource
-public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
+public async Task<OperationResult> CreateAsync(IPptBatch batch, string name)
 {
     return await batch.Execute((ctx, ct) => {
         var item = ctx.Create(name);
@@ -57,7 +55,7 @@ public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
 }
 
 // ✅ CORRECT: Finally blocks are the right place for COM resource cleanup
-public async Task<OperationResult> ComplexAsync(IExcelBatch batch, string name)
+public async Task<OperationResult> ComplexAsync(IPptBatch batch, string name)
 {
     dynamic? temp = null;
     try
@@ -108,55 +106,55 @@ Core Command (NO try-catch wrapping)
 
 ### ✅ Unified Shutdown Pattern (Current Standard)
 
-**All workbook close and Excel quit operations use `ExcelShutdownService` with resilient retry:**
+**All presentation close and PowerPoint quit operations use `PptShutdownService` with resilient retry:**
 
 ```csharp
-// In ExcelBatch, ExcelSession, FileCommands:
-ExcelShutdownService.CloseAndQuit(workbook, excel, save: false, filePath, logger);
+// In PptBatch, PptSession, FileCommands:
+PptShutdownService.CloseAndQuit(presentation, powerpoint, save: false, filePath, logger);
 ```
 
 **Shutdown Order:**
-1. **Optional Save** - If `save=true`, calls `workbook.Save()` explicitly before close
-2. **Close Workbook** - Calls `workbook.Close(save)` (save param controls Excel's prompt behavior)
-3. **Release Workbook** - Releases COM reference via `ComUtilities.Release()`
-4. **Quit Excel** - Calls `excel.Quit()` with exponential backoff retry (6 attempts, 200ms base delay)
-5. **Release Excel** - Releases COM reference via `ComUtilities.Release()`
+1. **Optional Save** - If `save=true`, calls `presentation.Save()` explicitly before close
+2. **Close Presentation** - Calls `presentation.Close()` (save param controls PowerPoint's prompt behavior)
+3. **Release Presentation** - Releases COM reference via `ComUtilities.Release()`
+4. **Quit PowerPoint** - Calls `powerpoint.Quit()` with exponential backoff retry (6 attempts, 200ms base delay)
+5. **Release PowerPoint** - Releases COM reference via `ComUtilities.Release()`
 6. **Automatic GC** - RCW finalizers handle final cleanup automatically (no forced GC needed per Microsoft guidance)
 
 **Resilience Features:**
 - Uses `Microsoft.Extensions.Resilience` retry pipeline
-- **Outer timeout (30s)**: Overall cancellation for Excel.Quit() - catches hung Excel (modal dialogs, deadlocks)
+- **Outer timeout (30s)**: Overall cancellation for PowerPoint.Quit() - catches hung PowerPoint (modal dialogs, deadlocks)
 - **Inner retry**: Exponential backoff (200ms base, 2x factor, 6 attempts) for transient COM busy errors
 - Retries on: `RPC_E_SERVERCALL_RETRYLATER` (-2147417851), `RPC_E_CALL_REJECTED` (-2147418111)
 - Structured logging for diagnostics (attempt number, HResult, elapsed time)
 - Continues with COM cleanup even if Quit fails/times out
-- **STA thread join (45s)**: Must be >= ExcelQuitTimeout + margin (currently 30s + 15s) to ensure Dispose() waits for full cleanup
+- **STA thread join (45s)**: Must be >= PowerPointQuitTimeout + margin (currently 30s + 15s) to ensure Dispose() waits for full cleanup
 
 **Save Semantics:**
 ```csharp
 // Discard changes (default for disposal paths)
-ExcelShutdownService.CloseAndQuit(workbook, excel, save: false, filePath, logger);
+PptShutdownService.CloseAndQuit(presentation, powerpoint, save: false, filePath, logger);
 
 // Save before close (for explicit save operations)
-ExcelShutdownService.CloseAndQuit(workbook, excel, save: true, filePath, logger);
+PptShutdownService.CloseAndQuit(presentation, powerpoint, save: true, filePath, logger);
 ```
 
 **Why Unified Service:**
-- Eliminates duplicated try/catch blocks across `ExcelBatch`, `ExcelSession`, `FileCommands`
-- Consistent retry behavior for all Excel quit operations
+- Eliminates duplicated try/catch blocks across `PptBatch`, `PptSession`, `FileCommands`
+- Consistent retry behavior for all PowerPoint quit operations
 - Centralized logging and diagnostics
-- Handles edge cases: disconnected COM proxies, hung Excel, modal dialogs
+- Handles edge cases: disconnected COM proxies, hung PowerPoint, modal dialogs
 
 **Timeout Architecture (Proper Layering):**
 ```
 Overall Quit Timeout: 30 seconds (outer)
   └─> Resilient Retry: 6 attempts with exponential backoff (inner, ~6s max)
       └─> Individual Quit() calls
-  └─> STA Thread Join: 45 seconds (ExcelQuitTimeout + 15s margin)
+  └─> STA Thread Join: 45 seconds (PowerPointQuitTimeout + 15s margin)
 ```
-- **30s quit timeout**: Catches truly hung Excel (modal dialogs, deadlocks) via CancellationToken
+- **30s quit timeout**: Catches truly hung PowerPoint (modal dialogs, deadlocks) via CancellationToken
 - **6-attempt retry**: Handles transient COM busy states within the 30s window
-- **45s thread join**: Must be >= ExcelQuitTimeout + margin to ensure Dispose() waits for full cleanup
+- **45s thread join**: Must be >= PowerPointQuitTimeout + margin to ensure Dispose() waits for full cleanup
 
 ## COM Object Cleanup Pattern (CRITICAL)
 
@@ -234,139 +232,56 @@ finally
 
 ## Critical COM Issues
 
-### 1. Excel Collections Are 1-Based
+### 1. PowerPoint Collections Are 1-Based
 ```csharp
 // ❌ WRONG: collection.Item(0)  
 // ✅ CORRECT: collection.Item(1)
 for (int i = 1; i <= collection.Count; i++) { var item = collection.Item(i); }
 ```
 
-### 2. Named Range Format
-```csharp
-// ❌ WRONG: namesCollection.Add("Param", "Sheet1!A1");  // Missing =
-// ✅ CORRECT: namesCollection.Add("Param", "=Sheet1!A1");
-string ref = reference.StartsWith("=") ? reference : $"={reference}";
-```
+### 2. Numeric Property Type Conversions
 
-### 3. Power Query Loading
-```csharp
-// ❌ WRONG: listObjects.Add(...)  // Causes "Value does not fall within expected range"
-// ✅ CORRECT: Use QueryTables with synchronous refresh
-string cs = $"OLEDB;Provider=Microsoft.Mashup.OleDb.1;Data Source=$Workbook$;Location={queryName}";
-dynamic qt = sheet.QueryTables.Add(cs, sheet.Range["A1"], commandText);
-qt.Refresh(false);  // CRITICAL: false = synchronous, ensures persistence
-```
-
-### 4. QueryTable Persistence Pattern
-
-**⚠️ RefreshAll() does NOT persist QueryTables!**
-
-```csharp
-// ❌ WRONG: workbook.RefreshAll(); workbook.Save();  // QueryTable lost on reopen
-// ✅ CORRECT: queryTable.Refresh(false); workbook.Save();  // Persists properly
-```
-
-**Why:** `RefreshAll()` is async. Individual `qt.Refresh(false)` is synchronous and required for disk persistence.
-
-### 5. Numeric Property Type Conversions
-
-**⚠️ ALL Excel COM numeric properties return `double`, NOT `int`!**
+**⚠️ ALL PowerPoint COM numeric properties return `double`, NOT `int`!**
 
 ```csharp
 // ❌ WRONG: Implicit conversion fails at runtime
-int orientation = field.Orientation;  // Runtime error: Cannot convert double to int
-int position = field.Position;        // Runtime error: Cannot convert double to int
-int function = field.Function;        // Runtime error: Cannot convert double to int
+int slideIndex = slide.SlideIndex;    // Runtime error: Cannot convert double to int
+int shapeCount = slide.Shapes.Count;  // Runtime error: Cannot convert double to int
 
 // ✅ CORRECT: Explicit conversion required
-int orientation = Convert.ToInt32(field.Orientation);
-int position = Convert.ToInt32(field.Position);
-int comFunction = Convert.ToInt32(field.Function);
+int slideIndex = Convert.ToInt32(slide.SlideIndex);
+int shapeCount = Convert.ToInt32(slide.Shapes.Count);
 ```
 
 **Common Properties Affected:**
-- `PivotField.Orientation` → `double` (not `XlPivotFieldOrientation` enum)
-- `PivotField.Position` → `double` (not `int`)
-- `PivotField.Function` → `double` (not `XlConsolidationFunction` enum)
-- `Range.Row`, `Range.Column` → `double` (not `int`)
-- Any numeric property from Excel COM → assume `double`
+- `Slide.SlideIndex` → `double` (not `int`)
+- `Shape.Left`, `Shape.Top`, `Shape.Width`, `Shape.Height` → `double` (not `float`)
+- Any numeric property from PowerPoint COM → assume `double`
 
-**Date Properties:**
-```csharp
-// RefreshDate can be DateTime OR double (OLE date)
-private static DateTime? GetRefreshDateSafe(dynamic refreshDate)
-{
-    if (refreshDate == null) return null;
-    if (refreshDate is DateTime dt) return dt;
-    if (refreshDate is double dbl) return DateTime.FromOADate(dbl);
-    return null;
-}
-```
+**Why:** PowerPoint COM uses `VARIANT` types internally, which represent numbers as `double`. C# `dynamic` binding preserves this type.
 
-**Why:** Excel COM uses `VARIANT` types internally, which represent numbers as `double`. C# `dynamic` binding preserves this type.
-
-### 6. Excel Busy Handling
+### 3. PowerPoint Busy Handling
 ```csharp
 catch (COMException ex) when (ex.HResult == -2147417851)
 {
-    // RPC_E_SERVERCALL_RETRYLATER - Excel is busy
+    // RPC_E_SERVERCALL_RETRYLATER - PowerPoint is busy
 }
 ```
 
 ## Common Patterns
 
-### Read Data
+### Read Slide Content
 ```csharp
-dynamic range = sheet.Range["A1:D10"];
-object[,] values = range.Value2;  // 2D array, 1-based indexing
+dynamic slide = presentation.Slides[1];
+dynamic shapes = slide.Shapes;
+for (int i = 1; i <= shapes.Count; i++) { var shape = shapes.Item(i); }
 ```
 
-### Write Data
+### Add Shape
 ```csharp
-object[,] data = new object[rows, cols];
-dynamic range = sheet.Range[startCell, endCell];
-range.Value2 = data;  // Bulk write
+dynamic shape = slide.Shapes.AddShape(msoShapeType, left, top, width, height);
+shape.TextFrame.TextRange.Text = "Hello";
 ```
-
-### Refresh Query
-```csharp
-// ❌ NEVER: workbook.RefreshAll();  // Hangs!
-// ✅ CORRECT: targetConnection.Refresh();
-```
-
-## Connection Type Discrepancy
-
-**⚠️ Excel COM runtime types don't match spec!**
-```csharp
-if (connType == 3 || connType == 4) {  // TEXT files report as type 4 (WEB)
-    try { var conn = connection.TextConnection; }
-    catch { var conn = connection.WebConnection; }
-}
-```
-
-## Data Model (Power Pivot) API Limitations
-
-**⚠️ KNOWN LIMITATION: Hidden columns, relationships, and measures cannot be detected via Excel COM API**
-
-When objects are marked "Hidden from client tools" in Power Pivot, the Excel COM API provides no way to detect this or retrieve them.
-
-**Affected Objects:**
-
-| Object | Available Properties | Missing |
-|--------|---------------------|---------|
-| `ModelTableColumn` | Application, Creator, DataType, Name, Parent | **NO IsHidden** |
-| `ModelRelationship` | Application, Creator, ForeignKeyColumn, ForeignKeyTable, PrimaryKeyColumn, PrimaryKeyTable, Active | **NO IsHidden** |
-| `ModelMeasure` | Application, AssociatedTable, Creator, Description, FormatInformation, Formula, Name, Parent | **NO IsHidden** |
-
-**Alternative APIs that were investigated and DO NOT WORK:**
-
-| Approach | Why It Doesn't Work |
-|----------|---------------------|
-| TOM (Tabular Object Model) | Requires `Microsoft.AnalysisServices.Tabular` library which cannot connect to Excel's embedded Analysis Services engine |
-| XMLA queries | Excel's embedded AS engine doesn't expose a queryable endpoint for external XMLA connections |
-| CubeField.ShowInFieldList | Only applies to PivotTable field visibility, not underlying Data Model hidden status |
-
-**Bottom Line:** If a column, relationship, or measure is hidden in the Data Model, it cannot be seen or listed through the Excel COM API. This is a fundamental limitation of Microsoft's Excel automation interface.
 
 ---
 
@@ -374,13 +289,9 @@ When objects are marked "Hidden from client tools" in Power Pivot, the Excel COM
 
 | Mistake | Fix |
 |---------|-----|
-| 0-based indexing | Excel is 1-based |
-| `RefreshAll()` | Use individual refresh |
-| Missing `=` in ranges | Always prefix with `=` |
-| `ListObjects.Add()` for PQ | Use `QueryTables.Add()` |
+| 0-based indexing | PowerPoint is 1-based |
 | Not releasing objects | `try/finally` + `ReleaseComObject()` |
-| `int x = field.Property` | Use `Convert.ToInt32()` for ALL numeric properties |
+| `int x = shape.Property` | Use `Convert.ToInt32()` for ALL numeric properties |
 | Assuming enum types | Numeric properties return `double`, convert to enum |
-| Using TOM/XMLA for Data Model | Not accessible from Excel COM - use only ModelTable/ModelTableColumn APIs |
 
-**📚 Reference:** [Excel Object Model](https://docs.microsoft.com/en-us/office/vba/api/overview/excel)
+**📚 Reference:** [PowerPoint Object Model](https://docs.microsoft.com/en-us/office/vba/api/overview/powerpoint)

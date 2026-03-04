@@ -4,7 +4,7 @@ applyTo: "src/**/*.cs"
 
 # Architecture Patterns
 
-> **Core patterns for ExcelMcp development**
+> **Core patterns for PptMcp development**
 
 ## .NET Class Design (MANDATORY)
 
@@ -38,7 +38,7 @@ Commands/Range/
 
 ## TWO EQUAL ENTRY POINTS (CRITICAL)
 
-**ExcelMcp has TWO first-class entry points: MCP Server AND CLI.** Both must have:
+**PptMcp has TWO first-class entry points: MCP Server AND CLI.** Both must have:
 - **Feature parity**: Every action in MCP must exist in CLI and vice versa
 - **Parameter parity**: Same parameters, same defaults, same validation
 - **Behavior parity**: Same Core command, same result format
@@ -46,8 +46,8 @@ Commands/Range/
 When adding or changing ANY feature, ALWAYS update BOTH entry points. See Rule 24 (Post-Change Sync).
 
 ```
-MCP Server (MCP tools, JSON-RPC) ──► In-process ExcelMcpService ──► Core Commands ──► Excel COM
-CLI (command-line args, console)  ──► CLI Daemon (named pipe) ─────► Core Commands ──► Excel COM
+MCP Server (MCP tools, JSON-RPC) ──► In-process PptMcpService ──► Core Commands ──► PowerPoint COM
+CLI (command-line args, console)  ──► CLI Daemon (named pipe) ─────► Core Commands ──► PowerPoint COM
 ```
 
 ---
@@ -57,16 +57,16 @@ CLI (command-line args, console)  ──► CLI Daemon (named pipe) ────
 ### Structure
 ```
 Commands/
-├── IPowerQueryCommands.cs    # Interface
-├── PowerQueryCommands.cs     # Implementation
+├── ISlideCommands.cs    # Interface
+├── SlideCommands.cs     # Implementation
 ```
 
 ### Routing (Program.cs)
 ```csharp
 return args[0] switch
 {
-    "pq-list" => powerQuery.List(args),
-    "sheet-read" => sheet.Read(args),
+    "slide-list" => slide.List(args),
+    "shape-read" => shape.Read(args),
     _ => ShowHelp()
 };
 ```
@@ -75,7 +75,7 @@ return args[0] switch
 
 ## Resource Management Pattern
 
-**See excel-com-interop.instructions.md** for complete WithExcel() pattern and COM object lifecycle management.
+**See excel-com-interop.instructions.md** for complete WithPowerPoint() pattern and COM object lifecycle management.
 
 ---
 
@@ -85,7 +85,7 @@ return args[0] switch
 
 ```csharp
 // ❌ WRONG: Suppressing exception with catch block
-public async Task<OperationResult> SomeAsync(IExcelBatch batch, string param)
+public async Task<OperationResult> SomeAsync(IPptBatch batch, string param)
 {
     try
     {
@@ -106,7 +106,7 @@ public async Task<OperationResult> SomeAsync(IExcelBatch batch, string param)
 }
 
 // ✅ CORRECT: Let exception propagate through batch.Execute()
-public async Task<OperationResult> SomeAsync(IExcelBatch batch, string param)
+public async Task<OperationResult> SomeAsync(IPptBatch batch, string param)
 {
     return await batch.Execute((ctx, ct) => {
         // ... operation ...
@@ -117,22 +117,22 @@ public async Task<OperationResult> SomeAsync(IExcelBatch batch, string param)
 }
 
 // ✅ CORRECT: Finally blocks still allowed for COM resource cleanup
-public async Task<OperationResult> ComplexAsync(IExcelBatch batch, string param)
+public async Task<OperationResult> ComplexAsync(IPptBatch batch, string param)
 {
-    dynamic? connection = null;
+    dynamic? shapeRef = null;
     try
     {
         return await batch.Execute((ctx, ct) => {
-            connection = ctx.Book.Connections.Add(...);
+            shapeRef = ctx.Presentation.Slides[1].Shapes.AddShape(...);
             // ... operation ...
             return ValueTask.FromResult(new OperationResult { Success = true });
         });
     }
     finally
     {
-        if (connection != null)
+        if (shapeRef != null)
         {
-            ComUtilities.Release(ref connection!);  // ✅ Cleanup in finally
+            ComUtilities.Release(ref shapeRef!);  // ✅ Cleanup in finally
         }
     }
 }
@@ -150,47 +150,46 @@ public async Task<OperationResult> ComplexAsync(IExcelBatch batch, string param)
 
 ## MCP Server Resource-Based Tools
 
-**In-Process Architecture**: MCP Server hosts ExcelMcpService fully in-process with direct method calls (no pipe).
+**In-Process Architecture**: MCP Server hosts PptMcpService fully in-process with direct method calls (no pipe).
 ServiceBridge holds the service reference and calls ProcessAsync() directly.
 
 **19 Focused Tools:**
 1. `file` - Session lifecycle (open, close, create, list)
-2. `worksheet` - Worksheet operations
-3. `worksheet_style` - Tab colors and visibility
-4. `range` - Range values and formulas
-5. `range_edit` - Insert/delete/find/replace
-6. `table` - Excel Tables (ListObjects)
-7. `table_column` - Table columns/filters/sorts
-8. `powerquery` - Power Query M code
-9. `pivottable` - PivotTable lifecycle
-10. `pivottable_field` - PivotTable fields
-11. `pivottable_calc` - Calculated fields/items
-12. `chart` - Chart lifecycle
-13. `chart_config` - Chart configuration
-14. `connection` - Data connections
-15. `slicer` - Slicers
+2. `slide` - Slide operations
+3. `slide_style` - Slide layout and background
+4. `shape` - Shape operations (add, modify, delete)
+5. `text` - Text and TextFrame operations
+6. `table` - Table operations on slides
+7. `image` - Image and picture operations
+8. `chart` - Chart lifecycle
+9. `chart_config` - Chart configuration
+10. `animation` - Animation effects
+11. `transition` - Slide transitions
+12. `slide_master` - Slide master and layout management
+13. `notes` - Speaker notes
+14. `section` - Presentation sections
+15. `media` - Audio and video operations
 16. `vba` - VBA macros
-17. `datamodel` - Power Pivot / DAX
-18. `datamodel_relationship` - Data Model relationships
-19. `namedrange` - Named ranges
-20. `excel_calculation` - Calculation mode
+17. `comment` - Slide comments
+18. `export` - Export slides (images, PDF)
+19. `hyperlink` - Hyperlink operations
 
 ### Action-Based Routing with ForwardToService
 ```csharp
 [McpServerTool]
-public static string ExcelPowerQuery(string action, string sessionId, ...)
+public static string PptSlide(string action, string sessionId, ...)
 {
     return action.ToLowerInvariant() switch
     {
         "list" => ForwardList(sessionId),
-        "view" => ForwardView(sessionId, queryName),
+        "get" => ForwardGet(sessionId, slideIndex),
         _ => throw new McpException($"Unknown action: {action}")
     };
 }
 
 private static string ForwardList(string sessionId)
 {
-    return ExcelToolsBase.ForwardToService("powerquery.list", sessionId);
+    return PptToolsBase.ForwardToService("slide.list", sessionId);
 }
 ```
 
@@ -198,7 +197,7 @@ private static string ForwardList(string sessionId)
 
 ## DRY Shared Utilities
 
-**ExcelHelper Methods:** `FindConnection()`, `FindQuery()`, `GetConnectionTypeName()`, `IsPowerQueryConnection()`, `CreateQueryTable()`, `SanitizeConnectionString()`
+**PptHelper Methods:** `FindSlide()`, `FindShape()`, `GetShapeTypeName()`, `GetSlideLayout()`
 
 **Why:** Prevents 60+ lines of duplicate code per feature
 
@@ -207,9 +206,6 @@ private static string ForwardList(string sessionId)
 ## Security-First Patterns
 
 ```csharp
-// Always sanitize before output
-string safe = SanitizeConnectionString(connectionString);
-
 // Defaults
 SavePassword = false  // Never export credentials by default
 ```
@@ -218,17 +214,17 @@ SavePassword = false  // Never export credentials by default
 
 ## Performance Patterns
 
-**Minimize workbook opens** - Use single session for multiple operations
-**Bulk operations** - Use `range.Value2` for 2D arrays, not cell-by-cell access
+**Minimize presentation opens** - Use single session for multiple operations
+**Bulk operations** - Minimize COM round-trips by batching shape/slide operations
 
 ---
 
 ## Key Principles
 
-1. **WithExcel() for everything** - See excel-com-interop.instructions.md
-2. **Release intermediate objects** - Prevents Excel hanging
+1. **WithPowerPoint() for everything** - See excel-com-interop.instructions.md
+2. **Release intermediate objects** - Prevents PowerPoint hanging
 3. **Batch/Session for MCP** - Multiple operations in single session
-4. **Resource-based tools** - 22 tools, not 33+ operations
+4. **Resource-based tools** - 19 tools, not 33+ operations
 5. **DRY utilities** - Share common patterns
 6. **Security defaults** - Never expose credentials
 7. **Bulk operations** - Minimize COM round-trips

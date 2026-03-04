@@ -1,5 +1,5 @@
 ---
-applyTo: "src/ExcelMcp.McpServer/**/*.cs"
+applyTo: "src/PptMcp.McpServer/**/*.cs"
 ---
 
 # MCP Server Development Guide
@@ -23,7 +23,7 @@ applyTo: "src/ExcelMcp.McpServer/**/*.cs"
 
 ```csharp
 [McpServerTool]
-public async Task<string> ExcelPowerQuery(string action, string excelPath, ...)
+public async Task<string> PptSlide(string action, string pptPath, ...)
 {
     return action.ToLowerInvariant() switch
     {
@@ -50,16 +50,16 @@ private static string ForwardSomeAction(string sessionId, string? param)
     if (string.IsNullOrEmpty(param))
         throw new ModelContextProtocol.McpException("param is required for action");
 
-    // 2. Forward to in-process ExcelMcpService (direct call, no pipe)
-    return ExcelToolsBase.ForwardToService("category.action", sessionId, new { param });
+    // 2. Forward to in-process PptMcpService (direct call, no pipe)
+    return PptToolsBase.ForwardToService("category.action", sessionId, new { param });
 }
 ```
 
 **When to Throw McpException:**
 - ✅ **Parameter validation** - missing required params, invalid formats (pre-conditions)
-- ✅ **File not found** - workbook doesn't exist (pre-conditions)
+- ✅ **File not found** - presentation doesn't exist (pre-conditions)
 - ✅ **Batch not found** - invalid batch session (pre-conditions)
-- ❌ **NOT for business logic errors** - table not found, query failed, connection error, etc.
+- ❌ **NOT for business logic errors** - table not found, shape not found, operation failed, etc.
 
 **Why This Pattern:**
 - ✅ MCP spec requires business errors return JSON with `isError: true` flag
@@ -71,7 +71,7 @@ private static string ForwardSomeAction(string sessionId, string? param)
 ```csharp
 // Core returns: { Success = false, ErrorMessage = "Table 'Sales' not found" }
 // MCP Tool: Return this as-is
-return JsonSerializer.Serialize(result, ExcelToolsBase.JsonOptions);
+return JsonSerializer.Serialize(result, PptToolsBase.JsonOptions);
 // Client receives via MCP protocol:
 // {
 //   "jsonrpc": "2.0",
@@ -99,7 +99,7 @@ if (string.IsNullOrWhiteSpace(tableName))
 
 ```csharp
 [McpServerTool]
-public static async Task<string> ExcelTool(ToolAction action, ...)
+public static async Task<string> PptTool(ToolAction action, ...)
 {
     try
     {
@@ -120,11 +120,11 @@ public static async Task<string> ExcelTool(ToolAction action, ...)
         {
             Success = false,
             ErrorMessage = ex.Message,
-            FilePath = excelPath,
+            FilePath = pptPath,
             Action = action.ToActionString(),
             SuggestedNextActions = new List<string>
             {
-                "Check if Excel is showing a dialog or prompt",
+                "Check if PowerPoint is showing a dialog or prompt",
                 "Verify data source connectivity",
                 "For large datasets, operation may need more time"
             },
@@ -138,11 +138,11 @@ public static async Task<string> ExcelTool(ToolAction action, ...)
                 ? "Maximum timeout reached. Check connectivity manually."
                 : "Retry acceptable if issue is transient."
         };
-        return JsonSerializer.Serialize(result, ExcelToolsBase.JsonOptions);
+        return JsonSerializer.Serialize(result, PptToolsBase.JsonOptions);
     }
     catch (Exception ex)
     {
-        ExcelToolsBase.ThrowInternalError(ex, action.ToActionString(), excelPath);
+        PptToolsBase.ThrowInternalError(ex, action.ToActionString(), pptPath);
         throw; // Unreachable but satisfies compiler
     }
 }
@@ -155,7 +155,7 @@ public static async Task<string> ExcelTool(ToolAction action, ...)
 ```csharp
 // Tool signature: async Task<string> (MCP SDK requirement)
 [McpServerTool]
-public static async Task<string> ExcelPowerQuery(string action, ...)
+public static async Task<string> PptSlide(string action, ...)
 {
     // Action methods: synchronous (no await!)
     return action.ToLowerInvariant() switch
@@ -166,17 +166,17 @@ public static async Task<string> ExcelPowerQuery(string action, ...)
     };
 }
 
-// Action methods forward to in-process ExcelMcpService:
+// Action methods forward to in-process PptMcpService:
 private static string ForwardList(string sessionId)
 {
-    return ExcelToolsBase.ForwardToService("powerquery.list", sessionId);
+    return PptToolsBase.ForwardToService("slide.list", sessionId);
 }
 
-private static string ForwardView(string sessionId, string queryName)
+private static string ForwardView(string sessionId, string slideIndex)
 {
-    if (string.IsNullOrEmpty(queryName))
-        ExcelToolsBase.ThrowMissingParameter("queryName", "view");
-    return ExcelToolsBase.ForwardToService("powerquery.view", sessionId, new { queryName });
+    if (string.IsNullOrEmpty(slideIndex))
+        PptToolsBase.ThrowMissingParameter("slideIndex", "view");
+    return PptToolsBase.ForwardToService("slide.view", sessionId, new { slideIndex });
 }
 ```
 
@@ -191,7 +191,7 @@ return JsonSerializer.Serialize(result, JsonOptions);
 
 ## JSON Deserialization & COM Marshalling
 
-**⚠️ CRITICAL:** MCP deserializes JSON arrays to `JsonElement`, NOT primitives. Excel COM requires proper types.
+**⚠️ CRITICAL:** MCP deserializes JSON arrays to `JsonElement`, NOT primitives. PowerPoint COM requires proper types.
 
 **Problem:** `values: [["text", 123, true]]` → `List<List<object?>>` where each object is `JsonElement`.
 
@@ -234,13 +234,13 @@ private static object ConvertToCellValue(object? value)
 
 **❌ WRONG: Verbose guidance (LLM doesn't need step-by-step instructions)**
 ```csharp
-errorMessage = "Operation failed. This usually means: (1) Sheet doesn't exist, (2) Range invalid, or (3) Session closed. " +
-               "Use worksheet(action: 'list') to verify sheet exists, then file(action: 'list') to check sessions.";
+errorMessage = "Operation failed. This usually means: (1) Slide doesn't exist, (2) Shape not found, or (3) Session closed. " +
+               "Use slide(action: 'list') to verify slide exists, then file(action: 'list') to check sessions.";
 ```
 
 **✅ CORRECT: State facts (LLM determines next action)**
 ```csharp
-errorMessage = $"Cannot read range '{range}' on sheet '{sheet}': {ex.Message}";
+errorMessage = $"Cannot read shape '{shape}' on slide '{slide}': {ex.Message}";
 ```
 
 **Why:** LLMs are intelligent agents that determine workflow. Error messages should report what failed and why, not prescribe solutions.
@@ -295,7 +295,7 @@ Before committing MCP tool changes:
 - [ ] Build passes with 0 warnings
 - [ ] No `if (!result.Success) throw McpException` blocks (violates MCP spec)
 - [ ] **Tool XML documentation (`/// <summary>`) documents server-specific behavior**
-- [ ] **Non-enum parameter values explained (loadDestination, formatCode, etc.)**
+- [ ] **Non-enum parameter values explained (layoutType, shapeType, etc.)**
 - [ ] **Performance guidance (batch mode) is accurate**
 - [ ] **Related tools referenced correctly**
 
@@ -327,7 +327,7 @@ Before committing MCP tool changes:
 2. ✅ Server-specific behavior is documented (defaults, quirks, important notes)
 3. ✅ Performance guidance (batch mode) is accurate
 4. ✅ Related tools referenced correctly
-5. ✅ Non-enum parameter guidance is complete (loadDestination options, format codes, etc.)
+5. ✅ Non-enum parameter guidance is complete (layoutType options, shape types, etc.)
 
 **What NOT to include in descriptions:**
 - ❌ **Enum action lists** - MCP SDK auto-generates enum values in schema (LLMs see them automatically)
@@ -337,17 +337,18 @@ Before committing MCP tool changes:
 **Example - Good tool description:**
 ```csharp
 /// <summary>
-/// Manage Power Query M code and data loading.
+/// Manage slides in a PowerPoint presentation.
 /// 
-/// LOAD DESTINATIONS (non-enum parameter):
-/// - 'worksheet': Load to worksheet as table (DEFAULT - users can see/validate data)
-/// - 'data-model': Load to Power Pivot Data Model (ready for DAX measures/relationships)
-/// - 'both': Load to BOTH worksheet AND Data Model
-/// - 'connection-only': Don't load data (M code imported but not executed)
+/// LAYOUT OPTIONS (non-enum parameter):
+/// - 'blank': Empty slide with no placeholders (DEFAULT)
+/// - 'title': Title slide layout
+/// - 'title-content': Title and content layout
+/// - 'section-header': Section header layout
+/// - 'two-content': Two content areas side by side
 /// 
-/// TIMEOUT: Long-running refresh/load operations auto-timeout after 5 minutes.
+/// TIMEOUT: Long-running operations auto-timeout after 5 minutes.
 /// 
-/// Use datamodel tool for DAX measures after loading to Data Model.
+/// Use shape tool for adding content to slides.
 /// </summary>
 ```
 ✅ Describes purpose and use cases

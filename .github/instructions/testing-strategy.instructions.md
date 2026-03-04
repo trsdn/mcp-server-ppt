@@ -11,54 +11,54 @@ applyTo: "tests/**/*.cs"
 ### Core.Tests (Business Logic)
 ```bash
 # Development (fast - excludes VBA and Screenshot)
-dotnet test tests/ExcelMcp.Core.Tests/ExcelMcp.Core.Tests.csproj --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust&Feature!=Screenshot"
+dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust&Feature!=Screenshot"
 
 # Diagnostic tests (validate patterns, slow ~20s each)
-dotnet test tests/ExcelMcp.Diagnostics.Tests/ExcelMcp.Diagnostics.Tests.csproj --filter "RunType=OnDemand&Layer=Diagnostics"
+dotnet test tests/PptMcp.Diagnostics.Tests/PptMcp.Diagnostics.Tests.csproj --filter "RunType=OnDemand&Layer=Diagnostics"
 
 # VBA tests (manual only - requires VBA trust)
-dotnet test tests/ExcelMcp.Core.Tests/ExcelMcp.Core.Tests.csproj --filter "(Feature=VBA|Feature=VBATrust)&RunType!=OnDemand"
+dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "(Feature=VBA|Feature=VBATrust)&RunType!=OnDemand"
 
 # Screenshot tests (isolated run only - clipboard contention when parallel)
-dotnet test tests/ExcelMcp.Core.Tests/ExcelMcp.Core.Tests.csproj --filter "Feature=Screenshot"
+dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "Feature=Screenshot"
 
 # Specific feature
-dotnet test tests/ExcelMcp.Core.Tests/ExcelMcp.Core.Tests.csproj --filter "Feature=PowerQuery"
+dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "Feature=Slide"
 ```
 
 ### ComInterop.Tests (Session/Batch Infrastructure)
 ```bash
 # Session/batch changes (MANDATORY - see CRITICAL-RULES.md Rule 3)
-dotnet test tests/ExcelMcp.ComInterop.Tests/ExcelMcp.ComInterop.Tests.csproj --filter "RunType=OnDemand"
+dotnet test tests/PptMcp.ComInterop.Tests/PptMcp.ComInterop.Tests.csproj --filter "RunType=OnDemand"
 ```
 
 ### McpServer.Tests (End-to-End Tool Tests)
 ```bash
 # All MCP tool tests
-dotnet test tests/ExcelMcp.McpServer.Tests/ExcelMcp.McpServer.Tests.csproj
+dotnet test tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
 
 # Specific tool
-dotnet test tests/ExcelMcp.McpServer.Tests/ExcelMcp.McpServer.Tests.csproj --filter "FullyQualifiedName~PowerQueryTool"
+dotnet test tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj --filter "FullyQualifiedName~SlideTool"
 ```
 
 ### CLI.Tests (Command-Line Interface)
 ```bash
 # All CLI tests
-dotnet test tests/ExcelMcp.CLI.Tests/ExcelMcp.CLI.Tests.csproj
+dotnet test tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj
 
 # Specific command
-dotnet test tests/ExcelMcp.CLI.Tests/ExcelMcp.CLI.Tests.csproj --filter "FullyQualifiedName~PowerQuery"
+dotnet test tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj --filter "FullyQualifiedName~Slide"
 ```
 
 ### Run Specific Test by Name
 ```bash
 # Use full project path + filter
-dotnet test tests/ExcelMcp.Core.Tests/ExcelMcp.Core.Tests.csproj --filter "FullyQualifiedName~TestMethodName"
+dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "FullyQualifiedName~TestMethodName"
 ```
 
 ## Round-Trip Validation Pattern
 
-**Always verify actual Excel state after operations:**
+**Always verify actual PowerPoint state after operations:**
 
 ```csharp
 // ✅ CREATE → Verify exists
@@ -117,11 +117,11 @@ Assert.DoesNotContain(file1Content, viewResult.Content);  // ✅ file1 content g
 | Mistake | Fix |
 |---------|-----|
 | Shared test file | Each test creates unique file |
-| Only test success flag | Verify actual Excel state |
+| Only test success flag | Verify actual PowerPoint state |
 | Save before assertions | Remove Save entirely |
 | Save in middle of test | Only at end or in persistence test |
 | Manual IDisposable | Use `IClassFixture<TempDirectoryFixture>` |
-| .xlsx for VBA tests | Use `.xlsm` |
+| .pptx for VBA tests | Use `.pptm` |
 | "Accept both" assertions | Binary assertions only |
 | Missing Feature trait | Add from valid feature list above |
 
@@ -131,7 +131,7 @@ Assert.DoesNotContain(file1Content, viewResult.Content);  // ✅ file1 content g
 2. Check file isolation (unique files?)
 3. Check assertions (binary, not conditional?)
 4. Check Save (removed unless persistence test?)
-5. Verify Excel state (not just success flag?)
+5. Verify PowerPoint state (not just success flag?)
 
 **Full checklist**: See CRITICAL-RULES.md Rule 12
 
@@ -139,9 +139,9 @@ Assert.DoesNotContain(file1Content, viewResult.Content);  // ✅ file1 content g
 
 ## LLM Integration Tests
 
-**Location**: `tests/ExcelMcp.LLM.Tests/`
+**Location**: `tests/PptMcp.LLM.Tests/`
 
-**Purpose**: Validate that LLMs correctly use Excel MCP Server and CLI tools using [pytest-aitest](https://github.com/sbroenne/pytest-aitest).
+**Purpose**: Validate that LLMs correctly use PowerPoint MCP Server and CLI tools using [pytest-aitest](https://github.com/sbroenne/pytest-aitest).
 
 ### When to Run
 
@@ -153,7 +153,7 @@ Assert.DoesNotContain(file1Content, viewResult.Content);  // ✅ file1 content g
 
 ```powershell
 # Navigate to the LLM tests directory first
-cd d:\source\mcp-server-excel\tests\ExcelMcp.LLM.Tests
+cd d:\source\mcp-server-ppt\tests\PptMcp.LLM.Tests
 
 # Install deps (local pytest-aitest path is configured via tool.uv.sources)
 uv sync
@@ -171,18 +171,18 @@ uv run pytest -m aitest -v
 ### Prerequisites
 
 - `AZURE_OPENAI_ENDPOINT` environment variable
-- Windows desktop with Excel installed
+- Windows desktop with PowerPoint installed
 - MCP Server built (Release) and CLI available on PATH
 
 ### Configuration Overrides
 
-- `EXCEL_MCP_SERVER_COMMAND` to override MCP server command
-- `EXCEL_CLI_COMMAND` to override CLI command
+- `ppt_mcp_SERVER_COMMAND` to override MCP server command
+- `PPT_CLI_COMMAND` to override CLI command
 
 ### Test Results
 
-Reports are generated in `tests/ExcelMcp.LLM.Tests/TestResults/`:
+Reports are generated in `tests/PptMcp.LLM.Tests/TestResults/`:
 - `report.html` - Visual HTML report
 - `report.json` - Machine-readable JSON
 
-See `tests/ExcelMcp.LLM.Tests/README.md` for complete documentation.
+See `tests/PptMcp.LLM.Tests/README.md` for complete documentation.
