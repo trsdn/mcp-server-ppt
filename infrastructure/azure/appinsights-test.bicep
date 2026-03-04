@@ -1,4 +1,4 @@
-// Application Insights infrastructure for ExcelMcp INTEGRATION TESTS
+// Application Insights infrastructure for PptMcp INTEGRATION TESTS
 // This is a separate instance from production for testing telemetry functionality
 //
 // Deploy with: az deployment sub create --location <location> --template-file appinsights-test.bicep --parameters appinsights-test.parameters.json
@@ -6,16 +6,16 @@
 targetScope = 'subscription'
 
 @description('Name of the resource group to create')
-param resourceGroupName string = 'excelmcp-test-observability'
+param resourceGroupName string = 'pptmcp-test-observability'
 
 @description('Azure region for all resources')
 param location string = 'westeurope'
 
 @description('Name of the Log Analytics workspace')
-param logAnalyticsName string = 'excelmcp-test-logs'
+param logAnalyticsName string = 'pptmcp-test-logs'
 
 @description('Name of the Application Insights resource')
-param appInsightsName string = 'excelmcp-test-appinsights'
+param appInsightsName string = 'pptmcp-test-appinsights'
 
 @description('Data retention in days - shorter for test instance to reduce costs')
 @minValue(30)
@@ -24,7 +24,7 @@ param retentionInDays int = 30
 
 @description('Tags to apply to all resources')
 param tags object = {
-  project: 'ExcelMcp'
+  project: 'PptMcp'
   purpose: 'TelemetryTesting'
   environment: 'test'
   managedBy: 'Bicep'

@@ -3,7 +3,7 @@ name: ppt-cli
 description: >
   Automate Microsoft PowerPoint on Windows via CLI. Use when creating, reading,
   or modifying PowerPoint presentations from scripts, CI/CD, or coding agents.
-  Supports Power Query, DAX, PivotTables, Tables, Ranges, Charts, VBA.
+  Supports Slides, Shapes, Text, Charts, Animations, Transitions.
   Triggers: PowerPoint, presentation, pptx, pptcli, CLI automation.
 ---
 
@@ -20,17 +20,11 @@ description: >
 | Step | Command | When |
 |------|---------|------|
 | 1. Session | `session create/open` | Always first |
-| 2. Sheets | `worksheet create/rename` | If needed |
-| 3. Write data | See below | If writing values |
+| 2. Slides | `slide create/duplicate` | If needed |
+| 3. Add content | `shape`, `text`, `chart` | Add shapes, text, charts |
 | 4. Save & close | `session close --save` | Always last |
 
 > **10+ commands?** Use `pptcli -q batch --input commands.json` — sends all commands in one process with automatic session management. See Rule 8.
-
-**Writing Data (Step 3):**
-- `--values` takes a JSON 2D array string: `--values '[["Header1","Header2"],[1,2]]'`
-- Write **one row at a time** for reliability: `--range-address A1:B1 --values '[["Name","Age"]]'`
-- Strings MUST be double-quoted in JSON: `"text"`. Numbers are bare: `42`
-- Always wrap the entire JSON value in single quotes to protect special characters
 
 ## CRITICAL RULES (MUST FOLLOW)
 
@@ -43,8 +37,8 @@ Execute commands to discover the answer instead:
 | DON'T ASK | DO THIS INSTEAD |
 |-----------|-----------------|
 | "Which file should I use?" | `pptcli -q session list` |
-| "What table should I use?" | `pptcli -q table list --session <id>` |
-| "Which sheet has the data?" | `pptcli -q worksheet list --session <id>` |
+| "Which slide has the content?" | `pptcli -q slide list --session <id>` |
+| "What shapes are on this slide?" | `pptcli -q shape list --session <id>` |
 
 **You have commands to answer your own questions. USE THEM.**
 
@@ -70,57 +64,53 @@ pptcli -q session open C:\path\existing.pptx   # Opens file + returns session ID
 ```powershell
 # Example: capture session ID from output, then use it
 pptcli -q session create C:\path\file.pptx     # Returns JSON with sessionId
-pptcli -q range set-values --session <returned-session-id> ...
+pptcli -q slide list --session <returned-session-id>
 pptcli -q session close --session <returned-session-id> --save
 ```
 
 **Unclosed sessions leave PowerPoint processes running, locking files.**
 
-### Rule 4: Data Model Prerequisites
+### Rule 4: Slide Layout and Masters
 
-DAX operations require tables in the Data Model:
+Slides inherit layouts from slide masters:
 
 ```powershell
-pptcli -q table add-to-data-model --session <id> --table-name Sales  # Step 1
-pptcli -q datamodel create-measure --session <id> ...               # Step 2 - NOW works
+pptcli -q slide create --session <id> --layout "Title and Content"  # Use a layout
+pptcli -q slide list --session <id>                                  # See all slides
 ```
 
-### Rule 5: Power Query Development Lifecycle
+### Rule 5: Shape and Text Workflow
 
-**BEST PRACTICE: Test M code before creating permanent queries**
+**BEST PRACTICE: Add shapes then set their text/properties**
 
 ```powershell
-# Step 1: Test M code without persisting (catches errors early)
-pptcli -q powerquery evaluate --session 1 --m-code-file query.m
+# Step 1: Add a shape to a slide
+pptcli -q shape create --session <id> --slide-index 1 --shape-type rectangle
 
-# Step 2: Create permanent query with validated code
-pptcli -q powerquery create --session 1 --query-name Q1 --m-code-file query.m
+# Step 2: Set text content
+pptcli -q text set --session <id> --slide-index 1 --shape-name "Rectangle 1" --text "Hello World"
 
-# Step 3: Load data to destination
-pptcli -q powerquery refresh --session 1 --query-name Q1
+# Step 3: Apply formatting
+pptcli -q shape format --session <id> --slide-index 1 --shape-name "Rectangle 1" --fill-color "#0078D4"
 ```
 
 ### Rule 6: Report File Errors Immediately
 
 If you see "File not found" or "Path not found" - STOP and report to user. Don't retry.
 
-### Rule 7: Use Calculation Mode for Bulk Writes
+### Rule 7: Use Animations and Transitions Thoughtfully
 
-When writing many values/formulas (10+ cells), disable auto-recalc for performance:
+When adding animations to multiple shapes, apply them in logical order:
 
 ```powershell
-# 1. Set manual mode
-pptcli -q calculationmode set-mode --session 1 --mode manual
+# 1. Add entrance animation to title
+pptcli -q animation add --session 1 --slide-index 1 --shape-name "Title" --effect "fade-in"
 
-# 2. Write data row by row for reliability
-pptcli -q range set-values --session 1 --sheet-name Sheet1 --range-address A1:B1 --values '[["Name","Amount"]]'
-pptcli -q range set-values --session 1 --sheet-name Sheet1 --range-address A2:B2 --values '[["Salary",5000]]'
+# 2. Add entrance animation to content
+pptcli -q animation add --session 1 --slide-index 1 --shape-name "Content" --effect "fly-in" --delay 0.5
 
-# 3. Recalculate once at end
-pptcli -q calculationmode calculate --session 1 --scope workbook
-
-# 4. Restore automatic mode
-pptcli -q calculationmode set-mode --session 1 --mode automatic
+# 3. Set slide transition
+pptcli -q transition set --session 1 --slide-index 1 --effect "push" --duration 1.0
 ```
 
 ### Rule 8: Use Batch Mode for Bulk Operations (10+ commands)
@@ -132,8 +122,8 @@ When executing 10+ commands on the same file, use `pptcli batch` to send all com
 @'
 [
   {"command": "session.open", "args": {"filePath": "C:\\path\\file.pptx"}},
-  {"command": "range.set-values", "args": {"sheetName": "Sheet1", "rangeAddress": "A1", "values": [["Hello"]]}},
-  {"command": "range.set-values", "args": {"sheetName": "Sheet1", "rangeAddress": "A2", "values": [["World"]]}},
+  {"command": "slide.create", "args": {"layout": "Blank"}},
+  {"command": "shape.create", "args": {"slideIndex": 2, "shapeType": "rectangle"}},
   {"command": "session.close", "args": {"save": true}}
 ]
 '@ | Set-Content commands.json
@@ -157,621 +147,562 @@ pptcli -q batch --input commands.json
 > Auto-generated from `pptcli --help`. Use these exact parameter names.
 
 
-### calculationmode
+### animation
 
-Control PowerPoint recalculation (automatic vs manual). Set manual mode before bulk writes for faster performance, then recalculate once at the end.
+Animation effect operations: list, add, remove, reorder effects on slides.
 
-**Actions:** `get-mode`, `set-mode`, `calculate`
+**Actions:** `list`, `add`, `remove`, `clear`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--mode` | Target calculation mode (required for: set-mode) |
-| `--scope` | Scope: Presentation, Sheet, or Range (required for: calculate) |
-| `--sheet-name` | Sheet name (required for Sheet/Range scope) |
-| `--range-address` | Range address (required for Range scope) |
+| `--slide-index` | (required) |
+| `--shape-name` | Name of the target shape (required for: add) |
+| `--effect-type` | MsoAnimEffect integer (e.g., 1=Appear, 2=Fly, 10=Fade, 16=Wipe) (required for: add) |
+| `--trigger-type` | 1=OnClick (default), 2=WithPrevious, 3=AfterPrevious (required for: add) |
+| `--effect-index` | (required for: remove) |
+
+
+
+### background
+
+Slide background: get, set solid color, set image, reset to master.
+
+**Actions:** `get`, `set-color`, `reset`, `set-image`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--slide-index` | 1-based slide index (required) |
+| `--color-hex` | Hex color string (#RRGGBB) (required for: set-color) |
+| `--image-path` | Path to the image file (required for: set-image) |
 
 
 
 ### chart
 
-Chart lifecycle - create, read, move, and delete embedded charts. POSITIONING (choose one): - targetRange (PREFERRED): Cell range like 'F2:K15' — positions chart within cells, no point math needed. - left/top: Manual positioning in points (72 points = 1 inch). - Neither: Auto-positions chart below all existing content (used range + other charts). COLLISION DETECTION: All create/move/fit-to-range operations automatically check for overlaps with data and other charts. Warnings are returned in the result message if collisions are detected. Always verify layout with screenshot(capture-sheet) after creating charts. CHART TYPES: 70+ types available including Column, Line, Pie, Bar, Area, XY Scatter. CREATE OPTIONS: - create-from-range: Create from cell range (e.g., 'A1:D10') - create-from-table: Create from PowerPoint Table (uses table's data range) - create-from-pivottable: Create linked PivotChart Use chartconfig for series, titles, legends, styles, placement mode.
+Embedded chart operations: create, get info, set title, set type, delete.
 
-**Actions:** `list`, `read`, `create-from-range`, `create-from-table`, `create-from-pivottable`, `delete`, `move`, `fit-to-range`
-
-| Parameter | Description |
-|-----------|-------------|
-| `--chart-name` | Name of the chart (or shape name) (required for: read, delete, move, fit-to-range) |
-| `--sheet-name` | Target slide name (required for: create-from-range, create-from-table, create-from-pivottable, fit-to-range) |
-| `--source-range-address` | Data range for the chart (e.g., A1:D10) (required for: create-from-range) |
-| `--chart-type` | Type of chart to create (required for: create-from-range, create-from-table, create-from-pivottable) |
-| `--left` | Left position in points from slide edge |
-| `--top` | Top position in points from slide edge |
-| `--width` | Chart width in points |
-| `--height` | Chart height in points |
-| `--target-range` | Cell range to position chart within (e.g., 'F2:K15'). PREFERRED over left/top. When set, left/top are ignored. |
-| `--table-name` | Name of the PowerPoint Table (required for: create-from-table) |
-| `--pivot-table-name` | Name of the source PivotTable (required for: create-from-pivottable) |
-| `--range-address` | Range to fit the chart to (e.g., A1:D10) (required for: fit-to-range) |
-
-
-
-### chartconfig
-
-Chart configuration - data source, series, type, title, axis labels, legend, and styling. SERIES MANAGEMENT: - add-series: Add data series with valuesRange (required) and optional categoryRange - remove-series: Remove series by 1-based index - set-source-range: Replace entire chart data source TITLES AND LABELS: - set-title: Set chart title (empty string hides title) - set-axis-title: Set axis labels (Category, Value, CategorySecondary, ValueSecondary) CHART STYLES: 1-48 (built-in PowerPoint styles with different color schemes) DATA LABELS: Show values, percentages, series/category names. Positions: Center, InsideEnd, InsideBase, OutsideEnd, BestFit. TRENDLINES: Linear, Exponential, Logarithmic, Polynomial (order 2-6), Power, MovingAverage. PLACEMENT MODE: - 1: Move and size with cells - 2: Move but don't size with cells - 3: Don't move or size with cells (free floating) Use chart for lifecycle operations (create, delete, move, fit-to-range).
-
-**Actions:** `set-source-range`, `add-series`, `remove-series`, `set-chart-type`, `set-title`, `set-axis-title`, `get-axis-number-format`, `set-axis-number-format`, `show-legend`, `set-style`, `set-placement`, `set-data-labels`, `get-axis-scale`, `set-axis-scale`, `get-gridlines`, `set-gridlines`, `set-series-format`, `list-trendlines`, `add-trendline`, `delete-trendline`, `set-trendline`
+**Actions:** `create`, `get-info`, `set-title`, `set-type`, `delete`, `set-data`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--chart-name` | Name of the chart (required) |
-| `--source-range` | New data source range (e.g., Sheet1!A1:D10) (required for: set-source-range) |
-| `--series-name` | Display name for the series (required for: add-series) |
-| `--values-range` | Range containing series values (e.g., B2:B10) (required for: add-series) |
-| `--category-range` | Optional range for category labels (e.g., A2:A10) |
-| `--series-index` | 1-based index of the series to remove (required for: remove-series, set-series-format, list-trendlines, add-trendline, delete-trendline, set-trendline) |
-| `--chart-type` | New chart type to apply (required for: set-chart-type) |
-| `--title` | Title text to display (required for: set-title, set-axis-title) |
-| `--axis` | Which axis to set title for (Category, Value, SeriesAxis) (required for: set-axis-title, get-axis-number-format, set-axis-number-format, get-axis-scale, set-axis-scale, set-gridlines) |
-| `--number-format` | PowerPoint number format code (e.g., "$#,##0", "0.00%") (required for: set-axis-number-format) |
-| `--visible` | True to show legend, false to hide (required for: show-legend) |
-| `--legend-position` | Optional position for the legend |
-| `--style-id` | PowerPoint chart style ID (1-48 for most chart types) (required for: set-style) |
-| `--placement` | Placement mode: 1=MoveAndSize, 2=Move, 3=FreeFloating (required for: set-placement) |
-| `--show-value` | Show data values on labels |
-| `--show-percentage` | Show percentage values. Only meaningful for pie and doughnut chart types; setting to true on other chart types has no visual effect. |
-| `--show-series-name` | Show series name on labels |
-| `--show-category-name` | Show category name on labels |
-| `--show-bubble-size` | Show bubble size (bubble charts) |
-| `--separator` | Separator string between label components |
-| `--label-position` | Position of data labels relative to data points |
-| `--minimum-scale` | Minimum axis value (null for auto) |
-| `--maximum-scale` | Maximum axis value (null for auto) |
-| `--major-unit` | Major gridline interval (null for auto) |
-| `--minor-unit` | Minor gridline interval (null for auto) |
-| `--show-major` | Show major gridlines (null to keep current) |
-| `--show-minor` | Show minor gridlines (null to keep current) |
-| `--marker-style` | Marker shape style |
-| `--marker-size` | Marker size in points (2-72) |
-| `--marker-background-color` | Marker fill color (#RRGGBB) |
-| `--marker-foreground-color` | Marker border color (#RRGGBB) |
-| `--invert-if-negative` | Invert colors for negative values |
-| `--trendline-type` | Type of trendline (Linear, Exponential, etc.) (required for: add-trendline) |
-| `--order` | Polynomial order (2-6, for Polynomial type) |
-| `--period` | Moving average period (for MovingAverage type) |
-| `--forward` | Periods to extend forward |
-| `--backward` | Periods to extend backward |
-| `--intercept` | Force trendline through specific Y-intercept |
-| `--display-equation` | Display trendline equation on chart |
-| `--display-r-squared` | Display R-squared value on chart |
-| `--name` | Custom name for the trendline |
-| `--trendline-index` | 1-based index of the trendline to delete (required for: delete-trendline, set-trendline) |
+| `--slide-index` | 1-based slide index (required) |
+| `--chart-type` | XlChartType integer (e.g., 4=xlLine, 5=xlPie, 51=xlColumnClustered, -4169=xl3DColumn) (required for: create, set-type) |
+| `--left` | Position from left in points (required for: create) |
+| `--top` | Position from top in points (required for: create) |
+| `--width` | Width in points (required for: create) |
+| `--height` | Height in points (required for: create) |
+| `--shape-name` | (required for: get-info, set-title, set-type, delete, set-data) |
+| `--title` | (required for: set-title) |
+| `--values` | 2D array of values (rows × columns) (required for: set-data) |
 
 
 
-### conditionalformat
+### comment
 
-Conditional formatting - visual rules based on cell values. TYPES: cellValue (requires operatorType+formula1), expression (formula only). Both camelCase and kebab-case accepted. FORMAT: interiorColor/fontColor as #RRGGBB, fontBold/Italic, borderStyle/Color. OPERATORS: equal, notEqual, greater, less, greaterEqual, lessEqual, between, notBetween. For 'between' and 'notBetween', both formula1 and formula2 are required.
+Slide comments: list, add, delete.
 
-**Actions:** `add-rule`, `clear-rules`
+**Actions:** `list`, `add`, `delete`, `clear`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--sheet-name` | Sheet name (empty for active sheet) |
-| `--range-address` | Range address (A1 notation or named range) |
-| `--rule-type` | Rule type: cellValue (or cell-value), expression, colorScale, dataBar, top10, iconSet, uniqueValues, blanksCondition, timePeriod, aboveAverage. Both camelCase and kebab-case accepted. |
-| `--operator-type` | XlFormatConditionOperator: equal, notEqual, greater, less, greaterEqual, lessEqual, between, notBetween |
-| `--formula1` | First formula/value for condition |
-| `--formula2` | Second formula/value (for between/notBetween) |
-| `--interior-color` | Fill color (#RRGGBB or color index) |
-| `--interior-pattern` | Interior pattern (1=Solid, -4142=None, 9=Gray50, etc.) |
-| `--font-color` | Font color (#RRGGBB or color index) |
-| `--font-bold` | Bold font |
-| `--font-italic` | Italic font |
-| `--border-style` | Border style: none, continuous, dash, dot, etc. |
-| `--border-color` | Border color (#RRGGBB or color index) |
+| `--slide-index` | 1-based slide index, or 0 for all slides (required) |
+| `--text` | Comment text (required for: add) |
+| `--author` | Author name (required for: add) |
+| `--left` | Horizontal position in points (0 = top-left) (required for: add) |
+| `--top` | Vertical position in points (0 = top-left) (required for: add) |
+| `--comment-index` | 1-based comment index (required for: delete) |
 
 
 
-### connection
+### customshow
 
-Data connections (OLEDB, ODBC, ODC import). TEXT/WEB/CSV: Use powerquery instead. Power Query connections auto-redirect to powerquery. TIMEOUT: 30 min auto-timeout for refresh/load-to.
+Custom slide show management: list, create, delete, run.
 
-**Actions:** `list`, `view`, `create`, `refresh`, `delete`, `load-to`, `get-properties`, `set-properties`, `test`
+**Actions:** `list`, `create`, `delete`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--connection-name` | Name of the connection to view |
-| `--connection-string` | OLEDB or ODBC connection string |
-| `--command-text` | SQL query or table name |
-| `--description` | Optional description for the connection |
-| `--timeout` | Optional timeout for the refresh operation |
-| `--sheet-name` | Target slide name |
-| `--connection-string` | New connection string (null to keep current) |
-| `--command-text` | New SQL query or table name (null to keep current) |
-| `--background-query` | Run query in background (null to keep current) |
-| `--refresh-on-file-open` | Refresh when file opens (null to keep current) |
-| `--save-password` | Save password in connection (null to keep current) |
-| `--refresh-period` | Auto-refresh interval in minutes (null to keep current) |
+| `--show-name` | Name for the custom show (required for: create, delete) |
+| `--slide-indices` | Comma-separated 1-based slide indices (e.g. "1,3,5") (required for: create) |
 
 
 
-### datamodel
+### design
 
-Data Model (Power Pivot) - DAX measures and table management. CRITICAL: WORKSHEET TABLES AND DATA MODEL ARE SEPARATE! - After table append changes, Data Model still has OLD data - MUST call refresh to sync changes - Power Query refresh auto-syncs (no manual refresh needed) PREREQUISITE: Tables must be added to the Data Model first. Use table add-to-datamodel for slide tables, or powerquery to import and load data directly to the Data Model. DAX MEASURES: - Create with DAX formulas like 'SUM(Sales[Amount])' - DAX formulas are auto-formatted on CREATE/UPDATE via Dax.Formatter (SQLBI) - Read operations return raw DAX as stored DAX EVALUATE QUERIES: - Use evaluate to execute DAX EVALUATE queries against the Data Model - Returns tabular results from queries like 'EVALUATE TableName' - Supports complex DAX: SUMMARIZE, FILTER, CALCULATETABLE, TOPN, etc. DMV (DYNAMIC MANAGEMENT VIEW) QUERIES: - Use execute-dmv to query Data Model metadata via SQL-like syntax - Syntax: SELECT * FROM $SYSTEM.SchemaRowset (ONLY SELECT * supported) - Use DISCOVER_SCHEMA_ROWSETS to list all available DMVs Use datamodelrel for relationships between tables.
+Theme and design operations: list designs, apply themes, get theme colors.
 
-**Actions:** `list-tables`, `list-columns`, `read-table`, `read-info`, `list-measures`, `read`, `delete-measure`, `delete-table`, `rename-table`, `refresh`, `create-measure`, `update-measure`, `evaluate`, `execute-dmv`
+**Actions:** `list`, `apply-theme`, `get-colors`, `list-color-schemes`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--table-name` | Name of the table to list columns from (required for: list-columns, read-table, delete-table, create-measure) |
-| `--measure-name` | Name of the measure to get (required for: read, delete-measure, create-measure, update-measure) |
-| `--old-name` | Current name of the table (required for: rename-table) |
-| `--new-name` | New name for the table (required for: rename-table) |
-| `--timeout` | Optional: Timeout for the refresh operation |
-| `--dax-formula` | DAX formula for the measure (will be auto-formatted) (required for: create-measure) |
-| `--format-type` | Optional: Format type (Currency, Decimal, Percentage, General) |
-| `--description` | Optional: Description of the measure |
-| `--dax-query` | DAX EVALUATE query (e.g., "EVALUATE 'TableName'" or "EVALUATE SUMMARIZE(...)") (required for: evaluate) |
-| `--dmv-query` | DMV query in SQL-like syntax (e.g., "SELECT * FROM $SYSTEM.TMSCHEMA_TABLES") (required for: execute-dmv) |
+| `--theme-path` | Full path to .thmx theme file (required for: apply-theme) |
+| `--design-index` | 1-based design index (0 = first design) (required for: get-colors) |
 
 
 
-### datamodelrelationship
+### docproperty
 
-Data Model relationships - link tables for cross-table DAX calculations. CRITICAL: Deleting or recreating tables removes ALL their relationships. Use list-relationships before table operations to backup, then recreate relationships after schema changes. RELATIONSHIP REQUIREMENTS: - Both tables must exist in the Data Model first - Columns must have compatible data types - fromTable/fromColumn = many-side (detail table, foreign key) - toTable/toColumn = one-side (lookup table, primary key) ACTIVE VS INACTIVE: - Only ONE active relationship can exist between two tables - Use active=false when creating alternative paths - DAX USERELATIONSHIP() activates inactive relationships
+Document property management: read and write presentation metadata like title, author, subject, keywords.
 
-**Actions:** `list-relationships`, `read-relationship`, `create-relationship`, `update-relationship`, `delete-relationship`
+**Actions:** `get`, `set`, `get-custom`, `set-custom`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--from-table` | Source table name (required for: read-relationship, create-relationship, update-relationship, delete-relationship) |
-| `--from-column` | Source column name (required for: read-relationship, create-relationship, update-relationship, delete-relationship) |
-| `--to-table` | Target table name (required for: read-relationship, create-relationship, update-relationship, delete-relationship) |
-| `--to-column` | Target column name (required for: read-relationship, create-relationship, update-relationship, delete-relationship) |
-| `--active` | Whether the relationship should be active (default: true) (required for: update-relationship) |
+| `--title` | Presentation title (required for: set) |
+| `--subject` | Subject or topic (required for: set) |
+| `--author` | Author name (required for: set) |
+| `--keywords` | Keywords for search (comma-separated) (required for: set) |
+| `--comments` | Description or comments (required for: set) |
+| `--company` | Company or organization name (required for: set) |
+| `--category` | Category (required for: set) |
+| `--property-name` | Custom property name (required for: get-custom, set-custom) |
+| `--property-value` | Property value (string) (required for: set-custom) |
 
 
 
-### diag
+### export
 
-Diagnostic commands for testing CLI/MCP infrastructure without PowerPoint. These commands validate parameter parsing, routing, JSON serialization, and error handling — no PowerPoint COM session needed.
+Export presentations to PDF, images, or other formats.
 
-**Actions:** `ping`, `echo`, `validate-params`
-
-| Parameter | Description |
-|-----------|-------------|
-| `--message` | The message to echo back (required) (required for: echo) |
-| `--tag` | Optional tag to include in the response |
-| `--name` | Required name parameter (required for: validate-params) |
-| `--count` | Required integer parameter (required for: validate-params) |
-| `--label` | Optional label parameter |
-| `--verbose` | Optional boolean flag (default: false) |
-
-
-
-### namedrange
-
-Named ranges for formulas/parameters. CREATE/UPDATE: value is cell reference (e.g., 'Sheet1!$A$1'). WRITE: value is data to store. TIP: range(rangeAddress=namedRangeName) for bulk data read/write.
-
-**Actions:** `list`, `write`, `read`, `update`, `create`, `delete`
+**Actions:** `to-pdf`, `slide-to-image`, `to-video`, `print`, `save-as`, `all-slides-to-images`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--name` | Name of the named range (required for: write, read, update, create, delete) |
-| `--value` | Value to set (required for: write) |
-| `--reference` | New cell reference (e.g., Sheet1!$A$1:$B$10) (required for: update, create) |
+| `--destination-path` | Output PDF file path (required for: to-pdf, slide-to-image, to-video, save-as) |
+| `--slide-index` | 1-based slide index (required for: slide-to-image) |
+| `--width` | Image width in pixels (default: 1920) (required for: slide-to-image, all-slides-to-images) |
+| `--height` | Image height in pixels (default: 1080) (required for: slide-to-image, all-slides-to-images) |
+| `--default-slide-seconds` | Seconds per slide (default: 5) (required for: to-video) |
+| `--resolution` | 1=1080p, 2=720p, 3=480p (required for: to-video) |
+| `--copies` | Number of copies (default: 1) (required for: print) |
+| `--from-slide` | First slide to print (0 = from beginning) (required for: print) |
+| `--to-slide` | Last slide to print (0 = to end) (required for: print) |
+| `--format` | Format code (1-7) (required for: save-as) |
+| `--destination-directory` | Directory to save images (required for: all-slides-to-images) |
 
 
 
-### pivottable
+### file
 
-PivotTable lifecycle management: create from various sources, list, read details, refresh, and delete. Use pivottablefield for field operations, pivottablecalc for calculated fields and layout. BEST PRACTICE: Use 'list' before creating. Prefer 'refresh' or field modifications over delete+recreate. Delete+recreate loses field configurations, filters, sorting, and custom layouts. REFRESH: Call 'refresh' after configuring fields with pivottablefield to update the visual display. This is especially important for OLAP/Data Model PivotTables where field operations are structural only and don't automatically trigger a visual refresh. CREATE OPTIONS: - 'create-from-range': Use source sheet and range address for data range - 'create-from-table': Use a PowerPoint Table (ListObject) as source - 'create-from-datamodel': Use a Power Pivot Data Model table as source
+File management commands for PowerPoint presentations. Handles file validation and metadata retrieval.
 
-**Actions:** `list`, `read`, `create-from-range`, `create-from-table`, `create-from-datamodel`, `delete`, `refresh`
-
-| Parameter | Description |
-|-----------|-------------|
-| `--pivot-table-name` | Name of the PivotTable (required for: read, create-from-range, create-from-table, create-from-datamodel, delete, refresh) |
-| `--source-sheet` | Source slide name (required for: create-from-range) |
-| `--source-range` | Source range address (e.g., "A1:F100") (required for: create-from-range) |
-| `--destination-sheet` | Destination slide name (required for: create-from-range, create-from-table, create-from-datamodel) |
-| `--destination-cell` | Destination cell address (e.g., "A1") (required for: create-from-range, create-from-table, create-from-datamodel) |
-| `--table-name` | Name of the PowerPoint Table (required for: create-from-table, create-from-datamodel) |
-| `--timeout` | Optional timeout for the refresh operation |
-
-
-
-### pivottablecalc
-
-PivotTable calculated fields/members, layout configuration, and data extraction. Use pivottable for lifecycle, pivottablefield for field placement. CALCULATED FIELDS (for regular PivotTables): - Create custom fields using formulas like '=Revenue-Cost' or '=Quantity*UnitPrice' - Can reference existing fields by name - After creating, use pivottablefield add-value-field to add to Values area - For complex multi-table calculations, prefer DAX measures with datamodel CALCULATED MEMBERS (for OLAP/Data Model PivotTables only): - Create using MDX expressions - Member types: Member, Set, Measure LAYOUT OPTIONS: - 0 = Compact (default, fields in single column) - 1 = Tabular (each field in separate column - best for export/analysis) - 2 = Outline (hierarchical with expand/collapse)
-
-**Actions:** `get-data`, `create-calculated-field`, `list-calculated-fields`, `delete-calculated-field`, `list-calculated-members`, `create-calculated-member`, `delete-calculated-member`, `set-layout`, `set-subtotals`, `set-grand-totals`
+**Actions:** `test`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--pivot-table-name` | Name of the PivotTable (required) |
-| `--field-name` | Name for the calculated field (required for: create-calculated-field, delete-calculated-field, set-subtotals) |
-| `--formula` | Formula using field references (e.g., "=Revenue-Cost") (required for: create-calculated-field, create-calculated-member) |
-| `--member-name` | Name for the calculated member (MDX naming format) (required for: create-calculated-member, delete-calculated-member) |
-| `--type` | Type of calculated member (Member, Set, or Measure) |
-| `--solve-order` | Solve order for calculation precedence (default: 0) |
-| `--display-folder` | Display folder path for organizing measures (optional) |
-| `--number-format` | Number format code for the calculated member (optional) |
-| `--row-layout` | Layout form: 0=Compact, 1=Tabular, 2=Outline (required for: set-layout) |
-| `--show-subtotals` | True to show automatic subtotals, false to hide (required for: set-subtotals) |
-| `--show-row-grand-totals` | Show row grand totals (bottom summary row) (required for: set-grand-totals) |
-| `--show-column-grand-totals` | Show column grand totals (right summary column) (required for: set-grand-totals) |
+| `--file-path` | Path to the .pptx or .pptm file (required) |
 
 
 
-### pivottablefield
+### headerfooter
 
-PivotTable field management: add/remove/configure fields, filtering, sorting, and grouping. Use pivottable for lifecycle, pivottablecalc for calculated fields and layout. IMPORTANT: Field operations modify structure only. Call pivottable refresh after configuring fields to update the visual display, especially for OLAP/Data Model PivotTables. FIELD AREAS: - Row fields: Group data by categories (add-row-field) - Column fields: Create column headers (add-column-field) - Value fields: Aggregate numeric data with Sum, Count, Average, etc. (add-value-field) - Filter fields: Add report-level filters (add-filter-field) AGGREGATION FUNCTIONS: Sum, Count, Average, Max, Min, Product, CountNumbers, StdDev, StdDevP, Var, VarP GROUPING: - Date fields: Group by Days, Months, Quarters, Years (group-by-date) - Numeric fields: Group by ranges with start/end/interval (group-by-numeric) NUMBER FORMAT: Use US format codes like '#,##0.00' for currency or '0.00%' for percentages.
+Presentation headers and footers: get settings, set date/page number/footer text.
 
-**Actions:** `list-fields`, `add-row-field`, `add-column-field`, `add-value-field`, `add-filter-field`, `remove-field`, `set-field-function`, `set-field-name`, `set-field-format`, `set-field-filter`, `sort-field`, `group-by-date`, `group-by-numeric`
+**Actions:** `get`, `set`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--pivot-table-name` | Name of the PivotTable (required) |
-| `--field-name` | Name of the field to add (required for: add-row-field, add-column-field, add-value-field, add-filter-field, remove-field, set-field-function, set-field-name, set-field-format, set-field-filter, sort-field, group-by-date, group-by-numeric) |
-| `--position` | Optional position in row area (1-based) |
-| `--aggregation-function` | Aggregation function (for Regular and OLAP auto-create mode) (required for: set-field-function) |
-| `--custom-name` | Optional custom name for the field/measure (required for: set-field-name) |
-| `--number-format` | Number format string (required for: set-field-format) |
-| `--selected-values` | Values to show (others will be hidden) (required for: set-field-filter) |
-| `--direction` | Sort direction |
-| `--interval` | Grouping interval (Months, Quarters, Years) (required for: group-by-date) |
-| `--start` | Starting value (null = use field minimum) |
-| `--end-value` | Ending value (null = use field maximum) |
-| `--interval-size` | Size of each group (e.g., 100 for groups of 100) (required for: group-by-numeric) |
+| `--footer-text` | Footer text (null = don't change) |
+| `--show-footer` | Show footer on slides |
+| `--show-slide-number` | Show slide numbers |
+| `--show-date` | Show date/time |
 
 
 
-### powerquery
+### hyperlink
 
-Power Query M code and data loading. TEST-FIRST DEVELOPMENT WORKFLOW (BEST PRACTICE): 1. evaluate - Test M code WITHOUT persisting (catches syntax errors, validates sources, shows data preview) 2. create/update - Store VALIDATED query in presentation 3. refresh/load-to - Load data to destination Skip evaluate only for trivial literal tables. IF CREATE/UPDATE FAILS: Use evaluate to get the actual M engine error message, fix code, retry. DATETIME COLUMNS: Always include Table.TransformColumnTypes() in M code to set column types explicitly. Without explicit types, dates may be stored as numbers and Data Model relationships may fail. DESTINATIONS: 'slide' (default), 'data-model' (for DAX), 'both', 'connection-only'. Use 'data-model' to load to Power Pivot, then use datamodel to create DAX measures. TARGET CELL: targetCellAddress places tables without clearing sheet. TIMEOUT: 30 min auto-timeout for refresh and load-to. For quick queries, use timeout=60 or similar. timeout=0 or omitted uses the 30 min default.
+Hyperlink management: add, remove, and get hyperlinks on shapes and text.
 
-**Actions:** `list`, `view`, `refresh`, `get-load-config`, `delete`, `create`, `update`, `load-to`, `refresh-all`, `rename`, `unload`, `evaluate`
+**Actions:** `add`, `get`, `remove`, `list`, `validate`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--query-name` | Name of the query to view (required for: view, refresh, get-load-config, delete, create, update, load-to, unload) |
-| `--timeout` | Maximum time to wait for refresh (required for: refresh) |
-| `--m-code` | Raw M code (inline string) (required for: create, update, evaluate) |
-| `--load-destination` | Load destination mode |
-| `--target-sheet` | Target slide name (required for LoadToTable and LoadToBoth; defaults to query name when omitted) |
-| `--target-cell-address` | Optional target cell address for slide loads (e.g., "B5"). Required when loading to an existing slide with other data. |
-| `--refresh` | Whether to refresh data after update (default: true) |
-| `--old-name` | Current name of the query (required for: rename) |
-| `--new-name` | New name for the query (required for: rename) |
+| `--slide-index` | 1-based slide index (required for: add, get, remove) |
+| `--shape-name` | Name of the shape to add hyperlink to (required for: add, get, remove) |
+| `--address` | URL (https://...) or empty for slide link (required for: add) |
+| `--sub-address` | Slide number for internal links (e.g. '3' to jump to slide 3), or empty |
+| `--screen-tip` | Optional tooltip text shown on hover |
 
 
 
-### range
+### image
 
-Core range operations: get/set values and formulas, copy ranges, clear content, and discover data regions. Use rangeedit for insert/delete/find/sort. Use rangeformat for styling/validation. Use rangelink for hyperlinks and cell protection. Calculation mode and explicit recalculation are handled by calculationmode. BEST PRACTICE: Use 'get-values' to check existing data before overwriting. Use 'clear-contents' (not 'clear-all') to preserve cell formatting when clearing data. set-values preserves existing formatting; use set-number-format after if format change needed. DATA FORMAT: values and formulas are 2D JSON arrays representing rows and columns. Example: [[row1col1, row1col2], [row2col1, row2col2]] Single cell returns [[value]] (always 2D). REQUIRED PARAMETERS: - sheetName + rangeAddress for cell operations (e.g., sheetName='Sheet1', rangeAddress='A1:D10') - For named ranges, use sheetName='' (empty string) and rangeAddress='MyNamedRange' COPY OPERATIONS: Specify source and target sheet/range for copy operations. NUMBER FORMATS: Use US locale format codes (e.g., '#,##0.00', 'mm/dd/yyyy', '0.00%').
+Image operations: insert pictures into slides.
 
-**Actions:** `get-values`, `set-values`, `get-formulas`, `set-formulas`, `validate-formulas`, `clear-all`, `clear-contents`, `clear-formats`, `copy`, `copy-values`, `copy-formulas`, `get-number-formats`, `set-number-format`, `set-number-formats`, `get-used-range`, `get-current-region`, `get-info`
+**Actions:** `insert`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--sheet-name` | Name of the slide containing the range - REQUIRED for cell addresses, use empty string for named ranges only (required for: get-values, set-values, get-formulas, set-formulas, validate-formulas, clear-all, clear-contents, clear-formats, get-number-formats, set-number-format, set-number-formats, get-used-range, get-current-region, get-info) |
-| `--range-address` | Cell range address (e.g., 'A1', 'A1:D10', 'B:D') or named range name (e.g., 'SalesData') (required for: get-values, set-values, get-formulas, set-formulas, validate-formulas, clear-all, clear-contents, clear-formats, get-number-formats, set-number-format, set-number-formats, get-info) |
-| `--values` | 2D array of values to set - rows are outer array, columns are inner array (e.g., [[1,2,3],[4,5,6]] for 2 rows x 3 cols). Optional if valuesFile is provided. |
-| `--values-file` | Path to a JSON or CSV file containing the values. JSON: 2D array. CSV: rows/columns. Alternative to inline values parameter. |
-| `--formulas` | 2D array of formulas to set - include '=' prefix (e.g., [['=A1+B1', '=SUM(A:A)'], ['=C1*2', '=AVERAGE(B:B)']]). Optional if formulasFile is provided. |
-| `--formulas-file` | Path to a JSON file containing the formulas as a 2D array. Alternative to inline formulas parameter. |
-| `--source-sheet` | Source slide name for copy operations (required for: copy, copy-values, copy-formulas) |
-| `--source-range` | Source range address for copy operations (e.g., 'A1:D10') (required for: copy, copy-values, copy-formulas) |
-| `--target-sheet` | Target slide name for copy operations (required for: copy, copy-values, copy-formulas) |
-| `--target-range` | Target range address - can be single cell for paste destination (e.g., 'A1') (required for: copy, copy-values, copy-formulas) |
-| `--format-code` | Number format code in US locale (e.g., '#,##0.00' for numbers, 'mm/dd/yyyy' for dates, '0.00%' for percentages, 'General' for default, '@' for text) (required for: set-number-format) |
-| `--formats` | 2D array of format codes - same dimensions as target range (e.g., [['#,##0.00', '0.00%'], ['mm/dd/yyyy', 'General']]). Optional if formatsFile is provided. |
-| `--formats-file` | Path to a JSON file containing 2D array of format codes. Alternative to inline formats parameter. |
-| `--cell-address` | Single cell address (e.g., 'B5') - expands to contiguous data region around this cell (required for: get-current-region) |
+| `--slide-index` | 1-based slide index (required) |
+| `--image-path` | Path to the image file (required) |
+| `--left` | Position from left in points (required) |
+| `--top` | Position from top in points (required) |
+| `--width` | Width in points (0 = original) (required) |
+| `--height` | Height in points (0 = original) (required) |
 
 
 
-### rangeedit
+### master
 
-Range editing operations: insert/delete cells, rows, and columns; find/replace text; sort data. Use range for values/formulas/copy/clear operations. INSERT/DELETE CELLS: Specify shift direction to control how surrounding cells move. - Insert: 'Down' or 'Right' - Delete: 'Up' or 'Left' INSERT/DELETE ROWS: Use row range like '5:10' to insert/delete rows 5-10. INSERT/DELETE COLUMNS: Use column range like 'B:D' to insert/delete columns B-D. FIND/REPLACE: Search within the specified range with optional case/cell matching. - Find returns up to 10 matching cell addresses with total count. - Replace modifies all matches by default. SORT: Specify sortColumns as array of {columnIndex: 1, ascending: true} objects. Column indices are 1-based relative to the range.
+Slide master and layout operations: list masters, list layouts, get placeholders.
 
-**Actions:** `insert-cells`, `delete-cells`, `insert-rows`, `delete-rows`, `insert-columns`, `delete-columns`, `find`, `replace`, `sort`
+**Actions:** `list`, `list-shapes`, `edit-shape-text`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--sheet-name` | Name of the slide containing the range (required) |
-| `--range-address` | Cell range address where cells will be inserted (e.g., 'A1:D10') (required) |
-| `--insert-shift` | Direction to shift existing cells: 'Down' or 'Right' (required for: insert-cells) |
-| `--delete-shift` | Direction to shift remaining cells: 'Up' or 'Left' (required for: delete-cells) |
-| `--search-value` | Text or value to search for (required for: find) |
-| `--find-options` | Search options: matchCase (default: false), matchEntireCell (default: false), searchFormulas (default: true) (required for: find) |
-| `--find-value` | Text or value to search for (required for: replace) |
-| `--replace-value` | Text or value to replace matches with (required for: replace) |
-| `--replace-options` | Replace options: matchCase (default: false), matchEntireCell (default: false), replaceAll (default: true) (required for: replace) |
-| `--sort-columns` | Array of sort specifications: [{columnIndex: 1, ascending: true}, ...] - columnIndex is 1-based relative to range (required for: sort) |
-| `--has-headers` | Whether the range has a header row to exclude from sorting (default: true) |
+| `--master-index` | 1-based slide master index (required for: list-shapes, edit-shape-text) |
+| `--shape-name` | Name of the shape to edit (required for: edit-shape-text) |
+| `--text` | New text content (required for: edit-shape-text) |
 
 
 
-### rangeformat
+### media
 
-Range formatting operations: apply styles, set fonts/colors/borders, add data validation, merge cells, auto-fit dimensions. Use range tool for values/formulas/copy/clear operations. set-style: Apply a named PowerPoint style (Heading 1, Good, Bad, Neutral, Normal). Best for semantic status labels (Good/Bad/Neutral have fill colours and are theme-aware) and document hierarchy (Heading 1/2/3). NOTE: Heading styles do NOT apply a fill colour — use format-range when you need a coloured header row. format-range: Apply any combination of bold, fillColor, fontColor, alignment, borders. Required whenever you need a fill colour or custom branding. Pass ALL desired properties in a SINGLE call — do not call format-range multiple times for the same range. COLORS: Hex '#RRGGBB' (e.g., '#FF0000' for red, '#00FF00' for green) FONT: size in points (e.g., 12, 14, 16), alignment: 'left', 'center', 'right' / 'top', 'middle', 'bottom' DATA VALIDATION: Restrict cell input with validation rules: - Types: 'list', 'whole', 'decimal', 'date', 'time', 'textLength', 'custom' - For list validation, formula1 is the list source (e.g., '=$A$1:$A$10' or '"Option1,Option2,Option3"') - Operators: 'between', 'notBetween', 'equal', 'notEqual', 'greaterThan', 'lessThan', 'greaterThanOrEqual', 'lessThanOrEqual' MERGE: Combines cells into one. Only top-left cell value is preserved.
+Media management: insert audio and video files into slides. Supports linking or embedding media files.
 
-**Actions:** `set-style`, `get-style`, `format-range`, `validate-range`, `get-validation`, `remove-validation`, `auto-fit-columns`, `auto-fit-rows`, `merge-cells`, `unmerge-cells`, `get-merge-info`, `set-column-width`, `set-row-height`
+**Actions:** `insert-audio`, `insert-video`, `get-info`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--sheet-name` | Name of the slide containing the range (required) |
-| `--range-address` | Cell range address (e.g., 'A1:D10') (required) |
-| `--style-name` | Built-in or custom style name (e.g., 'Heading 1', 'Good', 'Bad', 'Currency', 'Percent'). Use 'Normal' to reset. (required for: set-style) |
-| `--font-name` | Font family name (e.g., 'Arial', 'Calibri', 'Times New Roman') |
-| `--font-size` | Font size in points (e.g., 10, 11, 12, 14, 16) |
-| `--bold` | Whether to apply bold formatting |
-| `--italic` | Whether to apply italic formatting |
-| `--underline` | Whether to apply underline formatting |
-| `--font-color` | Font (foreground) color as hex '#RRGGBB' (e.g., '#FF0000' for red) |
-| `--fill-color` | Cell fill (background) color as hex '#RRGGBB' (e.g., '#FFFF00' for yellow) |
-| `--border-style` | Border line style: 'continuous', 'dash', 'dot', 'dashdot', 'dashdotdot', 'double', 'slantdashdot', 'none' |
-| `--border-color` | Border color as hex '#RRGGBB' |
-| `--border-weight` | Border weight: 'hairline', 'thin', 'medium', 'thick' |
-| `--horizontal-alignment` | Horizontal text alignment: 'left', 'center', 'right', 'justify', 'fill' |
-| `--vertical-alignment` | Vertical text alignment: 'top', 'center' (or 'middle'), 'bottom', 'justify' |
-| `--wrap-text` | Whether to wrap text within cells |
-| `--orientation` | Text rotation in degrees (-90 to 90, or 255 for vertical) |
-| `--validation-type` | Data validation type: 'list', 'whole', 'decimal', 'date', 'time', 'textLength', 'custom' (required for: validate-range) |
-| `--validation-operator` | Validation comparison operator: 'between', 'notBetween', 'equal', 'notEqual', 'greaterThan', 'lessThan', 'greaterThanOrEqual', 'lessThanOrEqual' |
-| `--formula1` | First validation formula/value - for list validation use range '=$A$1:$A$10' or inline '"A,B,C"' |
-| `--formula2` | Second validation formula/value - required only for 'between' and 'notBetween' operators |
-| `--show-input-message` | Whether to show input message when cell is selected (default: false) |
-| `--input-title` | Title for the input message popup |
-| `--input-message` | Text for the input message popup |
-| `--show-error-alert` | Whether to show error alert on invalid input (default: true) |
-| `--error-style` | Error alert style: 'stop' (prevents entry), 'warning' (allows override), 'information' (allows entry) |
-| `--error-title` | Title for the error alert popup |
-| `--error-message` | Text for the error alert popup |
-| `--ignore-blank` | Whether to allow blank cells in validation (default: true) |
-| `--show-dropdown` | Whether to show dropdown arrow for list validation (default: true) |
-| `--column-width` | Width in points (1 point = 1/72 inch, approx 0.35mm). Standard width ~8.43 points. Range: 0.25-409 points. (required for: set-column-width) |
-| `--row-height` | Height in points (1 point = 1/72 inch, approx 0.35mm). Default row height ~15 points. Range: 0-409 points. (required for: set-row-height) |
+| `--slide-index` | 1-based slide index (required) |
+| `--file-path` | Full path to the audio file (required for: insert-audio, insert-video) |
+| `--left` | Position from left in points (required for: insert-audio, insert-video) |
+| `--top` | Position from top in points (required for: insert-audio, insert-video) |
+| `--link-to-file` | If true, link to file instead of embedding (smaller file size) (required for: insert-audio, insert-video) |
+| `--save-with-document` | If true, save media with document when linking (required for: insert-audio) |
+| `--width` | Width in points (0 = use video native width) (required for: insert-video) |
+| `--height` | Height in points (0 = use video native height) (required for: insert-video) |
+| `--shape-name` | (required for: get-info) |
 
 
 
-### rangelink
+### notes
 
-Hyperlink and cell protection operations for PowerPoint ranges. Use range for values/formulas, rangeformat for styling. HYPERLINKS: - 'add-hyperlink': Add a clickable hyperlink to a cell (URL can be web, file, or mailto) - 'remove-hyperlink': Remove hyperlink(s) from cells while keeping the cell content - 'list-hyperlinks': Get all hyperlinks on a slide - 'get-hyperlink': Get hyperlink details for a specific cell CELL PROTECTION: - 'set-cell-lock': Lock or unlock cells (only effective when sheet protection is enabled) - 'get-cell-lock': Check if cells are locked Note: Cell locking only takes effect when the slide is protected.
+Speaker notes: get, set, clear.
 
-**Actions:** `add-hyperlink`, `remove-hyperlink`, `list-hyperlinks`, `get-hyperlink`, `set-cell-lock`, `get-cell-lock`
+**Actions:** `get`, `set`, `clear`, `append`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--sheet-name` | Name of the slide (required) |
-| `--cell-address` | Single cell address (e.g., 'A1') (required for: add-hyperlink, get-hyperlink) |
-| `--url` | Hyperlink URL (web: 'https://...', file: 'file:///...', email: 'mailto:...') (required for: add-hyperlink) |
-| `--display-text` | Text to display in the cell (optional, defaults to URL) |
-| `--tooltip` | Tooltip text shown on hover (optional) |
-| `--range-address` | Cell range address to remove hyperlinks from (e.g., 'A1:D10') (required for: remove-hyperlink, set-cell-lock, get-cell-lock) |
-| `--locked` | Lock status: true = locked (protected when sheet protection enabled), false = unlocked (editable) (required for: set-cell-lock) |
+| `--slide-index` | (required) |
+| `--text` | (required for: set, append) |
 
 
 
-### screenshot
+### pagesetup
 
-Capture PowerPoint slide content as images for visual verification. Uses PowerPoint's built-in rendering (CopyPicture) to capture ranges as PNG images. Captures formatting, conditional formatting, charts, and all visual elements. ACTIONS: - capture: Capture a specific range as an image - capture-sheet: Capture the entire used area of a slide RETURNS: Base64-encoded image data with dimensions metadata. For MCP: returned as native ImageContent (no file handling needed). For CLI: use --output <path> to save the image directly to a PNG/JPEG file instead of returning base64 inline. Quality defaults to Medium (JPEG 75% scale) which is 4-8x smaller than High (PNG). Use High only when fine detail inspection is needed.
+Slide size and page setup operations.
 
-**Actions:** `capture`, `capture-sheet`
+**Actions:** `get`, `set-size`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--sheet-name` | Slide name (null for active sheet) |
-| `--range-address` | Range to capture (e.g., "A1:F20") |
-| `--quality` | Image quality: Medium (default, JPEG 75% scale), High (PNG full scale), Low (JPEG 50% scale) |
+| `--slide-width` | Slide width in points (1 inch = 72 points). 0 = don't change. (required for: set-size) |
+| `--slide-height` | Slide height in points. 0 = don't change. (required for: set-size) |
 
 
 
-### sheet
+### placeholder
 
-Slide lifecycle management: create, rename, copy, delete, move, list sheets. Use range for data operations. Use sheetstyle for tab colors and visibility. ATOMIC OPERATIONS: 'copy-to-file' and 'move-to-file' don't require a session - they open/close files automatically. POSITIONING: For 'move', 'copy-to-file', 'move-to-file' - use 'before' OR 'after' (not both) to position the sheet relative to another. If neither specified, moves to end. NOTE: MCP tool is manually implemented in ExcelWorksheetTool.cs to properly handle mixed session requirements (copy-to-file and move-to-file are atomic and don't need sessions).
+Slide placeholder operations: list available placeholders, fill text.
 
-**Actions:** `list`, `create`, `rename`, `copy`, `delete`, `move`, `copy-to-file`, `move-to-file`
-
-| Parameter | Description |
-|-----------|-------------|
-| `--file-path` | Optional file path when batch contains multiple presentations. If omitted, uses primary presentation. |
-| `--sheet-name` | Name for the new slide (required for: create, delete, move) |
-| `--old-name` | Current name of the slide (required for: rename) |
-| `--new-name` | New name for the slide (required for: rename) |
-| `--source-name` | Name of the source slide (required for: copy) |
-| `--target-name` | Name for the copied slide (required for: copy) |
-| `--before-sheet` | Optional: Name of sheet to position before |
-| `--after-sheet` | Optional: Name of sheet to position after |
-| `--source-file` | Full path to the source presentation (required for: copy-to-file, move-to-file) |
-| `--source-sheet` | Name of the sheet to copy (required for: copy-to-file, move-to-file) |
-| `--target-file` | Full path to the target presentation (required for: copy-to-file, move-to-file) |
-| `--target-sheet-name` | Optional: New name for the copied sheet (default: keeps original name) |
-
-
-
-### worksheetstyle
-
-Slide styling operations for tab colors and visibility. Use sheet for lifecycle operations (create, rename, copy, delete, move). TAB COLORS: Use RGB values (0-255 each) to set custom tab colors for visual organization. VISIBILITY LEVELS: - 'visible': Normal visible sheet - 'hidden': Hidden but accessible via Format > Sheet > Unhide - 'veryhidden': Only accessible via VBA (protection against casual unhiding)
-
-**Actions:** `set-tab-color`, `get-tab-color`, `clear-tab-color`, `set-visibility`, `get-visibility`, `show`, `hide`, `very-hide`
+**Actions:** `list`, `set-text`, `set-image`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--sheet-name` | Name of the slide to color (required) |
-| `--red` | Red color component (0-255) (required for: set-tab-color) |
-| `--green` | Green color component (0-255) (required for: set-tab-color) |
-| `--blue` | Blue color component (0-255) (required for: set-tab-color) |
-| `--visibility` | Visibility level: 'visible', 'hidden', or 'veryhidden' (required for: set-visibility) |
+| `--slide-index` | 1-based slide index (required) |
+| `--placeholder-index` | 1-based placeholder index (required for: set-text, set-image) |
+| `--text` | Text to set (required for: set-text) |
+| `--image-path` | Absolute path to the image file (required for: set-image) |
 
 
 
-### slicer
+### section
 
-Slicer visual filters for PivotTables and PowerPoint Tables. PIVOTTABLE SLICERS: create-slicer, list-slicers, set-slicer-selection, delete-slicer. TABLE SLICERS: create-table-slicer, list-table-slicers, set-table-slicer-selection, delete-table-slicer. NAMING: Auto-generate descriptive names like {FieldName}Slicer (e.g., RegionSlicer). SELECTION: selectedItems as list of strings. Empty list clears filter (shows all items). Set clearFirst=false to add to existing selection.
+Presentation section management: list, add, rename, delete, and move sections. Sections group slides for easier navigation and organization.
 
-**Actions:** `create-slicer`, `list-slicers`, `set-slicer-selection`, `delete-slicer`, `create-table-slicer`, `list-table-slicers`, `set-table-slicer-selection`, `delete-table-slicer`
-
-| Parameter | Description |
-|-----------|-------------|
-| `--pivot-table-name` | Name of the PivotTable to create slicer for (required for: create-slicer) |
-| `--field-name` | Name of the field to use for the slicer (required for: create-slicer) |
-| `--slicer-name` | Name for the new slicer (required for: create-slicer, set-slicer-selection, delete-slicer, create-table-slicer, set-table-slicer-selection, delete-table-slicer) |
-| `--destination-sheet` | Slide where slicer will be placed (required for: create-slicer, create-table-slicer) |
-| `--position` | Top-left cell position for the slicer (e.g., "H2") (required for: create-slicer, create-table-slicer) |
-| `--selected-items` | Items to select (show in PivotTable) (required for: set-slicer-selection, set-table-slicer-selection) |
-| `--clear-first` | If true, clears existing selection before setting new items (default: true) |
-| `--table-name` | Name of the PowerPoint Table (required for: create-table-slicer) |
-| `--column-name` | Name of the column to use for the slicer (required for: create-table-slicer) |
-
-
-
-### table
-
-PowerPoint Tables (ListObjects) - lifecycle and data operations. Tables provide structured references, automatic formatting, and Data Model integration. BEST PRACTICE: Use 'list' to check existing tables before creating. Prefer 'append'/'resize'/'rename' over delete+recreate to preserve references. WARNING: Deleting tables used as PivotTable sources or in Data Model relationships will break those objects. DATA MODEL WORKFLOW: To analyze slide data with DAX/Power Pivot: 1. Create or identify a PowerPoint Table on a slide 2. Use 'add-to-datamodel' to add the table to Power Pivot 3. Then use datamodel to create DAX measures on it DAX-BACKED TABLES: Create tables populated by DAX EVALUATE queries: - 'create-from-dax': Create a new table backed by a DAX query (e.g., SUMMARIZE, FILTER) - 'update-dax': Update the DAX query for an existing DAX-backed table - 'get-dax': Get the DAX query info for a table (check if it's DAX-backed) Related: tablecolumn (filter/sort/columns), datamodel (DAX measures, evaluate queries)
-
-**Actions:** `list`, `create`, `rename`, `delete`, `read`, `resize`, `toggle-totals`, `set-column-total`, `append`, `get-data`, `set-style`, `add-to-data-model`, `create-from-dax`, `update-dax`, `get-dax`
+**Actions:** `list`, `add`, `rename`, `delete`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--sheet-name` | Name of the slide to create the table on (required for: create, create-from-dax) |
-| `--table-name` | Name for the new table (must be unique in presentation) (required for: create, rename, delete, read, resize, toggle-totals, set-column-total, append, get-data, set-style, add-to-data-model, create-from-dax, update-dax, get-dax) |
-| `--range-address` | Cell range address for the table (e.g., 'A1:D10') (required for: create) |
-| `--has-headers` | True if first row contains column headers (default: true) |
-| `--table-style` | Table style name (e.g., 'TableStyleMedium2', 'TableStyleLight1'). Optional. (required for: set-style) |
-| `--new-name` | New name for the table (must be unique in presentation) (required for: rename) |
-| `--new-range` | New range address (e.g., 'A1:F20') (required for: resize) |
-| `--show-totals` | True to show totals row, false to hide (required for: toggle-totals) |
-| `--column-name` | Name of the column to set total function on (required for: set-column-total) |
-| `--total-function` | Totals function name: Sum, Count, Average, Min, Max, CountNums, StdDev, Var, None (required for: set-column-total) |
-| `--rows` | 2D array of row data to append - column order must match table columns. Optional if rowsFile is provided. |
-| `--rows-file` | Path to a JSON or CSV file containing the rows to append. JSON: 2D array. CSV: rows/columns. Alternative to inline rows parameter. |
-| `--visible-only` | True to return only visible (non-filtered) rows; false for all rows (default: false) |
-| `--strip-bracket-column-names` | When true, renames source table columns that contain literal bracket characters (removes brackets) before adding to the Data Model. This modifies the PowerPoint table column headers in the slide. |
-| `--dax-query` | DAX EVALUATE query (e.g., 'EVALUATE Sales' or 'EVALUATE SUMMARIZE(...)') (required for: create-from-dax, update-dax) |
-| `--target-cell` | Target cell address for table placement (default: 'A1') |
+| `--section-name` | Name for the new section (required for: add) |
+| `--slide-index` | 1-based slide index where the section starts (required for: add) |
+| `--section-index` | 1-based section index (required for: rename, delete) |
+| `--new-name` | New section name (required for: rename) |
 
 
 
-### tablecolumn
+### shape
 
-Table column, filtering, and sorting operations for PowerPoint Tables (ListObjects). Use table for table-level lifecycle and data operations. FILTERING: - 'apply-filter': Simple criteria filter (e.g., ">100", "=Active", "<>Closed") - 'apply-filter-values': Filter by exact values (provide list of values to include) - 'clear-filters': Remove all active filters - 'get-filters': See current filter state SORTING: - 'sort': Single column sort (ascending/descending) - 'sort-multi': Multi-column sort (provide list of {columnName, ascending} objects) COLUMN MANAGEMENT: - 'add-column'/'remove-column'/'rename-column': Modify table structure NUMBER FORMATS: Use US locale format codes (e.g., '#,##0.00', '0%', 'yyyy-mm-dd')
+Shape management: list, read, create, move, resize, delete, z-order.
 
-**Actions:** `apply-filter`, `apply-filter-values`, `clear-filters`, `get-filters`, `add-column`, `remove-column`, `rename-column`, `get-structured-reference`, `sort`, `sort-multi`, `get-column-number-format`, `set-column-number-format`
+**Actions:** `list`, `read`, `add-textbox`, `add-shape`, `move-resize`, `delete`, `z-order`, `set-fill`, `set-line`, `set-rotation`, `group`, `ungroup`, `set-alt-text`, `copy-to-slide`, `set-shadow`, `add-connector`, `merge`, `duplicate`, `flip`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--table-name` | Name of the PowerPoint table (required) |
-| `--column-name` | Name of the column to filter (required for: apply-filter, apply-filter-values, add-column, remove-column, sort, get-column-number-format, set-column-number-format) |
-| `--criteria` | Filter criteria string (e.g., '>100', '=Active', '<>Closed') (required for: apply-filter) |
-| `--values` | List of exact values to include in the filter (required for: apply-filter-values) |
-| `--position` | 1-based column position (optional, defaults to end of table) |
-| `--old-name` | Current column name (required for: rename-column) |
-| `--new-name` | New column name (required for: rename-column) |
-| `--region` | Table region: 'Data', 'Headers', 'Totals', or 'All' (required for: get-structured-reference) |
-| `--ascending` | Sort order: true = ascending (A-Z, 0-9), false = descending (default: true) |
-| `--sort-columns` | List of sort specifications: [{columnName: 'Col1', ascending: true}, ...] - applied in order (required for: sort-multi) |
-| `--format-code` | Number format code in US locale (e.g., '#,##0.00', '0%', 'yyyy-mm-dd') (required for: set-column-number-format) |
+| `--slide-index` | (required) |
+| `--shape-name` | (required for: read, move-resize, delete, z-order, set-fill, set-line, set-rotation, ungroup, set-alt-text, copy-to-slide, set-shadow, duplicate, flip) |
+| `--left` | Position from left in points (required for: add-textbox, add-shape) |
+| `--top` | Position from top in points (required for: add-textbox, add-shape) |
+| `--width` | Width in points (required for: add-textbox, add-shape) |
+| `--height` | Height in points (required for: add-textbox, add-shape) |
+| `--text` | Initial text content (required for: add-textbox) |
+| `--auto-shape-type` | MsoAutoShapeType integer (1=Rectangle, 9=Oval, etc.) (required for: add-shape) |
+| `--z-order-cmd` | 1=BringToFront, 2=SendToBack, 3=BringForward, 4=SendBackward (required for: z-order) |
+| `--color-hex` | Hex color string like #FF0000 for red, or 'none' for no fill (required for: set-fill, set-line) |
+| `--line-width` | Line width in points (default 0.75) (required for: set-line) |
+| `--degrees` | (required for: set-rotation) |
+| `--shape-names` | Comma-separated list of shape names to group (required for: group, merge) |
+| `--alt-text` | (required for: set-alt-text) |
+| `--target-slide-index` | 1-based target slide index (required for: copy-to-slide) |
+| `--visible` | Show or hide shadow (required for: set-shadow) |
+| `--offset-x` | Shadow offset X in points (required for: set-shadow) |
+| `--offset-y` | Shadow offset Y in points (required for: set-shadow) |
+| `--connector-type` | 1=Straight, 2=Elbow, 3=Curve (required for: add-connector) |
+| `--start-shape-name` | Starting shape name (required for: add-connector) |
+| `--end-shape-name` | Ending shape name (required for: add-connector) |
+| `--merge-type` | 1=Union, 2=Combine, 3=Fragment, 4=Intersect, 5=Subtract (required for: merge) |
+| `--flip-type` | 0=Horizontal, 1=Vertical (required for: flip) |
+
+
+
+### shapealign
+
+Shape alignment and distribution operations.
+
+**Actions:** `align`, `distribute`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--slide-index` | 1-based slide index (required) |
+| `--shape-names` | Comma-separated shape names (required) |
+| `--align-type` | Alignment type (0-5) (required for: align) |
+| `--distribute-type` | 0=Horizontally, 1=Vertically (required for: distribute) |
+
+
+
+### slide
+
+Slide lifecycle commands: list, read, create, duplicate, move, delete.
+
+**Actions:** `list`, `read`, `create`, `duplicate`, `move`, `delete`, `apply-layout`, `set-name`, `clone-with-replace`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--slide-index` | 1-based slide index (required for: read, duplicate, move, delete, apply-layout, set-name, clone-with-replace) |
+| `--position` | 1-based insert position (0 = at end) (required for: create) |
+| `--layout-name` | Layout name from the slide master (e.g. "Title Slide", "Blank") (required for: create, apply-layout) |
+| `--new-position` | 1-based target position (required for: move) |
+| `--name` | New name for the slide (required for: set-name) |
+| `--count` | Number of clones to create (required for: clone-with-replace) |
+| `--search-text` | Text to search for in each clone (required for: clone-with-replace) |
+| `--replace-text` | Text to replace with in each clone (required for: clone-with-replace) |
+
+
+
+### slideimport
+
+Import slides from another presentation file.
+
+**Actions:** `import`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--source-file-path` | Path to the source .pptx file (required) |
+| `--slide-indices` | Comma-separated 1-based slide indices to import (empty = all) (required) |
+| `--insert-at` | Position to insert (0 = at end) (required) |
+
+
+
+### slideshow
+
+Slideshow presentation mode: start, stop, navigate, get status.
+
+**Actions:** `start`, `stop`, `goto-slide`, `get-status`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--start-slide` | 1-based slide to start from (0 = beginning) (required for: start) |
+| `--slide-index` | 1-based target slide index (required for: goto-slide) |
+
+
+
+### slidetable
+
+Table shape operations: create, read, write cells, add/delete rows and columns, merge cells.
+
+**Actions:** `create`, `read`, `write-cell`, `add-row`, `add-column`, `delete-row`, `delete-column`, `merge-cells`, `read-cell`, `format-cell`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--slide-index` | 1-based slide index (required) |
+| `--rows` | Number of rows (required for: create) |
+| `--columns` | Number of columns (required for: create) |
+| `--left` | Position from left in points (required for: create) |
+| `--top` | Position from top in points (required for: create) |
+| `--width` | Width in points (required for: create) |
+| `--height` | Height in points (required for: create) |
+| `--shape-name` | Name of the table shape (required for: read, write-cell, add-row, add-column, delete-row, delete-column, merge-cells, read-cell, format-cell) |
+| `--row` | 1-based row index (required for: write-cell, delete-row, read-cell, format-cell) |
+| `--column` | 1-based column index (required for: write-cell, delete-column, read-cell, format-cell) |
+| `--value` | Cell value to set (required for: write-cell) |
+| `--position` | 1-based position to insert (-1 = at end) (required for: add-row, add-column) |
+| `--start-row` | 1-based start row (required for: merge-cells) |
+| `--start-column` | 1-based start column (required for: merge-cells) |
+| `--end-row` | 1-based end row (required for: merge-cells) |
+| `--end-column` | 1-based end column (required for: merge-cells) |
+| `--fill-color` | Hex fill color (#RRGGBB) or null to skip |
+| `--font-bold` | Set bold (null = don't change) |
+| `--font-size` | Set font size (0 = don't change) (required for: format-cell) |
+| `--text-align` | Text alignment: left, center, right (null = don't change) |
+
+
+
+### smartart
+
+SmartArt diagram operations: create, add/remove nodes, change layout.
+
+**Actions:** `get-info`, `add-node`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--slide-index` | 1-based slide index (required) |
+| `--shape-name` | Name of the SmartArt shape (required) |
+| `--text` | Text for the new node (required for: add-node) |
+
+
+
+### tag
+
+Custom tags/metadata on slides and shapes.
+
+**Actions:** `list`, `set`, `delete`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--slide-index` | 1-based slide index (required) |
+| `--shape-name` | Shape name (null/empty = slide-level tags) |
+| `--tag-name` | Tag name (case-insensitive) (required for: set, delete) |
+| `--tag-value` | Tag value (required for: set) |
+
+
+
+### text
+
+Text operations within shapes: get, set, format, find, replace.
+
+**Actions:** `get`, `set`, `find`, `replace`, `format`, `format-advanced`, `word-count`, `alt-text-audit`, `empty-placeholder-audit`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--slide-index` | (required) |
+| `--shape-name` | (required for: get, set, format, format-advanced) |
+| `--text` | (required for: set) |
+| `--search-text` | Text to find (required for: find, replace) |
+| `--replace-text` | Replacement text (required for: replace) |
+| `--font-name` |  |
+| `--font-size` |  |
+| `--bold` |  |
+| `--italic` |  |
+| `--color` |  |
+| `--alignment` |  |
+| `--vertical-alignment` |  |
+| `--underline` | Set underline (null = don't change) |
+| `--strikethrough` | Set strikethrough (null = don't change) |
+| `--subscript` | Set subscript (null = don't change) |
+| `--superscript` | Set superscript (null = don't change) |
+
+
+
+### transition
+
+Slide transition effects: get, set, remove.
+
+**Actions:** `get`, `set`, `remove`, `copy-to-all`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--slide-index` | (required) |
+| `--transition-type` | PpEntryEffect enum value (e.g. 3844=Fade, 3849=Push) (required for: set) |
+| `--duration` | Duration in seconds (required for: set) |
+| `--advance-on-click` | Whether to advance on mouse click (required for: set) |
+| `--advance-after-time` | Auto-advance after N seconds (0 = disabled) (required for: set) |
 
 
 
 ### vba
 
-VBA scripts (requires .xlsm and VBA trust enabled). PREREQUISITES: - Presentation must be macro-enabled (.xlsm) - VBA trust must be enabled for automation RUN: procedureName format is 'Module.Procedure' (e.g., 'Module1.MySub').
+VBA macro operations: list modules, view/import/delete code, run macros. Requires VBA trust settings enabled in PowerPoint.
 
-**Actions:** `list`, `view`, `import`, `update`, `run`, `delete`
+**Actions:** `list`, `view`, `import`, `delete`, `run`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--module-name` | Name of the VBA module (required for: view, import, update, delete) |
-| `--vba-code` | VBA code to import (required for: import, update) |
-| `--procedure-name` | Name of the procedure to run (e.g., "Module1.MySub") (required for: run) |
-| `--timeout` | Optional timeout for execution |
-| `--parameters` | Optional parameters to pass to the procedure (required for: run) |
+| `--module-name` | (required for: view, import, delete) |
+| `--code` | VBA code to import (required for: import) |
+| `--module-type` | 1=Standard, 2=ClassModule (default: 1) (required for: import) |
+| `--macro-name` | Fully qualified macro name (e.g., "Module1.MyMacro") (required for: run) |
 
 
 
 ### window
 
-Control PowerPoint window visibility, position, state, and status bar. Use to show/hide PowerPoint, bring it to front, reposition, or maximize/minimize. Set status bar text to give users real-time feedback during operations. VISIBILITY: 'show' makes PowerPoint visible AND brings to front. 'hide' hides PowerPoint. Visibility changes are reflected in session metadata (session list shows updated state). WINDOW STATE values: 'normal', 'minimized', 'maximized'. ARRANGE presets: 'left-half', 'right-half', 'top-half', 'bottom-half', 'center', 'full-screen'. STATUS BAR: 'set-status-bar' displays text in PowerPoint's status bar. 'clear-status-bar' restores default.
+PowerPoint window management: get info, minimize, restore, maximize.
 
-**Actions:** `show`, `hide`, `bring-to-front`, `get-info`, `set-state`, `set-position`, `arrange`, `set-status-bar`, `clear-status-bar`
+**Actions:** `get-info`, `minimize`, `restore`, `maximize`, `set-zoom`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--window-state` | Window state: 'normal', 'minimized', or 'maximized' (required for: set-state) |
-| `--left` | Window left position in points |
-| `--top` | Window top position in points |
-| `--width` | Window width in points |
-| `--height` | Window height in points |
-| `--preset` | Preset name: 'left-half', 'right-half', 'top-half', 'bottom-half', 'center', 'full-screen' (required for: arrange) |
-| `--text` | Status bar text to display (e.g. "Building PivotTable from Sales data...") (required for: set-status-bar) |
+| `--zoom-percent` | Zoom percentage (e.g. 100 for 100%) (required for: set-zoom) |
 
 
 
 
 ## Common Pitfalls
 
-### --values-file Must Be an Existing File
+### Slide Indices Are 1-Based
 
-`--values-file` expects a path to an **existing** JSON or CSV file on disk. Do NOT pass inline JSON as the value — the CLI will look for a file at that path and fail with "File not found". If you don't have a file, use `--values` with inline JSON instead.
+Slide indices start at 1, not 0. `--slide-index 0` is invalid and will error.
 
 ### --timeout Must Be Greater Than Zero
 
 When using `--timeout`, the value must be a positive integer (seconds). `--timeout 0` is invalid and will error. Omit `--timeout` entirely to use the default (300 seconds for most operations).
 
-### Power Query Operations Are Slow
+### Shape Names Must Be Exact
 
-`powerquery create`, `powerquery refresh`, and `powerquery evaluate` may take 30+ seconds depending on data volume. Either omit `--timeout` (uses 5-minute default) or set a generous value like `--timeout 120`.
+Shape names are case-sensitive and must match exactly. Use `shape list` to discover correct names before targeting shapes.
 
 ### JSON Values Format
 
-`--values` takes a 2D JSON array wrapped in single quotes:
+`--values` takes a JSON string wrapped in single quotes:
 ```powershell
-# CORRECT: 2D array with single-quote wrapper
---values '[["Name","Age"],["Alice",30],["Bob",25]]'
+# CORRECT: JSON with single-quote wrapper
+--values '{"text": "Hello World", "fontSize": 24}'
 
-# WRONG: Not a 2D array
---values '["Alice",30]'
-
-# WRONG: Object instead of array
---values '{"Name":"Alice","Age":30}'
+# WRONG: Missing quotes
+--values {text: Hello World}
 ```
 
 ### List Parameters Use JSON Arrays
 
-Parameters that accept lists (e.g., `--selected-items` for slicers) require JSON array format:
+Parameters that accept lists require JSON array format:
 ```powershell
 # CORRECT: JSON array with single-quote wrapper
---selected-items '["West","East"]'
-
-# CORRECT: Escaped inner quotes
---selected-items "[\"West\",\"East\"]"
-
-# CORRECT: Clear selection
---selected-items '[]'
+--selected-items '["Slide 1","Slide 3"]'
 
 # WRONG: Comma-separated string (not valid)
---selected-items "West,East"
+--selected-items "Slide 1,Slide 3"
 ```
 
 ## Reference Documentation
 
 - [Core execution rules and LLM guidelines](./references/behavioral-rules.md)
 - [Common mistakes to avoid](./references/anti-patterns.md)
-- [Data Model constraints and patterns](./references/workflows.md)
+- [Presentation workflows and patterns](./references/workflows.md)
 - [Charts, positioning, and formatting](./references/chart.md)
-- [Conditional formatting operations](./references/conditionalformat.md)
-- [Dashboard and report best practices](./references/dashboard.md)
-- [Data Model/DAX specifics](./references/datamodel.md)
-- [DMV query reference for Data Model analysis](./references/dmv-reference.md)
-- [Power Query M code syntax reference](./references/m-code-syntax.md)
-- [PivotTable operations](./references/pivottable.md)
-- [Power Query specifics](./references/powerquery.md)
-- [Range operations and number formats](./references/range.md)
+- [CLI commands reference](./references/cli-commands.md)
+- [Presentation design best practices](./references/dashboard.md)
 - [Screenshot and visual verification](./references/screenshot.md)
-- [Slicer operations](./references/slicer.md)
 - [Table operations](./references/table.md)
-- [Slide operations](./references/slide.md)
+- [Window management](./references/window.md)
+- [Agent mode patterns](./references/ppt_agent_mode.md)

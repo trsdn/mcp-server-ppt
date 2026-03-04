@@ -57,4 +57,14 @@ public interface IExportCommands
     /// <param name="format">Format code (1-7)</param>
     [ServiceAction("save-as")]
     ExportResult SaveAs(IPptBatch batch, string destinationPath, int format);
+
+    /// <summary>
+    /// Export all slides as individual PNG images (slide_001.png, slide_002.png, etc.).
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="destinationDirectory">Directory to save images</param>
+    /// <param name="width">Image width in pixels (default: 1920)</param>
+    /// <param name="height">Image height in pixels (default: 1080)</param>
+    [ServiceAction("all-slides-to-images")]
+    ExportResult AllSlidesToImages(IPptBatch batch, string destinationDirectory, int width, int height);
 }

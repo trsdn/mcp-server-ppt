@@ -281,6 +281,40 @@ public class SlideTableCommands : ISlideTableCommands
         });
     }
 
+    public OperationResult ReadCell(IPptBatch batch, int slideIndex, string shapeName, int row, int column)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? table = null;
+            dynamic? cell = null;
+            try
+            {
+                table = shape.Table;
+                cell = table.Cell(row, column);
+                string text = cell.Shape.TextFrame.TextRange.Text?.ToString() ?? "";
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "read-cell",
+                    Message = text,
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (cell != null) ComUtilities.Release(ref cell!);
+                if (table != null) ComUtilities.Release(ref table!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     public OperationResult FormatCell(IPptBatch batch, int slideIndex, string shapeName, int row, int column, string? fillColor, bool? fontBold, float fontSize, string? textAlign)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);

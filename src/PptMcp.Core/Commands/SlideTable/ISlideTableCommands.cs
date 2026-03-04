@@ -100,6 +100,17 @@ public interface ISlideTableCommands
     OperationResult MergeCells(IPptBatch batch, int slideIndex, string shapeName, int startRow, int startColumn, int endRow, int endColumn);
 
     /// <summary>
+    /// Read the text value of a specific table cell.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the table shape</param>
+    /// <param name="row">1-based row index</param>
+    /// <param name="column">1-based column index</param>
+    [ServiceAction("read-cell")]
+    OperationResult ReadCell(IPptBatch batch, int slideIndex, string shapeName, int row, int column);
+
+    /// <summary>
     /// Set formatting on a table cell (fill color, text alignment).
     /// </summary>
     /// <param name="batch">Batch context</param>

@@ -1,4 +1,4 @@
-// Application Insights infrastructure for ExcelMcp telemetry
+// Application Insights infrastructure for PptMcp telemetry
 // Deploys: Resource Group, Log Analytics Workspace, Application Insights
 //
 // Deploy with: az deployment sub create --location <location> --template-file appinsights.bicep --parameters appinsights.parameters.json
@@ -6,16 +6,16 @@
 targetScope = 'subscription'
 
 @description('Name of the resource group to create')
-param resourceGroupName string = 'excelmcp-observability'
+param resourceGroupName string = 'pptmcp-observability'
 
 @description('Azure region for all resources')
 param location string = 'westeurope'
 
 @description('Name of the Log Analytics workspace')
-param logAnalyticsName string = 'excelmcp-logs'
+param logAnalyticsName string = 'pptmcp-logs'
 
 @description('Name of the Application Insights resource')
-param appInsightsName string = 'excelmcp-appinsights'
+param appInsightsName string = 'pptmcp-appinsights'
 
 @description('Data retention in days (30-730)')
 @minValue(30)
@@ -24,7 +24,7 @@ param retentionInDays int = 90
 
 @description('Tags to apply to all resources')
 param tags object = {
-  project: 'ExcelMcp'
+  project: 'PptMcp'
   purpose: 'Telemetry'
   managedBy: 'Bicep'
 }

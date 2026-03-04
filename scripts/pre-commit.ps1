@@ -54,7 +54,7 @@ Write-Host ""
 Write-Host "Killing stale PowerPoint and server processes..." -ForegroundColor Cyan
 
 $killedProcesses = @()
-foreach ($procName in @("EXCEL", "pptcli", "PptMcp.McpServer", "PptMcp.Service")) {
+foreach ($procName in @("POWERPNT", "pptcli", "PptMcp.McpServer", "PptMcp.Service")) {
     $procs = Get-Process -Name $procName -ErrorAction SilentlyContinue
     if ($procs) {
         $procs | Stop-Process -Force -ErrorAction SilentlyContinue

@@ -32,7 +32,7 @@
 
     <!-- .NET Tool Configuration -->
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>mcp-excel</ToolCommandName>
+    <ToolCommandName>mcp-ppt</ToolCommandName>
 
     <!-- Multi-Architecture Support for Windows x64 and ARM64 -->
     <PublishSelfContained>false</PublishSelfContained>

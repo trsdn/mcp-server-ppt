@@ -10,7 +10,7 @@
     3. List worksheets
     4. Delete worksheet
     5. Close session (with save)
-    6. Reopen saved file (session open - exercises Workbooks.Open path)
+    6. Reopen saved file (session open - exercises Presentations.Open path)
     7. List worksheets in reopened session
     8. Close reopened session
     9. Verify file exists
@@ -137,7 +137,7 @@ Test-Step "Close session (with save)" {
     $r.success -eq $true
 }
 
-# 6. Reopen saved file (session open - exercises Workbooks.Open path distinct from Add+SaveAs)
+# 6. Reopen saved file (session open - exercises Presentations.Open path distinct from Add+SaveAs)
 #    This step would catch deployment issues like missing office.dll (issue #487) because
 #    PptBatch.ctor runs AutomationSecurity setup before opening any workbook.
 $reopenSession = Test-Step "Reopen saved file (session open)" {

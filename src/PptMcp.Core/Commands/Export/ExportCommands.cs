@@ -176,4 +176,46 @@ public class ExportCommands : IExportCommands
             };
         });
     }
+
+    public ExportResult AllSlidesToImages(IPptBatch batch, string destinationDirectory, int width, int height)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationDirectory);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            string fullDir = Path.GetFullPath(destinationDirectory);
+            if (!Directory.Exists(fullDir))
+                Directory.CreateDirectory(fullDir);
+
+            dynamic slides = ((dynamic)ctx.Presentation).Slides;
+            int count = (int)slides.Count;
+            int w = width > 0 ? width : 1920;
+            int h = height > 0 ? height : 1080;
+
+            for (int i = 1; i <= count; i++)
+            {
+                dynamic slide = slides.Item(i);
+                try
+                {
+                    string fileName = $"slide_{i:D3}.png";
+                    string filePath = Path.Combine(fullDir, fileName);
+                    slide.Export(filePath, "PNG", w, h);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref slide!);
+                }
+            }
+
+            ComUtilities.Release(ref slides!);
+
+            return new ExportResult
+            {
+                Success = true,
+                FilePath = ctx.PresentationPath,
+                OutputPath = fullDir,
+                Format = "PNG"
+            };
+        });
+    }
 }
