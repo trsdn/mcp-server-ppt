@@ -1,7 +1,7 @@
 # Claude MCPB Submission Guide
 
 ## Purpose
-Submit Excel MCP Server to Anthropic’s Claude Directory as an MCPB bundle for one-click installation in Claude Desktop.
+Submit PowerPoint MCP Server to Anthropic’s Claude Directory as an MCPB bundle for one-click installation in Claude Desktop.
 
 ## Prerequisites
 - MCPB bundle built and validated
@@ -12,7 +12,7 @@ Submit Excel MCP Server to Anthropic’s Claude Directory as an MCPB bundle for 
 - MCPB bundle: GitHub Actions release workflow artifact (.mcpb)
 - MCPB manifest: mcpb/manifest.json
 - Icon: mcpb/icon-512.png
-- Privacy page: https://excelmcpserver.dev/privacy/
+- Privacy page: https://PptMcpserver.dev/privacy/
 
 ## Build Steps
 1. Run the release workflow to produce the MCPB artifact.
@@ -28,13 +28,13 @@ All 22 tools in this repository set Destructive = true.
 
 ## Submission Form Checklist
 Fill the Claude Directory submission form with:
-- Server name: Excel MCP Server
+- Server name: PowerPoint MCP Server
 - MCPB file: downloaded workflow artifact (.mcpb)
-- Website: https://excelmcpserver.dev/
-- Privacy policy: https://excelmcpserver.dev/privacy/
-- Support or repo link: https://github.com/sbroenne/mcp-server-excel
+- Website: https://PptMcpserver.dev/
+- Privacy policy: https://PptMcpserver.dev/privacy/
+- Support or repo link: https://github.com/trsdn/mcp-server-ppt
 - Icon: mcpb/icon-512.png
-- Platform notes: Windows-only (Excel COM), x64 self-contained build
+- Platform notes: Windows-only (PowerPoint COM), x64 self-contained build
 
 ## Post-Submission
 - Record submission timestamp and form confirmation URL in the GitHub issue

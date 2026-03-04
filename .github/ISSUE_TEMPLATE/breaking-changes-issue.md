@@ -12,12 +12,12 @@ Implement breaking changes from `MCP-BREAKING-CHANGES-PROPOSAL.md` before the 1.
 
 ## Objectives
 
-Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes without affecting users. This is a **golden opportunity** to improve the API before 1.0.
+Since PptMcp MCP Server hasn't been released yet, we can make breaking changes without affecting users. This is a **golden opportunity** to improve the API before 1.0.
 
 ### Key Changes
 
 1. **Better Terminology**: `batchId` → `sessionId` (clearer intent)
-2. **Consistent Naming**: `excelPath` → `filePath`, `sheetName` → `worksheetName`
+2. **Consistent Naming**: `excelPath` → `filePath`, `sheetName` → `slideName`
 3. **Standardized Errors**: Error codes and structured error responses
 4. **Cleaner Code**: Remove redundant validation attributes
 5. **Richer Responses**: Add metadata to all tool outputs
@@ -34,12 +34,12 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
 
 - [ ] Rename `BatchSessionTool.cs` → `SessionTool.cs`
 - [ ] Rename tools:
-  - `begin_excel_batch` → `begin_excel_session`
-  - `commit_excel_batch` → `end_excel_session`
-  - `list_excel_batches` → `list_excel_sessions`
+  - `begin_excel_batch` → `begin_ppt_session`
+  - `commit_excel_batch` → `end_ppt_session`
+  - `list_excel_batches` → `list_ppt_sessions`
 - [ ] Update all `batchId` parameters to `sessionId` in:
-  - All 9 tool files in `src/ExcelMcp.McpServer/Tools/`
-  - `ExcelToolsBase.cs`
+  - All 9 tool files in `src/PptMcp.McpServer/Tools/`
+  - `PptToolsBase.cs`
   - All prompt files (4 files)
 - [ ] Update documentation:
   - `BATCH-SESSION-GUIDE.md` → `SESSION-GUIDE.md`
@@ -53,14 +53,14 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
 **Affected files**: 16 C# files
 
 - [ ] Update all tool files:
-  - `ExcelPowerQueryTool.cs`
-  - `ExcelWorksheetTool.cs`
-  - `ExcelParameterTool.cs`
-  - `ExcelCellTool.cs`
-  - `ExcelVbaTool.cs`
-  - `ExcelConnectionTool.cs`
-  - `ExcelDataModelTool.cs`
-  - `ExcelFileTool.cs`
+  - `PptPowerQueryTool.cs`
+  - `PptWorksheetTool.cs`
+  - `PptParameterTool.cs`
+  - `PptCellTool.cs`
+  - `PptVbaTool.cs`
+  - `PptConnectionTool.cs`
+  - `PptDataModelTool.cs`
+  - `PptFileTool.cs`
   - `HyperlinkTool.cs`
   - `TableTool.cs`
 - [ ] Update all Core command interfaces
@@ -71,7 +71,7 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
 #### 1.3 sheetName → worksheetName
 **Affected files**: ~5 files
 
-- [ ] `ExcelWorksheetTool.cs`
+- [ ] `PptWorksheetTool.cs`
 - [ ] Worksheet Core commands
 - [ ] Related tests
 - [ ] Prompt content
@@ -80,7 +80,7 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
 ### Phase 2: Error Response Standardization (1-2 days)
 
 #### 2.1 Define Error Codes
-- [ ] Create `src/ExcelMcp.Core/Models/ErrorCodes.cs`
+- [ ] Create `src/PptMcp.Core/Models/ErrorCodes.cs`
 - [ ] Define standard error codes:
   ```csharp
   FILE_NOT_FOUND
@@ -89,7 +89,7 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
   INVALID_M_CODE
   PRIVACY_LEVEL_REQUIRED
   VBA_TRUST_REQUIRED
-  EXCEL_BUSY
+  POWERPOINT_BUSY
   SESSION_NOT_FOUND
   SESSION_FILE_MISMATCH
   ```
@@ -183,8 +183,8 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
 ## Files Affected
 
 **C# Files**: ~30 files
-- 9 tool files in `src/ExcelMcp.McpServer/Tools/`
-- 4 prompt files in `src/ExcelMcp.McpServer/Prompts/`
+- 9 tool files in `src/PptMcp.McpServer/Tools/`
+- 4 prompt files in `src/PptMcp.McpServer/Prompts/`
 - 1 Program.cs
 - ~10 Core command files
 - ~10 test files

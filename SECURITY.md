@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-We actively support the following versions of ExcelMcp with security updates:
+We actively support the following versions of PptMcp with security updates:
 
 | Version | Supported          | Status |
 | ------- | ------------------ | ------ |
@@ -12,13 +12,13 @@ We actively support the following versions of ExcelMcp with security updates:
 
 ## Security Features
 
-ExcelMcp includes several security measures:
+PptMcp includes several security measures:
 
 ### Input Validation
 
 - **Path Traversal Protection**: All file paths are validated with `Path.GetFullPath()`
 - **File Size Limits**: 1GB maximum file size to prevent DoS attacks
-- **Extension Validation**: Only `.xlsx` and `.xlsm` files are accepted
+- **Extension Validation**: Only `.pptx` and `.pptm` files are accepted
 - **Path Length Validation**: Maximum 32,767 characters (Windows limit)
 
 ### Code Analysis
@@ -29,17 +29,17 @@ ExcelMcp includes several security measures:
 
 ### COM Security
 
-- **Controlled Excel Automation**: Excel.Application runs with `Visible=false` and `DisplayAlerts=false`
+- **Controlled PowerPoint Automation**: PowerPoint.Application runs with `Visible=false` and `DisplayAlerts=false`
 - **Resource Cleanup**: Comprehensive COM object disposal and garbage collection
-- **No Remote Connections**: Only local Excel automation supported
+- **No Remote Connections**: Only local PowerPoint automation supported
 
-### ExcelMCP Service Security
+### PptMcp Service Security
 
-The ExcelMCP Service manages Excel COM automation sessions:
+The PptMcp Service manages PowerPoint COM automation sessions:
 
 **MCP Server**: The service runs fully **in-process** — no inter-process communication. There is no attack surface beyond the MCP Server process itself.
 
-**CLI**: The CLI daemon uses a **Windows named pipe** (`excelmcp-cli-{USER_SID}`) for communication between CLI commands and the daemon process:
+**CLI**: The CLI daemon uses a **Windows named pipe** (`PptMcp-cli-{USER_SID}`) for communication between CLI commands and the daemon process:
 
 | Protection | Status | Description |
 |------------|--------|-------------|
@@ -50,7 +50,7 @@ The ExcelMCP Service manages Excel COM automation sessions:
 
 **What This Means:**
 
-1. **Same-user access**: Any application running under your Windows user account can connect to the CLI daemon and execute Excel operations. This is by design, similar to how Docker and database servers work.
+1. **Same-user access**: Any application running under your Windows user account can connect to the CLI daemon and execute PowerPoint operations. This is by design, similar to how Docker and database servers work.
 
 2. **No cross-user access**: User A cannot connect to User B's CLI daemon. Each user has a separate named pipe with their SID.
 
@@ -58,8 +58,8 @@ The ExcelMCP Service manages Excel COM automation sessions:
 
 **Security Implications:**
 
-- If malware runs under your user account, it could theoretically connect to the CLI daemon and control Excel
-- However, such malware could already control Excel directly (or do anything else you can do)
+- If malware runs under your user account, it could theoretically connect to the CLI daemon and control PowerPoint
+- However, such malware could already control PowerPoint directly (or do anything else you can do)
 - The service does not elevate privileges or provide capabilities beyond what the user already has
 
 ### Dependency Management
@@ -82,7 +82,7 @@ Report security vulnerabilities using one of these methods:
 
 **Preferred Method: GitHub Security Advisories**
 
-1. Go to <https://github.com/sbroenne/mcp-server-excel/security/advisories>
+1. Go to <https://github.com/trsdn/mcp-server-ppt/security/advisories>
 2. Click "Report a vulnerability"
 3. Fill out the advisory form with detailed information
 
@@ -90,7 +90,7 @@ Report security vulnerabilities using one of these methods:
 
 Contact the maintainer via GitHub: [@sbroenne](https://github.com/sbroenne)
 
-Subject: `[SECURITY] ExcelMcp Vulnerability Report`
+Subject: `[SECURITY] PptMcp Vulnerability Report`
 
 ### 3. Information to Include
 
@@ -108,7 +108,7 @@ Example:
 Vulnerability: Path traversal in file operations
 Impact: Attacker could read/write files outside intended directory
 Affected Versions: 1.0.0 - 1.0.2
-PoC: ExcelMcp.exe pq-export "../../../etc/passwd" "query"
+PoC: PptMcp.exe pq-export "../../../etc/passwd" "query"
 Suggested Fix: Validate resolved paths are within allowed directories
 ```
 
@@ -137,7 +137,7 @@ We follow responsible disclosure practices:
 
 ### MCP Server Security
 
-- **Validate AI Requests**: Review Excel operations requested by AI assistants
+- **Validate AI Requests**: Review PowerPoint operations requested by AI assistants
 - **File Path Restrictions**: Only allow MCP Server access to specific directories
 - **Audit Logs**: Monitor MCP Server operations in logs
 - **Trust Configuration**: Only enable VBA trust when necessary
@@ -145,9 +145,9 @@ We follow responsible disclosure practices:
 ### CLI Security
 
 - **Script Validation**: Review automation scripts before execution
-- **File Permissions**: Ensure Excel files have appropriate permissions
+- **File Permissions**: Ensure PowerPoint files have appropriate permissions
 - **Isolated Environment**: Run in sandboxed environment when processing untrusted files
-- **Excel Security Settings**: Maintain appropriate Excel macro security settings
+- **PowerPoint Security Settings**: Maintain appropriate PowerPoint macro security settings
 
 ### Development Security
 
@@ -158,11 +158,11 @@ We follow responsible disclosure practices:
 
 ## Known Security Considerations
 
-### Excel COM Automation
+### PowerPoint COM Automation
 
-- **Local Only**: ExcelMcp only supports local Excel automation
-- **Windows Only**: Requires Windows with Excel installed
-- **Excel Process**: Creates Excel.Application COM objects
+- **Local Only**: PptMcp only supports local PowerPoint automation
+- **Windows Only**: Requires Windows with PowerPoint installed
+- **PowerPoint Process**: Creates PowerPoint.Application COM objects
 - **Macro Security**: VBA operations require user consent via `setup-vba-trust`
 
 ### File System Access
@@ -174,16 +174,16 @@ We follow responsible disclosure practices:
 ### AI Integration (MCP Server)
 
 - **Trusted AI Assistants**: Only use with trusted AI platforms
-- **Request Validation**: Review operations before Excel executes them
-- **Sensitive Data**: Avoid exposing workbooks with sensitive data to AI assistants
+- **Request Validation**: Review operations before PowerPoint executes them
+- **Sensitive Data**: Avoid exposing presentations with sensitive data to AI assistants
 - **Audit Trail**: MCP Server logs all operations
 
 ## Security Updates
 
 Security updates are published through:
 
-- **GitHub Security Advisories**: <https://github.com/sbroenne/mcp-server-excel/security/advisories>
-- **Release Notes**: <https://github.com/sbroenne/mcp-server-excel/releases>
+- **GitHub Security Advisories**: <https://github.com/trsdn/mcp-server-ppt/security/advisories>
+- **Release Notes**: <https://github.com/trsdn/mcp-server-ppt/releases>
 - **NuGet Advisories**: Package vulnerabilities shown in NuGet
 
 Subscribe to repository notifications to receive security alerts.
@@ -206,7 +206,7 @@ Subscribe to repository notifications to receive security alerts.
 
 ## Security Contacts
 
-- **GitHub Security**: <https://github.com/sbroenne/mcp-server-excel/security>
+- **GitHub Security**: <https://github.com/trsdn/mcp-server-ppt/security>
 - **Maintainer**: @sbroenne
 
 ## Additional Resources
@@ -227,4 +227,4 @@ Subscribe to repository notifications to receive security alerts.
 
 **Last Updated**: 2026-03-03
 
-Thank you for helping keep ExcelMcp and its users safe!
+Thank you for helping keep PptMcp and its users safe!

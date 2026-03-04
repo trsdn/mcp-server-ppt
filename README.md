@@ -144,7 +144,7 @@ Both the **MCP Server** and **CLI** communicate with a shared **PptMcp Service**
           └─────────┬───────────────┘
                     ▼
           ┌─────────────────────────┐
-          │   Excel COM API         │
+          │   PowerPoint COM API    │
           │  (PowerPoint.Application)│
           └─────────────────────────┘
 ```
@@ -164,7 +164,7 @@ The AI will display the PowerPoint window so you can watch every operation happe
 
 ## 📋 Additional Information
 
-📚 **[CLI Guide →](src/PptMcp.CLI/README.md)** | **[CLI Skill for Agents →](skills/excel-cli/SKILL.md)** | **[MCP Server Guide →](src/PptMcp.McpServer/README.md)** | **[All Agent Skills →](skills/README.md)**
+📚 **[CLI Guide →](src/PptMcp.CLI/README.md)** | **[CLI Skill for Agents →](skills/ppt-cli/SKILL.md)** | **[MCP Server Guide →](src/PptMcp.McpServer/README.md)** | **[All Agent Skills →](skills/README.md)**
 
 **License:** MIT License - see [LICENSE](LICENSE) file
 

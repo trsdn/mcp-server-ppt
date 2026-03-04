@@ -18,20 +18,20 @@ Relates to #[issue number]
 - Change 3
 
 ## Testing Performed
-- [ ] Tested manually with various Excel files
-- [ ] Verified Excel process cleanup (no excel.exe remains after 5 seconds)
+- [ ] Tested manually with various PowerPoint files
+- [ ] Verified PowerPoint process cleanup (no powerpnt.exe remains after 5 seconds)
 - [ ] Tested error conditions (missing files, invalid arguments, etc.)
 - [ ] All existing commands still work
 - [ ] VBA script execution tested (if applicable)
-- [ ] XLSM file format validation tested (if applicable)
+- [ ] PPTM file format validation tested (if applicable)
 - [ ] VBA trust setup tested (if applicable)
 - [ ] Build produces zero warnings
 
 ## Test Commands
 ```powershell
 # Commands used for testing
-ExcelMcp command1 "test.xlsx"
-ExcelMcp command2 "test.xlsx" "param"
+PptMcp command1 "test.pptx"
+PptMcp command2 "test.pptx" "param"
 ```
 
 ## Screenshots (if applicable)
@@ -47,7 +47,7 @@ If YES, verify all steps completed:
 - [ ] Implemented method in Core Commands class (e.g., `PowerQueryCommands.NewMethodAsync()`)
 - [ ] Added enum value to `ToolActions.cs` (e.g., `PowerQueryAction.NewMethod`)
 - [ ] Added `ToActionString` mapping to `ActionExtensions.cs` (e.g., `PowerQueryAction.NewMethod => "new-method"`)
-- [ ] Added switch case to appropriate MCP Tool (e.g., `ExcelPowerQueryTool.cs`)
+- [ ] Added switch case to appropriate MCP Tool (e.g., `PptPowerQueryTool.cs`)
 - [ ] Implemented MCP method that calls Core method
 - [ ] Build succeeds with 0 warnings (CS8524 compiler enforcement verified)
 - [ ] Updated `CORE-COMMANDS-AUDIT.md` (if significant addition)
@@ -64,9 +64,9 @@ If YES, verify all steps completed:
 - [ ] Appropriate error handling added
 - [ ] Updated help text (if adding new commands)
 - [ ] Updated README.md (if needed)
-- [ ] Follows Excel COM best practices from copilot-instructions.md
+- [ ] Follows PowerPoint COM best practices from copilot-instructions.md
 - [ ] Uses batch API with proper disposal (`using var batch` or `await using var batch`)
-- [ ] Properly handles 1-based Excel indexing
+- [ ] Properly handles 1-based PowerPoint indexing
 - [ ] Escapes user input with `.EscapeMarkup()`
 - [ ] Returns consistent exit codes (0 = success, 1+ = error)
 

@@ -384,7 +384,7 @@ dnx PptMcp.McpServer --yes
    ```json
    // Add to server.json tools array
    {
-     "name": "excel_newtool",
+     "name": "ppt_newtool",
      "description": "New functionality description",
      "inputSchema": { ... }
    }

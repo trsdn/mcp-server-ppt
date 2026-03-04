@@ -47,10 +47,10 @@ Use this order to avoid setup confusion:
 2. **That's It!**
    - Bundles self-contained MCP server and CLI (no .NET runtime or SDK needed)
    - Auto-configures GitHub Copilot
-   - Registers agent skills (ppt-mcp + excel-cli) via `chatSkills`
+   - Registers agent skills (ppt-mcp + ppt-cli) via `chatSkills`
    - Shows quick start guide on first launch
 
-**Marketplace Link:** [PowerPoint MCP VS Code Extension](https://marketplace.visualstudio.com/items?itemName=sbroenne.ppt-mcp)
+**Marketplace Link:** [PowerPoint MCP VS Code Extension](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp)
 
 ---
 
@@ -89,7 +89,7 @@ winget install Microsoft.DotNet.Runtime.10
 ### Step 2: Install PptMcp MCP Server
 
 ```powershell
-# Install MCP Server tool (command: mcp-excel)
+# Install MCP Server tool (command: mcp-ppt)
 dotnet tool install --global PptMcp.McpServer
 
 # Verify installation
@@ -108,20 +108,20 @@ dotnet tool list --global | Select-String "PptMcp"
 Use [`add-mcp`](https://github.com/neondatabase/add-mcp) to configure all detected coding agents with a single command:
 
 ```powershell
-npx add-mcp "mcp-excel" --name ppt-mcp
+npx add-mcp "mcp-ppt" --name ppt-mcp
 ```
 
 This auto-detects and configures **Cursor, VS Code, Claude Code, Claude Desktop, Codex, Zed, Gemini CLI**, and more. Use flags to customize:
 
 ```powershell
 # Configure specific agents only
-npx add-mcp "mcp-excel" --name ppt-mcp -a cursor -a claude-code
+npx add-mcp "mcp-ppt" --name ppt-mcp -a cursor -a claude-code
 
 # Configure globally (user-wide, all projects)
-npx add-mcp "mcp-excel" --name ppt-mcp -g
+npx add-mcp "mcp-ppt" --name ppt-mcp -g
 
 # Non-interactive (skip prompts)
-npx add-mcp "mcp-excel" --name ppt-mcp --all -y
+npx add-mcp "mcp-ppt" --name ppt-mcp --all -y
 ```
 
 > **Requires:** [Node.js](https://nodejs.org/) for `npx`. Install with `winget install OpenJS.NodeJS.LTS` if not already available. No permanent `add-mcp` installation needed — `npx` downloads, runs, and cleans up automatically.
@@ -138,7 +138,7 @@ Create `.vscode/mcp.json` in your workspace:
 {
   "servers": {
     "ppt-mcp": {
-      "command": "mcp-excel"
+      "command": "mcp-ppt"
     }
   }
 }
@@ -152,7 +152,7 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 {
   "servers": {
     "ppt-mcp": {
-      "command": "mcp-excel"
+      "command": "mcp-ppt"
     }
   }
 }
@@ -168,7 +168,7 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 {
   "mcpServers": {
     "ppt-mcp": {
-      "command": "mcp-excel",
+      "command": "mcp-ppt",
       "args": [],
       "env": {}
     }
@@ -189,7 +189,7 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 {
   "mcpServers": {
     "ppt-mcp": {
-      "command": "mcp-excel",
+      "command": "mcp-ppt",
       "args": [],
       "env": {}
     }
@@ -209,7 +209,7 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 {
   "mcpServers": {
     "ppt-mcp": {
-      "command": "mcp-excel",
+      "command": "mcp-ppt",
       "args": [],
       "env": {}
     }
@@ -229,7 +229,7 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 {
   "mcpServers": {
     "ppt-mcp": {
-      "command": "mcp-excel",
+      "command": "mcp-ppt",
       "args": [],
       "env": {}
     }
@@ -295,17 +295,17 @@ Skills are auto-installed by the VS Code extension. For other platforms:
 
 ```powershell
 # CLI skill (for coding agents - token-efficient workflows)
-npx skills add trsdn/mcp-server-ppt --skill excel-cli
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli
 
 # MCP skill (for conversational AI - rich tool schemas)
 npx skills add trsdn/mcp-server-ppt --skill ppt-mcp
 
 # Install for specific agents
-npx skills add trsdn/mcp-server-ppt --skill excel-cli -a cursor
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli -a cursor
 npx skills add trsdn/mcp-server-ppt --skill ppt-mcp -a claude-code
 
 # Install globally (user-wide)
-npx skills add trsdn/mcp-server-ppt --skill excel-cli --global
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli --global
 ```
 
 **Supports 43+ agents** including claude-code, github-copilot, cursor, windsurf, gemini-cli, codex, goose, cline, continue, replit, and more.
@@ -343,7 +343,7 @@ dotnet tool list --global | Select-String "PptMcp"
 
 # Verify both tools work
 pptcli --version
-mcp-excel --version
+mcp-ppt --version
 ```
 
 **Step 3: Restart your MCP client**
@@ -476,7 +476,7 @@ Agent Skills provide domain-specific guidance to AI coding assistants, helping t
 
 | Skill | Target | Best For |
 |-------|--------|----------|
-| **excel-cli** | CLI Tool | **Coding agents** (Copilot, Cursor, Windsurf) - token-efficient, `pptcli --help` discoverable |
+| **ppt-cli** | CLI Tool | **Coding agents** (Copilot, Cursor, Windsurf) - token-efficient, `pptcli --help` discoverable |
 | **ppt-mcp** | MCP Server | **Conversational AI** (Claude Desktop, VS Code Chat) - rich tool schemas, exploratory workflows |
 
 **VS Code Extension:** Skills are installed automatically to `~/.copilot/skills/`.
@@ -485,35 +485,35 @@ Agent Skills provide domain-specific guidance to AI coding assistants, helping t
 
 ```powershell
 # Install CLI skill (recommended for coding agents - Copilot, Cursor, Windsurf, Codex, etc.)
-npx skills add trsdn/mcp-server-ppt --skill excel-cli
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli
 
 # Install MCP skill (for conversational AI - Claude Desktop, VS Code Chat)
 npx skills add trsdn/mcp-server-ppt --skill ppt-mcp
 
-# Interactive install - prompts to select excel-cli, ppt-mcp, or both
+# Interactive install - prompts to select ppt-cli, ppt-mcp, or both
 npx skills add trsdn/mcp-server-ppt
 
 # Install specific skill directly
-npx skills add trsdn/mcp-server-ppt --skill excel-cli   # Coding agents
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli   # Coding agents
 npx skills add trsdn/mcp-server-ppt --skill ppt-mcp   # Conversational AI
 
 # Install both skills
 npx skills add trsdn/mcp-server-ppt --skill '*'
 
 # Target specific agent (optional - auto-detects if omitted)
-npx skills add trsdn/mcp-server-ppt --skill excel-cli -a cursor
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli -a cursor
 npx skills add trsdn/mcp-server-ppt --skill ppt-mcp -a claude-code
 ```
 
 **Manual Installation:**
-1. Download `excel-skills-v{version}.zip` from [GitHub Releases](https://github.com/trsdn/mcp-server-ppt/releases/latest)
+1. Download `ppt-skills-v{version}.zip` from [GitHub Releases](https://github.com/trsdn/mcp-server-ppt/releases/latest)
 2. The package contains both skills:
-   - `skills/excel-cli/` - for coding agents (Copilot, Cursor, Windsurf)
+   - `skills/ppt-cli/` - for coding agents (Copilot, Cursor, Windsurf)
    - `skills/ppt-mcp/` - for conversational AI (Claude Desktop, VS Code Chat)
 3. Extract the skill(s) you need to your AI assistant's skills directory:
-   - Copilot: `~/.copilot/skills/excel-cli/` or `~/.copilot/skills/ppt-mcp/`
-   - Claude Code: `.claude/skills/excel-cli/` or `.claude/skills/ppt-mcp/`
-   - Cursor: `.cursor/skills/excel-cli/` or `.cursor/skills/ppt-mcp/`
+   - Copilot: `~/.copilot/skills/ppt-cli/` or `~/.copilot/skills/ppt-mcp/`
+   - Claude Code: `.claude/skills/ppt-cli/` or `.claude/skills/ppt-mcp/`
+   - Cursor: `.cursor/skills/ppt-cli/` or `.cursor/skills/ppt-mcp/`
 
 **See:** [Agent Skills Documentation](https://github.com/trsdn/mcp-server-ppt/blob/main/skills/README.md)
 
