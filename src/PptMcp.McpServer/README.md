@@ -17,7 +17,7 @@ Unlike third-party libraries that manipulate `.pptx` files (risking corruption),
 
 **🔗 Unified Service Architecture** - The MCP Server forwards all requests to the shared PptMcp Service, enabling CLI and MCP to share sessions transparently.
 
-**CLI also available:** The MCP Server tool (`mcp-excel`) and CLI tool (`pptcli`) are published as separate .NET tools. Install `PptMcp.McpServer` for MCP clients, and optionally install `PptMcp.CLI` for scripting/RPA workflows.
+**CLI also available:** The MCP Server tool (`mcp-ppt`) and CLI tool (`pptcli`) are published as separate .NET tools. Install `PptMcp.McpServer` for MCP clients, and optionally install `PptMcp.CLI` for scripting/RPA workflows.
 
 **Requirements:** Windows OS + PowerPoint 2016+
 

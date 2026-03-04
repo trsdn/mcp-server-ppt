@@ -1,4 +1,4 @@
-# excel-cli-skill
+# ppt-cli-skill
 
 An [Agent Skill](https://agentskills.io) for automating Microsoft PowerPoint via the [pptcli](https://PptMcpserver.dev) command-line tool.
 
@@ -22,13 +22,13 @@ When loaded by an AI agent (Claude, Codex, Cursor, Gemini CLI, etc.), this skill
 ## Install
 
 ```bash
-npx skillpm install excel-cli-skill
+npx skillpm install ppt-cli-skill
 ```
 
 Or with npm directly:
 
 ```bash
-npm install excel-cli-skill
+npm install ppt-cli-skill
 ```
 
 ## License

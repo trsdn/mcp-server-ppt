@@ -6,7 +6,7 @@
 
 **Command-line interface for PowerPoint automation — preferred by coding agents.**
 
-> **Published as its own .NET tool** - Install `PptMcp.CLI` to get the `pptcli` command. Install `PptMcp.McpServer` separately when you also need the MCP server (`mcp-excel`).
+> **Published as its own .NET tool** - Install `PptMcp.CLI` to get the `pptcli` command. Install `PptMcp.McpServer` separately when you also need the MCP server (`mcp-ppt`).
 
 The CLI provides 17 command categories with 225 operations matching the MCP Server. Uses **64% fewer tokens** than MCP Server because it wraps all operations in a single tool with skill-based guidance instead of loading 25 tool schemas into context.
 

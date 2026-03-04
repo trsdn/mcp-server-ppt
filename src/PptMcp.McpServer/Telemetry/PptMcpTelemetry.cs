@@ -117,8 +117,8 @@ public static class PptMcpTelemetry
     /// <param name="action">The action performed (e.g., "get-values")</param>
     /// <param name="durationMs">Duration in milliseconds</param>
     /// <param name="success">Whether the operation succeeded</param>
-    /// <param name="excelPath">Optional PowerPoint file path (will be hashed for privacy)</param>
-    public static void TrackToolInvocation(string toolName, string action, long durationMs, bool success, string? excelPath = null)
+    /// <param name="presentationPath">Optional PowerPoint file path (will be hashed for privacy)</param>
+    public static void TrackToolInvocation(string toolName, string action, long durationMs, bool success, string? presentationPath = null)
     {
         if (_telemetryClient == null) return;
 
@@ -134,9 +134,9 @@ public static class PptMcpTelemetry
         };
 
         // Add hashed file path for grouping (if provided)
-        if (!string.IsNullOrEmpty(excelPath))
+        if (!string.IsNullOrEmpty(presentationPath))
         {
-            properties["FileSessionId"] = HashFilePath(excelPath);
+            properties["FileSessionId"] = HashFilePath(presentationPath);
         }
 
         var metrics = new Dictionary<string, double>

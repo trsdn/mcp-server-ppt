@@ -1,5 +1,5 @@
 {
-  "name": "excel-cli-skill",
+  "name": "ppt-cli-skill",
   "version": "1.7.0",
   "description": "Agent Skill for automating Microsoft PowerPoint via CLI — slides, shapes, text, charts, and more from scripts and coding agents",
   "keywords": [
@@ -15,7 +15,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/trsdn/mcp-server-ppt.git",
-    "directory": "packages/excel-cli-skill"
+    "directory": "packages/ppt-cli-skill"
   },
   "bugs": {
     "url": "https://github.com/trsdn/mcp-server-ppt/issues"

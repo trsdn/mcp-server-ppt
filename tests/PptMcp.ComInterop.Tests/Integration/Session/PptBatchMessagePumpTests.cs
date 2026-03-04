@@ -103,8 +103,8 @@ public class PptBatchMessagePumpTests : IAsyncLifetime
         });
 
         // Capture the PowerPoint process ID for measurement
-        int? excelPid = batch.PowerPointProcessId;
-        Assert.NotNull(excelPid);
+        int? pptPid = batch.PowerPointProcessId;
+        Assert.NotNull(pptPid);
 
         // Let everything settle
         Thread.Sleep(500);
@@ -116,7 +116,7 @@ public class PptBatchMessagePumpTests : IAsyncLifetime
 
         // Also measure PowerPoint's CPU
         TimeSpan excelCpuBefore;
-        using (var excelProcess = Process.GetProcessById(excelPid.Value))
+        using (var excelProcess = Process.GetProcessById(pptPid.Value))
         {
             excelProcess.Refresh();
             excelCpuBefore = excelProcess.TotalProcessorTime;
@@ -129,7 +129,7 @@ public class PptBatchMessagePumpTests : IAsyncLifetime
         var wallAfter = Stopwatch.GetTimestamp();
 
         TimeSpan excelCpuAfter;
-        using (var excelProcess = Process.GetProcessById(excelPid.Value))
+        using (var excelProcess = Process.GetProcessById(pptPid.Value))
         {
             excelProcess.Refresh();
             excelCpuAfter = excelProcess.TotalProcessorTime;
