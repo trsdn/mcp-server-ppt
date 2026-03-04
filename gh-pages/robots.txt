@@ -1,8 +1,0 @@
-# robots.txt for Excel MCP Server documentation
-# https://excelmcpserver.dev/
-
-User-agent: *
-Allow: /
-
-# Sitemap location
-Sitemap: https://excelmcpserver.dev/sitemap.xml
