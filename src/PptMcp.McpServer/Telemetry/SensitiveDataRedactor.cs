@@ -1,4 +1,5 @@
-// Copyright (c) Sbroenne. All rights reserved.
+// Copyright (c) Sbroenne.
+// Copyright (c) 2026 Torsten Mahr. All rights reserved.
 // Licensed under the MIT License.
 
 using System.Text.RegularExpressions;
