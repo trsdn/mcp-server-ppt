@@ -101,4 +101,13 @@ public interface ISlideCommands
     /// <param name="slideIndex">1-based slide index</param>
     [ServiceAction("unhide")]
     OperationResult Unhide(IPptBatch batch, int slideIndex);
+
+    /// <summary>
+    /// Export a slide as a PNG thumbnail to the specified file path.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="destinationPath">Full path for the output PNG file</param>
+    [ServiceAction("get-thumbnail")]
+    OperationResult GetThumbnail(IPptBatch batch, int slideIndex, string destinationPath);
 }

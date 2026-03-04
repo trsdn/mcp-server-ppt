@@ -26,4 +26,8 @@ public interface INotesCommands
     /// <summary>Append text to existing speaker notes (adds newline separator).</summary>
     [ServiceAction("append")]
     OperationResult Append(IPptBatch batch, int slideIndex, string text);
+
+    /// <summary>Read speaker notes from all slides in the presentation.</summary>
+    [ServiceAction("read-all")]
+    OperationResult ReadAll(IPptBatch batch);
 }

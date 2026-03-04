@@ -124,4 +124,25 @@ public interface ISlideTableCommands
     /// <param name="textAlign">Text alignment: left, center, right (null = don't change)</param>
     [ServiceAction("format-cell")]
     OperationResult FormatCell(IPptBatch batch, int slideIndex, string shapeName, int row, int column, string? fillColor, bool? fontBold, float fontSize, string? textAlign);
+
+    /// <summary>
+    /// Write values to an entire row in a table.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the table shape</param>
+    /// <param name="row">1-based row index</param>
+    /// <param name="values">Comma-separated values for the row</param>
+    [ServiceAction("write-row")]
+    OperationResult WriteRow(IPptBatch batch, int slideIndex, string shapeName, int row, string values);
+
+    /// <summary>
+    /// Read all cell values from a specific row in a table.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the table shape</param>
+    /// <param name="row">1-based row index</param>
+    [ServiceAction("read-row")]
+    OperationResult ReadRow(IPptBatch batch, int slideIndex, string shapeName, int row);
 }

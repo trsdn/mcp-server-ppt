@@ -723,6 +723,110 @@ public class ShapeCommands : IShapeCommands
         });
     }
 
+    public OperationResult ReadFill(IPptBatch batch, int slideIndex, string shapeName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? fill = null;
+            try
+            {
+                fill = shape.Fill;
+                // MsoFillType: 1=Solid, 3=Patterned, 4=Gradient, 6=Picture/Texture, 0=Background/None
+                int fillType = Convert.ToInt32(fill.Type);
+                string fillTypeName = fillType switch
+                {
+                    1 => "Solid",
+                    3 => "Patterned",
+                    4 => "Gradient",
+                    6 => "Picture",
+                    _ => "None"
+                };
+
+                string colorHex = "";
+                if (fillType == 1)
+                {
+                    int rgb = Convert.ToInt32(fill.ForeColor.RGB);
+                    int r = rgb & 0xFF;
+                    int g = (rgb >> 8) & 0xFF;
+                    int b = (rgb >> 16) & 0xFF;
+                    colorHex = $"#{r:X2}{g:X2}{b:X2}";
+                }
+
+                float transparency = Convert.ToSingle(fill.Transparency);
+
+                string message = fillType == 1
+                    ? $"Fill: {fillTypeName}, Color: {colorHex}, Transparency: {transparency:F2}"
+                    : $"Fill: {fillTypeName}, Transparency: {transparency:F2}";
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "read-fill",
+                    Message = message,
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (fill != null) ComUtilities.Release(ref fill!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult ReadLine(IPptBatch batch, int slideIndex, string shapeName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? line = null;
+            try
+            {
+                line = shape.Line;
+                // msoTrue = -1, msoFalse = 0
+                bool visible = Convert.ToInt32(line.Visible) != 0;
+
+                string colorHex = "";
+                float weight = 0f;
+                if (visible)
+                {
+                    int rgb = Convert.ToInt32(line.ForeColor.RGB);
+                    int r = rgb & 0xFF;
+                    int g = (rgb >> 8) & 0xFF;
+                    int b = (rgb >> 16) & 0xFF;
+                    colorHex = $"#{r:X2}{g:X2}{b:X2}";
+                    weight = Convert.ToSingle(line.Weight);
+                }
+
+                string message = visible
+                    ? $"Visible: true, Color: {colorHex}, Weight: {weight:F2}pt"
+                    : "Visible: false";
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "read-line",
+                    Message = message,
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (line != null) ComUtilities.Release(ref line!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static int HexToOleColor(string hex)
     {
         hex = hex.TrimStart('#');

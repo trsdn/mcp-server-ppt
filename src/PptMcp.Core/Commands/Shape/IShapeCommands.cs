@@ -239,4 +239,22 @@ public interface IShapeCommands
     /// <param name="opacity">Opacity value from 0.0 (fully transparent) to 1.0 (fully opaque)</param>
     [ServiceAction("set-opacity")]
     OperationResult SetOpacity(IPptBatch batch, int slideIndex, string shapeName, float opacity);
+
+    /// <summary>
+    /// Read the fill properties of a shape: fill type, color (if solid), and transparency.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    [ServiceAction("read-fill")]
+    OperationResult ReadFill(IPptBatch batch, int slideIndex, string shapeName);
+
+    /// <summary>
+    /// Read the line/border properties of a shape: visible, color, weight.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Name of the shape</param>
+    [ServiceAction("read-line")]
+    OperationResult ReadLine(IPptBatch batch, int slideIndex, string shapeName);
 }

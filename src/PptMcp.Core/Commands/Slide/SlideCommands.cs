@@ -310,24 +310,7 @@ public class SlideCommands : ISlideCommands
                                 dynamic shape = shapes.Item(i);
                                 try
                                 {
-                                    if (Convert.ToInt32(shape.HasTextFrame) != 0)
-                                    {
-                                        dynamic textFrame = shape.TextFrame;
-                                        dynamic textRange = textFrame.TextRange;
-                                        try
-                                        {
-                                            string text = textRange.Text?.ToString() ?? "";
-                                            if (text.Contains(searchText))
-                                            {
-                                                textRange.Text = text.Replace(searchText, replaceText);
-                                            }
-                                        }
-                                        finally
-                                        {
-                                            ComUtilities.Release(ref textRange!);
-                                            ComUtilities.Release(ref textFrame!);
-                                        }
-                                    }
+                                    ReplaceTextInShape(shape, searchText, replaceText);
                                 }
                                 finally
                                 {
@@ -411,6 +394,88 @@ public class SlideCommands : ISlideCommands
                 ComUtilities.Release(ref slide!);
             }
         });
+    }
+
+    public OperationResult GetThumbnail(IPptBatch batch, int slideIndex, string destinationPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            // Ensure destination directory exists
+            string? dir = Path.GetDirectoryName(destinationPath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            try
+            {
+                slide.Export(destinationPath, "PNG", 320, 240);
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "get-thumbnail",
+                    Message = $"Exported slide {slideIndex} thumbnail to '{destinationPath}'",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    /// <summary>
+    /// Replaces text in a shape, recursing into grouped shapes (Type == 6).
+    /// </summary>
+    private static void ReplaceTextInShape(dynamic shape, string searchText, string replaceText)
+    {
+        // msoGroup = 6
+        if (Convert.ToInt32(shape.Type) == 6)
+        {
+            dynamic groupItems = shape.GroupItems;
+            try
+            {
+                int itemCount = (int)groupItems.Count;
+                for (int g = 1; g <= itemCount; g++)
+                {
+                    dynamic groupChild = groupItems.Item(g);
+                    try
+                    {
+                        ReplaceTextInShape(groupChild, searchText, replaceText);
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref groupChild!);
+                    }
+                }
+            }
+            finally
+            {
+                ComUtilities.Release(ref groupItems!);
+            }
+            return;
+        }
+
+        if (Convert.ToInt32(shape.HasTextFrame) != 0)
+        {
+            dynamic textFrame = shape.TextFrame;
+            dynamic textRange = textFrame.TextRange;
+            try
+            {
+                string text = textRange.Text?.ToString() ?? "";
+                if (text.Contains(searchText))
+                {
+                    textRange.Text = text.Replace(searchText, replaceText);
+                }
+            }
+            finally
+            {
+                ComUtilities.Release(ref textRange!);
+                ComUtilities.Release(ref textFrame!);
+            }
+        }
     }
 
     private static dynamic? FindLayout(dynamic pres, string layoutName)

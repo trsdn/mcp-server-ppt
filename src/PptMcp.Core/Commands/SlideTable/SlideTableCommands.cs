@@ -390,6 +390,101 @@ public class SlideTableCommands : ISlideTableCommands
         });
     }
 
+    public OperationResult WriteRow(IPptBatch batch, int slideIndex, string shapeName, int row, string values)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(values);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? table = null;
+            try
+            {
+                table = shape.Table;
+                string[] parts = values.Split(',');
+                int colCount = (int)table.Columns.Count;
+                int writeCount = Math.Min(parts.Length, colCount);
+
+                for (int c = 1; c <= writeCount; c++)
+                {
+                    dynamic? cell = null;
+                    try
+                    {
+                        cell = table.Cell(row, c);
+                        cell.Shape.TextFrame.TextRange.Text = parts[c - 1].Trim();
+                    }
+                    finally
+                    {
+                        if (cell != null) ComUtilities.Release(ref cell!);
+                    }
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "write-row",
+                    Message = $"Wrote {writeCount} values to row {row} in table '{shapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (table != null) ComUtilities.Release(ref table!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult ReadRow(IPptBatch batch, int slideIndex, string shapeName, int row)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic? table = null;
+            try
+            {
+                table = shape.Table;
+                int colCount = (int)table.Columns.Count;
+                var cellValues = new List<string>();
+
+                for (int c = 1; c <= colCount; c++)
+                {
+                    dynamic? cell = null;
+                    try
+                    {
+                        cell = table.Cell(row, c);
+                        string text = cell.Shape.TextFrame.TextRange.Text?.ToString() ?? "";
+                        cellValues.Add(text);
+                    }
+                    finally
+                    {
+                        if (cell != null) ComUtilities.Release(ref cell!);
+                    }
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "read-row",
+                    Message = string.Join(",", cellValues),
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (table != null) ComUtilities.Release(ref table!);
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static int HexToOleColor(string hex)
     {
         hex = hex.TrimStart('#');

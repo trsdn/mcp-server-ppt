@@ -91,4 +91,50 @@ public class NotesCommands : INotesCommands
             }
         });
     }
+
+    public OperationResult ReadAll(IPptBatch batch)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic pres = ctx.Presentation;
+            dynamic slides = pres.Slides;
+            try
+            {
+                int count = (int)slides.Count;
+                var lines = new List<string>();
+
+                for (int i = 1; i <= count; i++)
+                {
+                    dynamic slide = slides.Item(i);
+                    try
+                    {
+                        string text = "";
+                        try
+                        {
+                            text = slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text?.ToString() ?? "";
+                        }
+                        catch { }
+
+                        lines.Add($"Slide {i}: {text}");
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref slide!);
+                    }
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "read-all",
+                    Message = string.Join("\n", lines),
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slides!);
+            }
+        });
+    }
 }
