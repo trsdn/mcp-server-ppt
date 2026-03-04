@@ -40,4 +40,43 @@ public class ImageCommands : IImageCommands
             }
         });
     }
+
+    public OperationResult Crop(IPptBatch batch, int slideIndex, string shapeName, float cropLeft, float cropRight, float cropTop, float cropBottom)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                dynamic picFormat = shape.PictureFormat;
+                try
+                {
+                    picFormat.CropLeft = cropLeft;
+                    picFormat.CropRight = cropRight;
+                    picFormat.CropTop = cropTop;
+                    picFormat.CropBottom = cropBottom;
+                }
+                finally
+                {
+                    ComUtilities.Release(ref picFormat!);
+                }
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "crop",
+                    Message = $"Cropped image '{shapeName}' on slide {slideIndex} (L:{cropLeft}, R:{cropRight}, T:{cropTop}, B:{cropBottom})",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
 }

@@ -141,11 +141,73 @@ public class WindowCommands : IWindowCommands
         });
     }
 
+    public OperationResult SetView(IPptBatch batch, int viewType)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic app = ((dynamic)ctx.Presentation).Application;
+            dynamic? window = null;
+            try
+            {
+                window = app.ActiveWindow;
+                window.ViewType = viewType;
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-view",
+                    Message = $"Set view to {GetViewTypeName(viewType)}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (window != null) ComUtilities.Release(ref window!);
+                ComUtilities.Release(ref app!);
+            }
+        });
+    }
+
+    public OperationResult GetView(IPptBatch batch)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic app = ((dynamic)ctx.Presentation).Application;
+            dynamic? window = null;
+            try
+            {
+                window = app.ActiveWindow;
+                int viewType = Convert.ToInt32(window.ViewType);
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "get-view",
+                    Message = $"Current view: {GetViewTypeName(viewType)} ({viewType})",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                if (window != null) ComUtilities.Release(ref window!);
+                ComUtilities.Release(ref app!);
+            }
+        });
+    }
+
     private static string GetWindowStateName(int state) => state switch
     {
         1 => "Normal",
         2 => "Minimized",
         3 => "Maximized",
         _ => $"Unknown({state})"
+    };
+
+    private static string GetViewTypeName(int viewType) => viewType switch
+    {
+        1 => "Normal",
+        2 => "Outline",
+        3 => "SlideSorter",
+        4 => "NotesPage",
+        5 => "SlideMaster",
+        _ => $"Unknown({viewType})"
     };
 }

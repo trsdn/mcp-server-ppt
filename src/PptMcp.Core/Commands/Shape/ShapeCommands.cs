@@ -988,4 +988,84 @@ public class ShapeCommands : IShapeCommands
             }
         });
     }
+
+    public OperationResult FindByType(IPptBatch batch, int slideIndex, int shapeType)
+    {
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shapes = slide.Shapes;
+            try
+            {
+                int count = (int)shapes.Count;
+                var matches = new List<string>();
+                for (int i = 1; i <= count; i++)
+                {
+                    dynamic shape = shapes.Item(i);
+                    try
+                    {
+                        int type = Convert.ToInt32(shape.Type);
+                        if (type == shapeType)
+                        {
+                            matches.Add(shape.Name?.ToString() ?? $"Shape{i}");
+                        }
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref shape!);
+                    }
+                }
+
+                string typeName = ShapeHelpers.GetShapeTypeName(shapeType);
+                string message = matches.Count > 0
+                    ? $"Found {matches.Count} shape(s) of type {typeName} ({shapeType}): {string.Join(", ", matches)}"
+                    : $"No shapes of type {typeName} ({shapeType}) found on slide {slideIndex}";
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "find-by-type",
+                    Message = message,
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shapes!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
+    public OperationResult CopyFormatting(IPptBatch batch, int slideIndex, string sourceShapeName, string targetShapeName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceShapeName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(targetShapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic sourceShape = slide.Shapes.Item(sourceShapeName);
+            dynamic targetShape = slide.Shapes.Item(targetShapeName);
+            try
+            {
+                sourceShape.PickUp();
+                targetShape.Apply();
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "copy-formatting",
+                    Message = $"Copied formatting from '{sourceShapeName}' to '{targetShapeName}' on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref targetShape!);
+                ComUtilities.Release(ref sourceShape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
 }

@@ -257,4 +257,23 @@ public interface IShapeCommands
     /// <param name="shapeName">Name of the shape</param>
     [ServiceAction("read-line")]
     OperationResult ReadLine(IPptBatch batch, int slideIndex, string shapeName);
+
+    /// <summary>
+    /// Find all shapes on a slide that match a given MsoShapeType.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeType">MsoShapeType integer (1=AutoShape, 6=Group, 13=Picture, 14=Placeholder, 17=TextBox, etc.)</param>
+    [ServiceAction("find-by-type")]
+    OperationResult FindByType(IPptBatch batch, int slideIndex, int shapeType);
+
+    /// <summary>
+    /// Copy all formatting from one shape to another using Format Painter (PickUp/Apply).
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="sourceShapeName">Name of the shape to copy formatting from</param>
+    /// <param name="targetShapeName">Name of the shape to apply formatting to</param>
+    [ServiceAction("copy-formatting")]
+    OperationResult CopyFormatting(IPptBatch batch, int slideIndex, string sourceShapeName, string targetShapeName);
 }

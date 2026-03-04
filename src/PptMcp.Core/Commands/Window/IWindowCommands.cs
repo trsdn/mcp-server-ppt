@@ -42,4 +42,18 @@ public interface IWindowCommands
     /// <param name="zoomPercent">Zoom percentage (e.g. 100 for 100%)</param>
     [ServiceAction("set-zoom")]
     OperationResult SetZoom(IPptBatch batch, int zoomPercent);
+
+    /// <summary>
+    /// Set the view type of the active window.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="viewType">1=Normal, 2=Outline, 3=SlideSorter, 4=NotesPage, 5=SlideMaster</param>
+    [ServiceAction("set-view")]
+    OperationResult SetView(IPptBatch batch, int viewType);
+
+    /// <summary>
+    /// Get the current view type of the active window.
+    /// </summary>
+    [ServiceAction("get-view")]
+    OperationResult GetView(IPptBatch batch);
 }
