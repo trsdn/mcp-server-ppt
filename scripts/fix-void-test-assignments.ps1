@@ -74,18 +74,18 @@ $voidMethodPatterns = @(
 
 # Find all test files
 $testFiles = @(
-    'tests\ExcelMcp.Core.Tests\Integration\Commands\Sheet\SheetCommandsTests.Move.cs'
-    'tests\ExcelMcp.Core.Tests\Integration\Commands\Sheet\SheetCommandsTests.TabColor.cs'
-    'tests\ExcelMcp.Core.Tests\Integration\Commands\Sheet\SheetCommandsTests.Visibility.cs'
-    'tests\ExcelMcp.Core.Tests\Integration\Commands\PowerQuery\PowerQueryCommandsTests.cs'
-    'tests\ExcelMcp.Core.Tests\Integration\Commands\DataModel\DataModelCommandsTests.cs'
-    'tests\ExcelMcp.Core.Tests\Integration\Commands\PivotTable\PivotTableCommandsTests.Creation.cs'
-    'tests\ExcelMcp.Core.Tests\Integration\Commands\PivotTable\PivotTableCommandsTests.OlapFields.cs'
-    'tests\ExcelMcp.Core.Tests\Helpers\DataModelTestsFixture.cs'
+    'tests\PptMcp.Core.Tests\Integration\Commands\Sheet\SheetCommandsTests.Move.cs'
+    'tests\PptMcp.Core.Tests\Integration\Commands\Sheet\SheetCommandsTests.TabColor.cs'
+    'tests\PptMcp.Core.Tests\Integration\Commands\Sheet\SheetCommandsTests.Visibility.cs'
+    'tests\PptMcp.Core.Tests\Integration\Commands\PowerQuery\PowerQueryCommandsTests.cs'
+    'tests\PptMcp.Core.Tests\Integration\Commands\DataModel\DataModelCommandsTests.cs'
+    'tests\PptMcp.Core.Tests\Integration\Commands\PivotTable\PivotTableCommandsTests.Creation.cs'
+    'tests\PptMcp.Core.Tests\Integration\Commands\PivotTable\PivotTableCommandsTests.OlapFields.cs'
+    'tests\PptMcp.Core.Tests\Helpers\DataModelTestsFixture.cs'
 )
 
 foreach ($testFile in $testFiles) {
-    $fullPath = Join-Path 'D:\source\mcp-server-excel' $testFile
+    $fullPath = Join-Path 'C:\Users\torstenmahr\github\mcp-server-ppt' $testFile
     
     if (-not (Test-Path $fullPath)) {
         Write-Verbose "File not found: $fullPath"

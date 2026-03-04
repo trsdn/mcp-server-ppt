@@ -1,6 +1,6 @@
 name: Release All Components
 
-# Unified release workflow for all ExcelMcp components:
+# Unified release workflow for all PptMcp components:
 # - MCP Server (NuGet + ZIP) - includes CLI as bundled dependency
 # - CLI (NuGet) - standalone dotnet tool for coding agents
 # - VS Code Extension (VSIX + Marketplace)
@@ -15,7 +15,6 @@ name: Release All Components
 # Required GitHub Secrets:
 # - NUGET_USER: Your NuGet.org username (profile name, NOT email)
 # - VSCE_TOKEN: VS Code Marketplace PAT
-# - APPINSIGHTS_CONNECTION_STRING: Application Insights connection string
 #
 # npm publishing uses Trusted Publishing (OIDC) — no token needed.
 # Configure at npmjs.com → Package Settings → Trusted Publisher.
@@ -131,19 +130,19 @@ jobs:
       shell: pwsh
 
     - name: Restore
-      run: dotnet restore src/ExcelMcp.CLI/ExcelMcp.CLI.csproj
+      run: dotnet restore src/PptMcp.CLI/PptMcp.CLI.csproj
 
     - name: Build CLI
-      run: dotnet build src/ExcelMcp.CLI/ExcelMcp.CLI.csproj --configuration Release --no-restore -p:Version=${{ env.VERSION }} -p:AssemblyVersion=${{ env.VERSION }}.0 -p:FileVersion=${{ env.VERSION }}.0
+      run: dotnet build src/PptMcp.CLI/PptMcp.CLI.csproj --configuration Release --no-restore -p:Version=${{ env.VERSION }} -p:AssemblyVersion=${{ env.VERSION }}.0 -p:FileVersion=${{ env.VERSION }}.0
 
     - name: Pack CLI NuGet
-      run: dotnet pack src/ExcelMcp.CLI/ExcelMcp.CLI.csproj --configuration Release --no-build --output ./cli-nupkg -p:Version=${{ env.VERSION }}
+      run: dotnet pack src/PptMcp.CLI/PptMcp.CLI.csproj --configuration Release --no-build --output ./cli-nupkg -p:Version=${{ env.VERSION }}
 
     - name: Upload CLI Build Output
       uses: actions/upload-artifact@v4
       with:
         name: cli-build
-        path: src/ExcelMcp.CLI/bin/Release/net10.0-windows/
+        path: src/PptMcp.CLI/bin/Release/net10.0-windows/
 
     - name: Upload CLI NuGet Artifact
       uses: actions/upload-artifact@v4
@@ -174,7 +173,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: cli-build
-        path: src/ExcelMcp.CLI/bin/Release/net10.0-windows/
+        path: src/PptMcp.CLI/bin/Release/net10.0-windows/
 
     - name: Set Version
       run: |
@@ -188,39 +187,37 @@ jobs:
         $version = $env:VERSION
 
         # Update MCP Registry server.json
-        $serverJsonPath = "src/ExcelMcp.McpServer/.mcp/server.json"
+        $serverJsonPath = "src/PptMcp.McpServer/.mcp/server.json"
         $serverContent = Get-Content $serverJsonPath -Raw
         $serverContent = $serverContent -replace '("version":\s*)"[\d\.]+"(\s*,\s*\n\s*"packages")' , "`$1`"$version`"`$2"
-        $serverContent = $serverContent -replace '("identifier":\s*"Sbroenne\.ExcelMcp\.McpServer",\s*\n\s*"version":\s*)"[\d\.]+"', "`$1`"$version`""
+        $serverContent = $serverContent -replace '("identifier":\s*"Trsdn\.PptMcp\.McpServer",\s*\n\s*"version":\s*)"[\d\.]+"', "`$1`"$version`""
         Set-Content $serverJsonPath $serverContent
       shell: pwsh
 
     - name: Restore
-      run: dotnet restore src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj
+      run: dotnet restore src/PptMcp.McpServer/PptMcp.McpServer.csproj
 
     - name: Build
-      run: dotnet build src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj --configuration Release --no-restore -p:Version=${{ env.VERSION }} -p:AssemblyVersion=${{ env.VERSION }}.0 -p:FileVersion=${{ env.VERSION }}.0
-      env:
-        APPINSIGHTS_CONNECTION_STRING: ${{ secrets.APPINSIGHTS_CONNECTION_STRING }}
+      run: dotnet build src/PptMcp.McpServer/PptMcp.McpServer.csproj --configuration Release --no-restore -p:Version=${{ env.VERSION }} -p:AssemblyVersion=${{ env.VERSION }}.0 -p:FileVersion=${{ env.VERSION }}.0
 
     - name: Pack NuGet
-      run: dotnet pack src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ env.VERSION }}
+      run: dotnet pack src/PptMcp.McpServer/PptMcp.McpServer.csproj --configuration Release --no-build --output ./nupkg -p:Version=${{ env.VERSION }}
 
     - name: Create Release Package
       run: |
         $version = $env:VERSION
-        New-Item -ItemType Directory -Path "release/ExcelMcp-MCP-Server-$version" -Force
-        Copy-Item "src/ExcelMcp.McpServer/bin/Release/net10.0-windows/*" "release/ExcelMcp-MCP-Server-$version/" -Recurse
-        Copy-Item "README.md" "release/ExcelMcp-MCP-Server-$version/"
-        Copy-Item "LICENSE" "release/ExcelMcp-MCP-Server-$version/"
-        Compress-Archive -Path "release/ExcelMcp-MCP-Server-$version/*" -DestinationPath "ExcelMcp-MCP-Server-$version-windows.zip"
+        New-Item -ItemType Directory -Path "release/PptMcp-MCP-Server-$version" -Force
+        Copy-Item "src/PptMcp.McpServer/bin/Release/net10.0-windows/*" "release/PptMcp-MCP-Server-$version/" -Recurse
+        Copy-Item "README.md" "release/PptMcp-MCP-Server-$version/"
+        Copy-Item "LICENSE" "release/PptMcp-MCP-Server-$version/"
+        Compress-Archive -Path "release/PptMcp-MCP-Server-$version/*" -DestinationPath "PptMcp-MCP-Server-$version-windows.zip"
       shell: pwsh
 
     - name: Upload ZIP Artifact
       uses: actions/upload-artifact@v4
       with:
         name: mcp-server-zip
-        path: ExcelMcp-MCP-Server-*-windows.zip
+        path: PptMcp-MCP-Server-*-windows.zip
 
     - name: Upload NuGet Artifact
       uses: actions/upload-artifact@v4
@@ -291,15 +288,13 @@ jobs:
       run: |
         cd vscode-extension
         npm run package
-      env:
-        APPINSIGHTS_CONNECTION_STRING: ${{ secrets.APPINSIGHTS_CONNECTION_STRING }}
 
     - name: Rename VSIX
       run: |
         $version = $env:VERSION
         cd vscode-extension
         $vsix = Get-ChildItem -Filter "*.vsix" | Select-Object -First 1
-        $targetName = "excelmcp-$version.vsix"
+        $targetName = "PptMcp-$version.vsix"
         if ($vsix.Name -ne $targetName) {
           Rename-Item $vsix.FullName -NewName $targetName
         }
@@ -309,7 +304,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: vscode-vsix
-        path: vscode-extension/excelmcp-*.vsix
+        path: vscode-extension/PptMcp-*.vsix
 
   # =============================================================================
   # Job 4: Build MCPB (Claude Desktop Bundle)
@@ -340,14 +335,12 @@ jobs:
         cd mcpb
         .\Build-McpBundle.ps1 -Version $env:VERSION
       shell: pwsh
-      env:
-        APPINSIGHTS_CONNECTION_STRING: ${{ secrets.APPINSIGHTS_CONNECTION_STRING }}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: mcpb-bundle
-        path: mcpb/artifacts/excel-mcp-*.mcpb
+        path: mcpb/artifacts/ppt-mcp-*.mcpb
 
   # =============================================================================
   # Job 5: Build Agent Skills Packages
@@ -387,7 +380,7 @@ jobs:
         New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 
         # Create staging directory
-        $stagingDir = Join-Path $env:TEMP "excel-skills-$([guid]::NewGuid().ToString('N').Substring(0,8))"
+        $stagingDir = Join-Path $env:TEMP "ppt-skills-$([guid]::NewGuid().ToString('N').Substring(0,8))"
         New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
 
         try {
@@ -395,11 +388,11 @@ jobs:
           $skillsStagingDir = Join-Path $stagingDir "skills"
           New-Item -ItemType Directory -Path $skillsStagingDir -Force | Out-Null
 
-          # Copy excel-mcp skill (SKILL.md and references already generated by build)
-          Copy-Item -Path "$skillsDir/excel-mcp" -Destination "$skillsStagingDir/excel-mcp" -Recurse
+          # Copy ppt-mcp skill (SKILL.md and references already generated by build)
+          Copy-Item -Path "$skillsDir/ppt-mcp" -Destination "$skillsStagingDir/ppt-mcp" -Recurse
 
-          # Copy excel-cli skill (SKILL.md and references already generated by build)
-          Copy-Item -Path "$skillsDir/excel-cli" -Destination "$skillsStagingDir/excel-cli" -Recurse
+          # Copy ppt-cli skill (SKILL.md and references already generated by build)
+          Copy-Item -Path "$skillsDir/ppt-cli" -Destination "$skillsStagingDir/ppt-cli" -Recurse
 
           # Copy skills README to root of package
           if (Test-Path "$skillsDir/README.md") {
@@ -407,7 +400,7 @@ jobs:
           }
 
           # Create ZIP archive
-          $zipPath = Join-Path $outputDir "excel-skills-v$version.zip"
+          $zipPath = Join-Path $outputDir "ppt-skills-v$version.zip"
           Compress-Archive -Path "$stagingDir\*" -DestinationPath $zipPath -CompressionLevel Optimal
           Write-Host "Created: $zipPath"
 
@@ -425,35 +418,35 @@ jobs:
 
         # Generate manifest.json
         $manifest = @{
-          name = "excel-skills"
+          name = "ppt-skills"
           version = $version
-          description = "Excel MCP Server Agent Skills for AI coding assistants"
+          description = "PowerPoint MCP Server Agent Skills for AI coding assistants"
           platforms = @("github-copilot", "claude-code", "cursor", "windsurf", "gemini-cli", "goose", "codex", "opencode", "amp", "kilo", "roo", "trae")
           skills = @(
             @{
-              name = "excel-mcp"
-              path = "skills/excel-mcp"
+              name = "ppt-mcp"
+              path = "skills/ppt-mcp"
               description = "MCP Server skill - for conversational AI (Claude Desktop, VS Code Chat)"
               target = "MCP Server"
             }
             @{
-              name = "excel-cli"
-              path = "skills/excel-cli"
+              name = "ppt-cli"
+              path = "skills/ppt-cli"
               description = "CLI skill - for coding agents (Copilot, Cursor, Windsurf)"
               target = "CLI Tool"
             }
           )
           installation = @{
-            npx = "npx skills add sbroenne/mcp-server-excel"
-            selectSkill = "npx skills add sbroenne/mcp-server-excel --skill excel-cli"
-            installBoth = "npx skills add sbroenne/mcp-server-excel --skill '*'"
+            npx = "npx skills add trsdn/mcp-server-ppt"
+            selectSkill = "npx skills add trsdn/mcp-server-ppt --skill ppt-cli"
+            installBoth = "npx skills add trsdn/mcp-server-ppt --skill '*'"
           }
           files = @(
             @{ name = "CLAUDE.md"; type = "config"; description = "Claude Code project instructions" }
             @{ name = ".cursorrules"; type = "config"; description = "Cursor project rules" }
           )
-          repository = "https://github.com/sbroenne/mcp-server-excel"
-          documentation = "https://excelmcpserver.dev/"
+          repository = "https://github.com/trsdn/mcp-server-ppt"
+          documentation = "https://PptMcpserver.dev/"
           buildDate = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
         }
         $manifest | ConvertTo-Json -Depth 10 | Set-Content -Path "$outputDir/manifest.json" -Encoding UTF8
@@ -464,26 +457,26 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: agent-skills
-        path: artifacts/skills/excel-skills-*.zip
+        path: artifacts/skills/ppt-skills-*.zip
 
     - name: Populate npm Skill Packages
       run: |
         $version = $env:VERSION
 
-        # Populate excel-mcp-skill
-        $mcpTarget = "packages/excel-mcp-skill/skills/excel-mcp"
+        # Populate ppt-mcp-skill
+        $mcpTarget = "packages/ppt-mcp-skill/skills/ppt-mcp"
         Get-ChildItem $mcpTarget -Exclude ".gitkeep" -Recurse -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
-        Copy-Item "skills/excel-mcp/SKILL.md" $mcpTarget
-        Copy-Item "skills/excel-mcp/references" "$mcpTarget/references" -Recurse -ErrorAction SilentlyContinue
+        Copy-Item "skills/ppt-mcp/SKILL.md" $mcpTarget
+        Copy-Item "skills/ppt-mcp/references" "$mcpTarget/references" -Recurse -ErrorAction SilentlyContinue
 
-        # Populate excel-cli-skill
-        $cliTarget = "packages/excel-cli-skill/skills/excel-cli"
+        # Populate ppt-cli-skill
+        $cliTarget = "packages/ppt-cli-skill/skills/ppt-cli"
         Get-ChildItem $cliTarget -Exclude ".gitkeep" -Recurse -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
-        Copy-Item "skills/excel-cli/SKILL.md" $cliTarget
-        Copy-Item "skills/excel-cli/references" "$cliTarget/references" -Recurse -ErrorAction SilentlyContinue
+        Copy-Item "skills/ppt-cli/SKILL.md" $cliTarget
+        Copy-Item "skills/ppt-cli/references" "$cliTarget/references" -Recurse -ErrorAction SilentlyContinue
 
         # Update versions in package.json files
-        foreach ($pkg in @("packages/excel-mcp-skill/package.json", "packages/excel-cli-skill/package.json")) {
+        foreach ($pkg in @("packages/ppt-mcp-skill/package.json", "packages/ppt-cli-skill/package.json")) {
           $content = Get-Content $pkg -Raw
           $content = $content -replace '"version":\s*"[\d\.]+"', "`"version`": `"$version`""
           Set-Content $pkg $content
@@ -520,17 +513,17 @@ jobs:
     - name: Update server.json Version
       run: |
         $version = $env:VERSION
-        $serverJsonPath = "src/ExcelMcp.McpServer/.mcp/server.json"
+        $serverJsonPath = "src/PptMcp.McpServer/.mcp/server.json"
         $serverContent = Get-Content $serverJsonPath -Raw
         $serverContent = $serverContent -replace '("version":\s*)"[\d\.]+"(\s*,\s*\n\s*"packages")' , "`$1`"$version`"`$2"
-        $serverContent = $serverContent -replace '("identifier":\s*"Sbroenne\.ExcelMcp\.McpServer",\s*\n\s*"version":\s*)"[\d\.]+"', "`$1`"$version`""
+        $serverContent = $serverContent -replace '("identifier":\s*"Trsdn\.PptMcp\.McpServer",\s*\n\s*"version":\s*)"[\d\.]+"', "`$1`"$version`""
         Set-Content $serverJsonPath $serverContent
       shell: pwsh
 
     - name: Wait for NuGet Propagation
       run: |
         $version = $env:VERSION
-        $packageId = "sbroenne.excelmcp.mcpserver"
+        $packageId = "PptMcp.mcpserver"
         $readmeUrl = "https://api.nuget.org/v3-flatcontainer/$packageId/$version/readme"
 
         Write-Output "Waiting for NuGet CDN propagation..."
@@ -543,7 +536,7 @@ jobs:
             $response = Invoke-WebRequest -Uri $readmeUrl -UseBasicParsing -ErrorAction Stop
             if ($response.StatusCode -eq 200) {
               $content = [System.Text.Encoding]::UTF8.GetString($response.Content)
-              if ($content -match "mcp-name:\s+io\.github\.sbroenne/mcp-server-excel") {
+              if ($content -match "mcp-name:\s+io\.github\.trsdn/mcp-server-ppt") {
                 Write-Output "README propagated successfully"
                 break
               }
@@ -567,7 +560,7 @@ jobs:
     - name: Publish to MCP Registry
       run: |
         ./mcp-publisher.exe login github-oidc
-        Set-Location src/ExcelMcp.McpServer/.mcp
+        Set-Location src/PptMcp.McpServer/.mcp
         ../../../mcp-publisher.exe publish --verbose
       shell: pwsh
       continue-on-error: true
@@ -661,17 +654,17 @@ jobs:
     - name: Publish to NuGet.org
       run: |
         $version = $env:VERSION
-        dotnet nuget push "nupkg/Sbroenne.ExcelMcp.McpServer.$version.nupkg" `
+        dotnet nuget push "nupkg/PptMcp.McpServer.$version.nupkg" `
           --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} `
           --source https://api.nuget.org/v3/index.json `
           --skip-duplicate
-        Write-Output "Published Sbroenne.ExcelMcp.McpServer.$version to NuGet.org"
+        Write-Output "Published PptMcp.McpServer.$version to NuGet.org"
 
-        dotnet nuget push "cli-nupkg/Sbroenne.ExcelMcp.CLI.$version.nupkg" `
+        dotnet nuget push "cli-nupkg/PptMcp.CLI.$version.nupkg" `
           --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} `
           --source https://api.nuget.org/v3/index.json `
           --skip-duplicate
-        Write-Output "Published Sbroenne.ExcelMcp.CLI.$version to NuGet.org"
+        Write-Output "Published PptMcp.CLI.$version to NuGet.org"
       shell: pwsh
 
     - name: Publish to VS Code Marketplace
@@ -679,7 +672,7 @@ jobs:
       with:
         pat: ${{ secrets.VSCE_TOKEN }}
         registryUrl: https://marketplace.visualstudio.com
-        extensionFile: vscode-vsix/excelmcp-${{ env.VERSION }}.vsix
+        extensionFile: vscode-vsix/PptMcp-${{ env.VERSION }}.vsix
       continue-on-error: true
 
     - name: Setup npm registry
@@ -688,15 +681,15 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         registry-url: https://registry.npmjs.org
 
-    - name: Publish excel-mcp-skill to npm
+    - name: Publish ppt-mcp-skill to npm
       run: |
-        cd npm-packages/excel-mcp-skill
+        cd npm-packages/ppt-mcp-skill
         npm publish --provenance --access public
       continue-on-error: true
 
-    - name: Publish excel-cli-skill to npm
+    - name: Publish ppt-cli-skill to npm
       run: |
-        cd npm-packages/excel-cli-skill
+        cd npm-packages/ppt-cli-skill
         npm publish --provenance --access public
       continue-on-error: true
 
@@ -756,7 +749,7 @@ jobs:
 
         # Build release notes
         cat > release_notes.md << 'NOTES'
-        ## ExcelMcp ${{ env.VERSION }}
+        ## PptMcp ${{ env.VERSION }}
 
         ### What's New
         ${{ steps.changelog.outputs.CHANGELOG }}
@@ -764,37 +757,37 @@ jobs:
         ### Installation Options
 
         **VS Code Extension** (Recommended)
-        - Search "ExcelMcp" in VS Code Marketplace and click Install
-        - Or download `excelmcp-${{ env.VERSION }}.vsix` below
+        - Search "PptMcp" in VS Code Marketplace and click Install
+        - Or download `PptMcp-${{ env.VERSION }}.vsix` below
         - Self-contained: no .NET runtime or SDK required
-        - Includes both MCP Server and CLI (`excelcli`)
-        - Agent skills (excel-mcp + excel-cli) registered automatically via `chatSkills`
+        - Includes both MCP Server and CLI (`pptcli`)
+        - Agent skills (ppt-mcp + ppt-cli) registered automatically via `chatSkills`
 
         **Claude Desktop (MCPB)**
-        - Download `excel-mcp-${{ env.VERSION }}.mcpb` and double-click to install
+        - Download `ppt-mcp-${{ env.VERSION }}.mcpb` and double-click to install
 
         **NuGet (.NET Tool)**
         ```powershell
         # MCP Server (for AI assistants)
-        dotnet tool install --global Sbroenne.ExcelMcp.McpServer
+        dotnet tool install --global PptMcp.McpServer
         # CLI (for coding agents and scripting)
-        dotnet tool install --global Sbroenne.ExcelMcp.CLI
+        dotnet tool install --global PptMcp.CLI
         ```
 
         **Agent Skills** (for AI coding assistants)
-        - VS Code Extension includes both skills automatically (excel-mcp + excel-cli)
-        - Install via npm: `npx skillpm install excel-mcp-skill` or `npx skillpm install excel-cli-skill`
-        - Or download `excel-skills-v${{ env.VERSION }}.zip` or install via `npx skills add sbroenne/mcp-server-excel`
+        - VS Code Extension includes both skills automatically (ppt-mcp + ppt-cli)
+        - Install via npm: `npx skillpm install ppt-mcp-skill` or `npx skillpm install ppt-cli-skill`
+        - Or download `ppt-skills-v${{ env.VERSION }}.zip` or install via `npx skills add trsdn/mcp-server-ppt`
 
         ### Requirements
         - Windows OS
-        - Microsoft Excel 2016+
+        - Microsoft PowerPoint 2016+
         - .NET 10 Runtime or SDK (for NuGet installation only; VS Code and MCPB bundle it)
 
         ### Documentation
-        - [Website](https://excelmcpserver.dev/)
-        - [GitHub Repository](https://github.com/sbroenne/mcp-server-excel)
-        - [Changelog](https://github.com/sbroenne/mcp-server-excel/blob/main/CHANGELOG.md)
+        - [Website](https://PptMcpserver.dev/)
+        - [GitHub Repository](https://github.com/trsdn/mcp-server-ppt)
+        - [Changelog](https://github.com/trsdn/mcp-server-ppt/blob/main/CHANGELOG.md)
         NOTES
 
         # Collect all artifacts
@@ -808,7 +801,7 @@ jobs:
         echo "Creating release with artifacts:$ARTIFACTS"
 
         gh release create "$TAG" $ARTIFACTS \
-          --title "ExcelMcp $VERSION" \
+          --title "PptMcp $VERSION" \
           --notes-file release_notes.md
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

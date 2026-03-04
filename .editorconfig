@@ -90,7 +90,7 @@ dotnet_diagnostic.CA1707.severity = suggestion
 # ===========================
 
 # Core layer: treat warnings as errors (all warnings fixed)
-[src/ExcelMcp.Core/**/*.cs]
+[src/PptMcp.Core/**/*.cs]
 dotnet_analyzer_diagnostic.category-CodeQuality.severity = error
 dotnet_analyzer_diagnostic.category-Design.severity = warning  # API design changes require careful planning
 dotnet_analyzer_diagnostic.category-Performance.severity = error
@@ -116,7 +116,7 @@ dotnet_diagnostic.IDE0072.severity = suggestion  # Populate switch
 dotnet_diagnostic.IDE0018.severity = suggestion  # Variable declaration inlining
 
 # CLI layer: Some ToString warnings remain - treat most as errors
-[src/ExcelMcp.CLI/**/*.cs]
+[src/PptMcp.CLI/**/*.cs]
 dotnet_analyzer_diagnostic.category-Globalization.severity = error
 dotnet_analyzer_diagnostic.category-Performance.severity = error
 dotnet_diagnostic.CA1305.severity = warning  # ToString culture warnings in display layer (acceptable for CLI)
@@ -124,14 +124,14 @@ dotnet_diagnostic.CA1311.severity = warning  # ToLower warnings in display layer
 dotnet_diagnostic.CA1304.severity = warning  # Culture warnings in display layer (acceptable for CLI)
 
 # MCP Server layer: Additional warnings to fix in follow-up
-[src/ExcelMcp.McpServer/**/*.cs]
+[src/PptMcp.McpServer/**/*.cs]
 dotnet_diagnostic.CA1861.severity = warning  # Static readonly arrays - low risk, fix in follow-up
 dotnet_diagnostic.CA1866.severity = warning  # String.StartsWith(char) - performance optimization
 dotnet_diagnostic.CA1310.severity = warning  # StartsWith StringComparison - low risk in prompts
 dotnet_diagnostic.CA1869.severity = warning  # JsonSerializerOptions caching - fix in follow-up
 
 # ComInterop layer: Windows-only, platform warnings expected
-[src/ExcelMcp.ComInterop/**/*.cs]
+[src/PptMcp.ComInterop/**/*.cs]
 dotnet_diagnostic.CA1416.severity = suggestion  # Platform-specific APIs expected (Windows-only library)
 
 

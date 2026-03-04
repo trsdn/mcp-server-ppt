@@ -7,12 +7,12 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'src/ExcelMcp.CLI/**'
-      - 'src/ExcelMcp.Core/**'
-      - 'src/ExcelMcp.ComInterop/**'
-      - 'tests/ExcelMcp.CLI.Tests/**'
-      - 'tests/ExcelMcp.Core.Tests/**'
-      - 'tests/ExcelMcp.ComInterop.Tests/**'
+      - 'src/PptMcp.CLI/**'
+      - 'src/PptMcp.Core/**'
+      - 'src/PptMcp.ComInterop/**'
+      - 'tests/PptMcp.CLI.Tests/**'
+      - 'tests/PptMcp.Core.Tests/**'
+      - 'tests/PptMcp.ComInterop.Tests/**'
       - 'global.json'
       - 'Directory.Build.props'
       - 'Directory.Packages.props'
@@ -20,13 +20,13 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - 'src/ExcelMcp.CLI/**'
-      - 'src/ExcelMcp.Core/**'
-      - 'src/ExcelMcp.ComInterop/**'
-      - 'tests/ExcelMcp.CLI.Tests/**'
-      - 'tests/ExcelMcp.Core.Tests/**'
-      - 'tests/ExcelMcp.Diagnostics.Tests/**'
-      - 'tests/ExcelMcp.ComInterop.Tests/**'
+      - 'src/PptMcp.CLI/**'
+      - 'src/PptMcp.Core/**'
+      - 'src/PptMcp.ComInterop/**'
+      - 'tests/PptMcp.CLI.Tests/**'
+      - 'tests/PptMcp.Core.Tests/**'
+      - 'tests/PptMcp.Diagnostics.Tests/**'
+      - 'tests/PptMcp.ComInterop.Tests/**'
       - 'global.json'
       - 'Directory.Build.props'
       - 'Directory.Packages.props'
@@ -45,10 +45,10 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Restore dependencies
-      run: dotnet restore src/ExcelMcp.CLI/ExcelMcp.CLI.csproj
+      run: dotnet restore src/PptMcp.CLI/PptMcp.CLI.csproj
 
     - name: Build CLI
-      run: dotnet build src/ExcelMcp.CLI/ExcelMcp.CLI.csproj --no-restore --configuration Release
+      run: dotnet build src/PptMcp.CLI/PptMcp.CLI.csproj --no-restore --configuration Release
 
     - name: Verify Core Commands Coverage
       run: |
@@ -63,14 +63,14 @@ jobs:
 
     - name: Verify CLI build
       run: |
-        # Check excelcli main executable
-        if (Test-Path "src/ExcelMcp.CLI/bin/Release/net10.0-windows/excelcli.exe") {
-          Write-Output "✅ excelcli.exe built successfully"
-          $version = (Get-Item "src/ExcelMcp.CLI/bin/Release/net10.0-windows/excelcli.exe").VersionInfo.FileVersion
+        # Check pptcli main executable
+        if (Test-Path "src/PptMcp.CLI/bin/Release/net10.0-windows/pptcli.exe") {
+          Write-Output "✅ pptcli.exe built successfully"
+          $version = (Get-Item "src/PptMcp.CLI/bin/Release/net10.0-windows/pptcli.exe").VersionInfo.FileVersion
           Write-Output "Version: $version"
 
-          # Test CLI help command (safe - no Excel COM required)
-          $helpOutput = & "src/ExcelMcp.CLI/bin/Release/net10.0-windows/excelcli.exe" --help 2>&1
+          # Test CLI help command (safe - no PowerPoint COM required)
+          $helpOutput = & "src/PptMcp.CLI/bin/Release/net10.0-windows/pptcli.exe" --help 2>&1
           $exitCode = $LASTEXITCODE
 
           if ($exitCode -eq 0) {
@@ -84,21 +84,21 @@ jobs:
             exit 1
           }
         } else {
-          Write-Error "❌ excelcli.exe not found"
+          Write-Error "❌ pptcli.exe not found"
           exit 1
         }
 
         Write-Output "🔧 CLI tool ready for direct automation"
       shell: pwsh
 
-    - name: Test CLI (requires Excel)
+    - name: Test CLI (requires PowerPoint)
       run: |
-        Write-Output "ℹ️ Note: CLI tests skipped in CI - they require Microsoft Excel"
-        Write-Output "   Run 'dotnet test tests/ExcelMcp.CLI.Tests/' locally with Excel installed"
+        Write-Output "ℹ️ Note: CLI tests skipped in CI - they require Microsoft PowerPoint"
+        Write-Output "   Run 'dotnet test tests/PptMcp.CLI.Tests/' locally with PowerPoint installed"
       shell: pwsh
 
     - name: Upload CLI build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ExcelMcp-CLI-${{ github.sha }}
-        path: src/ExcelMcp.CLI/bin/Release/net10.0-windows/
+        name: PptMcp-CLI-${{ github.sha }}
+        path: src/PptMcp.CLI/bin/Release/net10.0-windows/

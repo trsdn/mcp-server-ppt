@@ -1,5 +1,5 @@
-# Refactor ExcelMcpService.cs: Replace hand-written handlers with generated dispatch
-$file = "d:\source\mcp-server-excel\src\ExcelMcp.Service\ExcelMcpService.cs"
+# Refactor PptMcpService.cs: Replace hand-written handlers with generated dispatch
+$file = "C:\Users\torstenmahr\github\mcp-server-ppt\src\PptMcp.Service\PptMcpService.cs"
 $lines = Get-Content $file -Encoding utf8
 
 # Find the line containing "// === SHEET COMMANDS ===" -- start of DELETE section
@@ -46,7 +46,7 @@ $newBlock = @'
     private async Task<ServiceResponse> DispatchSimpleAsync<TAction>(
         string actionString, ServiceRequest request,
         TryParseDelegate<TAction> tryParse,
-        Func<TAction, IExcelBatch, string?> dispatch) where TAction : struct
+        Func<TAction, IPptBatch, string?> dispatch) where TAction : struct
     {
         if (!tryParse(actionString, out var action))
             return new ServiceResponse { Success = false, ErrorMessage = $"Unknown action: {actionString}" };

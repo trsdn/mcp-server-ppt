@@ -50,15 +50,15 @@ A real user doesn't know our CLI syntax. Neither should the test prompt.
 ```python
 # ❌ WRONG: Teaching the LLM how to use our CLI
 prompt = """
-Create a PivotTable then set layout to Compact using 
-'excelcli pivottablecalc' (run --help to see options).
-The compact layout uses row-layout value 0.
+Create a slide layout then set it to use a custom master using 
+'pptcli slidemaster' (run --help to see options).
+The custom layout uses layout-type value 0.
 """
 
 # ✅ CORRECT: Natural user request
 prompt = """
-Create a PivotTable with Compact layout showing
-Department and Team as rows, Hours as values.
+Create a presentation with a custom slide layout showing
+title and content areas.
 """
 ```
 
@@ -67,7 +67,7 @@ Department and Team as rows, Hours as values.
 ```python
 # ❌ WRONG: Directing the LLM to a specific command
 prompt = """
-Use the 'excelcli chartconfig' command to change the chart title.
+Use the 'pptcli chartconfig' command to change the chart title.
 """
 
 # ✅ CORRECT: What the user wants
@@ -85,14 +85,14 @@ The system prompt belongs to the agent, not to us. We don't control what system 
 # ❌ WRONG: Adding our own guidance to the system prompt
 agent = Agent(
     system_prompt=(
-        "Run 'excelcli <command> --help' when unsure about parameter names\n"
+        "Run 'pptcli <command> --help' when unsure about parameter names\n"
         "Always use -q flag for clean JSON output"
     ),
 )
 
 # ✅ CORRECT: No system prompt (use skill only) or minimal role context
 agent = Agent(
-    skill=excel_cli_skill,  # Our product — this IS the right place for guidance
+    skill=ppt_cli_skill,  # Our product — this IS the right place for guidance
 )
 ```
 
@@ -101,12 +101,12 @@ agent = Agent(
 ```python
 # ❌ WRONG: Teaching the LLM our session model
 prompt = """
-IMPORTANT: First, run 'excelcli session list' to confirm 
+IMPORTANT: First, run 'pptcli session list' to confirm 
 which file is open, then use that file path.
 """
 
 # ✅ CORRECT: If session discovery is hard, fix the product:
-# - Better error messages: "No active session. Run 'excelcli session list' to see open files."
+# - Better error messages: "No active session. Run 'pptcli session list' to see open files."
 # - Better skill docs: Add "Session Management" section with recovery patterns
 # - Better --help: Show session workflow in command help
 ```
@@ -115,20 +115,22 @@ which file is open, then use that file path.
 
 ### Natural Language Prompts
 
-Write prompts as a knowledgeable Excel user would. They know Excel concepts but NOT our specific CLI/MCP tool syntax.
+Write prompts as a knowledgeable PowerPoint user would. They know PowerPoint concepts but NOT our specific CLI/MCP tool syntax.
 
 ```python
 prompt = f"""
-Create a new Excel file at {unique_path('sales-analysis')}
+Create a new PowerPoint file at {unique_path('sales-presentation')}
 
-Enter this sales data:
+Add a title slide with:
+Title: "Q1 Sales Report"
+Subtitle: "Regional Performance Summary"
+
+Add a second slide with a table:
 Region, Product, Sales
 North, Widget, 15000
 South, Gadget, 12000
 
-Create a PivotTable showing Region as rows and Sum of Sales as values.
-Add a slicer for the Region field.
-Filter to show only North region.
+Add a chart on the third slide showing Region vs Sales.
 
 Save and close the file.
 """
@@ -144,7 +146,7 @@ assert result.success
 assert_cli_exit_codes(result)
 
 # ✅ Good: Did the LLM report key results?
-assert_regex(result.final_response, r"(?i)(pivot|region|north)")
+assert_regex(result.final_response, r"(?i)(slide|shape|title)")
 
 # ⚠️ Fragile: Exact numeric values across 5 conversation turns
 assert_regex(result.final_response, r"\$?43,500\.00")  # Requires perfect execution of ALL prior steps
@@ -156,19 +158,19 @@ Match test complexity to what a real user would attempt in one conversation:
 
 | Complexity | Turns | Example |
 |-----------|-------|---------|
-| Simple | 1 | Create file → write data → read back → close |
-| Medium | 1-2 | Create file → build table → add chart → save |
-| Complex | 2-3 | Build data model → create measures → analyze |
+| Simple | 1 | Create file → add slides → read back → close |
+| Medium | 1-2 | Create file → add content → add chart → save |
+| Complex | 2-3 | Build presentation → add animations → configure transitions |
 | Unreasonable | 5+ | 13-step workflow with exact numeric assertions on final state |
 
 ## Where to Fix Failures
 
 When a test fails, investigate in this order:
 
-### 1. Skill Documentation (`skills/excel-cli/SKILL.md`, `skills/excel-mcp/SKILL.md`)
+### 1. Skill Documentation (`skills/ppt-cli/SKILL.md`, `skills/ppt-mcp/SKILL.md`)
 
 The skill IS our product's interface to LLMs. If the LLM doesn't know how to:
-- Set a PivotTable layout → Add workflow patterns to the skill
+- Add a shape to a slide → Add workflow patterns to the skill
 - Use `--values-file` instead of `--values` → Document when to use file params
 - Discover `chartconfig` commands → Add chart modification patterns
 
@@ -181,7 +183,7 @@ To change chart properties WITHOUT deleting the chart:
 
 ### 2. CLI `--help` Output
 
-The `--help` text is what the LLM sees when it runs `excelcli <command> --help`. If a parameter is hard to discover, improve the help text.
+The `--help` text is what the LLM sees when it runs `pptcli <command> --help`. If a parameter is hard to discover, improve the help text.
 
 Look at:
 - `[Description]` attributes on Settings properties
@@ -218,10 +220,10 @@ If the LLM consistently gets a parameter name wrong, the name might be confusing
 agent = Agent(
     name="descriptive-test-name",
     provider=Provider(model=f"azure/{DEFAULT_MODEL}", rpm=DEFAULT_RPM, tpm=DEFAULT_TPM),
-    cli_servers=[excel_cli_server],   # CLI tests
+    cli_servers=[ppt_cli_server],   # CLI tests
     # OR
-    mcp_servers=[excel_mcp_server],   # MCP tests
-    skill=excel_cli_skill,            # Our product documentation
+    mcp_servers=[ppt_mcp_server],   # MCP tests
+    skill=ppt_cli_skill,            # Our product documentation
     max_turns=DEFAULT_MAX_TURNS,      # Always set explicitly
 )
 ```
@@ -240,7 +242,7 @@ result = await aitest_run(agent, "Create file and enter data...")
 messages = result.messages
 
 # Turn 2: Analyze (natural continuation)
-result = await aitest_run(agent, "Now create a PivotTable from that data...", messages=messages)
+result = await aitest_run(agent, "Now add a chart to the third slide from that data...", messages=messages)
 ```
 
 Keep multi-turn tests to **2-3 turns maximum**. If you need 5 turns, the test is testing too many features at once — split it into separate tests.
@@ -256,14 +258,14 @@ Keep multi-turn tests to **2-3 turns maximum**. If you need 5 turns, the test is
 | calculation_mode | `test_cli_calculation_mode.py` | `test_mcp_calculation_mode.py` |
 | chart | `test_cli_chart.py` | `test_mcp_chart.py` |
 | chart_positioning | `test_cli_chart_positioning.py` | `test_mcp_chart_positioning.py` |
-| file_worksheet | `test_cli_file_worksheet.py` | `test_mcp_file_worksheet.py` |
+| file_slide | `test_cli_file_slide.py` | `test_mcp_file_slide.py` |
 | financial_report_automation | `test_cli_financial_report_automation.py` | `test_mcp_financial_report_automation.py` |
 | modification_patterns | `test_cli_modification_patterns.py` | `test_mcp_modification_patterns.py` |
-| pivottable_layout | `test_cli_pivottable_layout.py` | `test_mcp_pivottable_layout.py` |
-| powerquery_datamodel | `test_cli_powerquery_datamodel.py` | `test_mcp_powerquery_datamodel.py` |
+| slide_layout | `test_cli_slide_layout.py` | `test_mcp_slide_layout.py` |
+| shape_operations | `test_cli_shape_operations.py` | `test_mcp_shape_operations.py` |
 | range | `test_cli_range.py` | `test_mcp_range.py` |
 | sales_report_workflow | `test_cli_sales_report_workflow.py` | `test_mcp_sales_report_workflow.py` |
-| slicer | `test_cli_slicer.py` | `test_mcp_slicer.py` |
+| animation | `test_cli_animation.py` | `test_mcp_animation.py` |
 | table | `test_cli_table.py` | `test_mcp_table.py` |
 
 ### Rules for Creating / Updating / Deleting Tests
@@ -284,16 +286,16 @@ The ONLY differences between CLI and MCP versions of a test should be:
 # CLI version
 agent = Agent(
     name="test-name-cli",
-    cli_servers=[excel_cli_server],
-    skill=excel_cli_skill,
+    cli_servers=[ppt_cli_server],
+    skill=ppt_cli_skill,
     ...
 )
 
 # MCP version
 agent = Agent(
     name="test-name-mcp",
-    mcp_servers=[excel_mcp_server],
-    skill=excel_mcp_skill,
+    mcp_servers=[ppt_mcp_server],
+    skill=ppt_mcp_skill,
     ...
 )
 ```
@@ -321,7 +323,7 @@ C# Interfaces (XML /// docs)
 skills/shared/*.md (source of truth)
   → MSBuild EmbeddedResource with Link (embedded in assembly)
   → MSBuild GenerateSkillPromptsClass inline task
-    → ExcelSkillPrompts.g.cs (14 [McpServerPrompt] methods)
+    → PptSkillPrompts.g.cs (14 [McpServerPrompt] methods)
       → Claude Desktop sees identical guidance as skill clients
 ```
 
@@ -332,7 +334,7 @@ skills/shared/*.md (source of truth)
 | Wrong tool/command description | `I*Commands.cs` XML `/// <summary>` | `SKILL.md` |
 | Wrong parameter docs | `I*Commands.cs` XML `/// <param>` | `SKILL.md` |
 | Wrong skill prose/rules/workflows | `skills/templates/SKILL.cli.sbn` or `SKILL.mcp.sbn` | `SKILL.md` |
-| Wrong reference doc content | `skills/shared/*.md` | `skills/excel-*/references/*.md` |
+| Wrong reference doc content | `skills/shared/*.md` | `skills/ppt-*/references/*.md` |
 | Wrong MCP prompt content | `skills/shared/*.md` | `Prompts/Content/Skills/` |
 | Wrong Tool Selection table (MCP) | `skills/templates/SKILL.mcp.sbn` | `SKILL.md` |
 | New skill reference needed | Add `.md` to `skills/shared/` + description in `.csproj` | Don't create separate prompt |
@@ -341,8 +343,8 @@ skills/shared/*.md (source of truth)
 
 - **Templates:** `skills/templates/SKILL.cli.sbn`, `skills/templates/SKILL.mcp.sbn`
 - **Reference docs (source of truth):** `skills/shared/*.md` → auto-synced to BOTH skill refs AND MCP prompts
-- **Generated files (NEVER edit):** `skills/excel-cli/SKILL.md`, `skills/excel-mcp/SKILL.md`, `obj/.../ExcelSkillPrompts.g.cs`
-- **Description overrides:** `src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj` → `GenerateSkillPromptsClass` task
+- **Generated files (NEVER edit):** `skills/ppt-cli/SKILL.md`, `skills/ppt-mcp/SKILL.md`, `obj/.../PptSkillPrompts.g.cs`
+- **Description overrides:** `src/PptMcp.McpServer/PptMcp.McpServer.csproj` → `GenerateSkillPromptsClass` task
 - **Build command:** `dotnet build -c Release` regenerates SKILL.md, copies references, and generates prompt class
 
 ### Testing Impact

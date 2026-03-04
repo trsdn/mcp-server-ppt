@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <NoWarn>$(NoWarn);CS1591;CA1707</NoWarn>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+
+    <!-- Assembly and Namespace Configuration -->
+    <AssemblyName>PptMcp.McpServer.Tests</AssemblyName>
+    <RootNamespace>PptMcp.McpServer.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PptMcp.McpServer\PptMcp.McpServer.csproj" />
+    <ProjectReference Include="..\..\src\PptMcp.Core\PptMcp.Core.csproj" />
+    <ProjectReference Include="..\..\src\PptMcp.CLI\PptMcp.CLI.csproj" />
+  </ItemGroup>
+
+  <!-- Golden files for API contract tests -->
+  <ItemGroup>
+    <None Include="TestData\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Copy CLI executable to test output for integration tests -->
+  <!-- CLI is built by McpServer project (as dependency), we just copy the output -->
+  <Target Name="CopyCliToTestOutput" AfterTargets="Build">
+    <PropertyGroup>
+      <CliOutputDir>$(MSBuildThisFileDirectory)..\..\src\PptMcp.CLI\bin\$(Configuration)\net9.0-windows\</CliOutputDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <CliFiles Include="$(CliOutputDir)pptcli.exe" />
+      <CliFiles Include="$(CliOutputDir)pptcli.dll" />
+      <CliFiles Include="$(CliOutputDir)pptcli.runtimeconfig.json" />
+      <CliFiles Include="$(CliOutputDir)pptcli.deps.json" />
+      <CliFiles Include="$(CliOutputDir)Spectre.Console*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(CliFiles)"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(CliOutputDir)pptcli.exe')" />
+    <Message Text="Copied CLI files to test output for integration tests" Importance="Normal" />
+  </Target>
+
+</Project>

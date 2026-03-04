@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Checks that all ((dynamic)) casts in ExcelMcp.Core and ExcelMcp.ComInterop have justification comments.
+    Checks that all ((dynamic)) casts in PptMcp.Core and PptMcp.ComInterop have justification comments.
 
 .DESCRIPTION
     Every use of ((dynamic)) cast (explicit type coercion) must be preceded by a comment explaining
@@ -9,12 +9,12 @@
     that weren't investigated.
 
     Valid comment prefixes (on the line immediately before the cast):
-      // PIA gap: ...    — Type not in v16 Microsoft.Office.Interop.Excel PIA
+      // PIA gap: ...    — Type not in v16 Microsoft.Office.Interop.PowerPoint PIA
       // TODO: ...       — Type IS in PIA but migration not yet done (tracked for removal)
       // Reason: ...     — Other documented reason for dynamic cast
 
     False positives are excluded:
-      - ExcelBatch.cs / ExcelSession.cs / ExcelShutdownService.cs (infrastructure — uses `dynamic excel`)
+      - PptBatch.cs / PptSession.cs / PptShutdownService.cs (infrastructure — uses `dynamic excel`)
       - Lines inside comments
 
 .EXAMPLE
@@ -34,16 +34,16 @@ $ErrorActionPreference = "Stop"
 $rootDir = Split-Path -Parent $PSScriptRoot
 
 $searchDirs = @(
-    (Join-Path $rootDir "src\ExcelMcp.Core"),
-    (Join-Path $rootDir "src\ExcelMcp.ComInterop")
+    (Join-Path $rootDir "src\PptMcp.Core"),
+    (Join-Path $rootDir "src\PptMcp.ComInterop")
 )
 
 # Files where bare dynamic casts are acceptable (infrastructure files)
 $excludeFiles = @(
-    "ExcelBatch.cs",
-    "ExcelSession.cs",
-    "ExcelShutdownService.cs",
-    "ExcelShutdownHelper.cs"
+    "PptBatch.cs",
+    "PptSession.cs",
+    "PptShutdownService.cs",
+    "PptShutdownService.cs"
 )
 
 $violations = @()
@@ -109,7 +109,7 @@ Write-Host ""
 Write-Host "UNDOCUMENTED ((dynamic)) CASTS FOUND: $($violations.Count)" -ForegroundColor Red
 Write-Host ""
 Write-Host "Every ((dynamic)) cast must have a comment on the preceding line explaining why:" -ForegroundColor Yellow
-Write-Host "  // PIA gap: <type> not in Microsoft.Office.Interop.Excel v16 PIA because..." -ForegroundColor Gray
+Write-Host "  // PIA gap: <type> not in Microsoft.Office.Interop.PowerPoint v16 PIA because..." -ForegroundColor Gray
 Write-Host "  // TODO: <type> IS in PIA, migration tracked — left as dynamic temporarily" -ForegroundColor Gray
 Write-Host "  // Reason: <explanation>" -ForegroundColor Gray
 Write-Host ""

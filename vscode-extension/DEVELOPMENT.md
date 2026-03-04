@@ -19,13 +19,13 @@ vscode-extension/
 ├── icon.png                  # 128x128 extension icon
 ├── icon.svg                  # SVG source
 ├── skills/                   # Agent skills (copied during build)
-│   ├── excel-mcp/            # MCP server skill
+│   ├── ppt-mcp/            # MCP server skill
 │   │   └── SKILL.md
-│   ├── excel-cli/            # CLI skill
+│   ├── ppt-cli/            # CLI skill
 │   │   └── SKILL.md
 │   └── shared/               # Shared reference docs
 │       └── *.md
-└── excelmcp-1.0.0.vsix      # Packaged extension
+└── PptMcp-1.0.0.vsix      # Packaged extension
 ```
 
 ## Key Implementation Details
@@ -35,12 +35,12 @@ vscode-extension/
 The extension uses VS Code's `mcpServerDefinitionProvider` contribution point:
 
 ```typescript
-vscode.lm.registerMcpServerDefinitionProvider('excelmcp', {
+vscode.lm.registerMcpServerDefinitionProvider('PptMcp', {
   provideMcpServerDefinitions: async () => {
-    const serverPath = path.join(context.extensionPath, 'bin', 'Sbroenne.ExcelMcp.McpServer.exe');
+    const serverPath = path.join(context.extensionPath, 'bin', 'PptMcp.McpServer.exe');
     return [
       new vscode.McpStdioServerDefinition(
-        'Excel MCP Server',
+        'PowerPoint MCP Server',
         serverPath,
         [],
         {} // Optional environment variables
@@ -56,8 +56,8 @@ The extension uses VS Code's `chatSkills` contribution point in `package.json` t
 
 ```json
 "chatSkills": [
-  { "name": "excel-mcp", "path": "./skills/excel-mcp/SKILL.md" },
-  { "name": "excel-cli", "path": "./skills/excel-cli/SKILL.md" }
+  { "name": "ppt-mcp", "path": "./skills/ppt-mcp/SKILL.md" },
+  { "name": "ppt-cli", "path": "./skills/ppt-cli/SKILL.md" }
 ]
 ```
 
@@ -95,18 +95,18 @@ The extension includes self-contained MCP server and CLI executables. To update 
 
 ```powershell
 # Build MCP server as self-contained single-file exe
-cd d:\source\mcp-server-excel
-dotnet publish src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -p:PublishReadyToRun=false -p:NuGetAudit=false -o vscode-extension/bin
+cd d:\source\mcp-server-ppt
+dotnet publish src/PptMcp.McpServer/PptMcp.McpServer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -p:PublishReadyToRun=false -p:NuGetAudit=false -o vscode-extension/bin
 
 # Build CLI as self-contained single-file exe
-dotnet publish src/ExcelMcp.CLI/ExcelMcp.CLI.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -p:PublishReadyToRun=false -p:NuGetAudit=false -o vscode-extension/bin
+dotnet publish src/PptMcp.CLI/PptMcp.CLI.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -p:PublishReadyToRun=false -p:NuGetAudit=false -o vscode-extension/bin
 
 # Or use the npm script which builds both
 npm run build:all
 
 # Verify the executables work
-vscode-extension/bin/Sbroenne.ExcelMcp.McpServer.exe --version
-vscode-extension/bin/excelcli.exe --version
+vscode-extension/bin/PptMcp.McpServer.exe --version
+vscode-extension/bin/pptcli.exe --version
 ```
 
 This creates self-contained executables with the .NET runtime and all dependencies included. No .NET SDK or runtime installation needed on end-user machines.
@@ -122,8 +122,8 @@ The extension uses bundled self-contained executables. For development testing:
 npm run build:all
 
 # Verify bundled executables work
-vscode-extension/bin/Sbroenne.ExcelMcp.McpServer.exe --version
-vscode-extension/bin/excelcli.exe --version
+vscode-extension/bin/PptMcp.McpServer.exe --version
+vscode-extension/bin/pptcli.exe --version
 ```
 
 **Why this approach**: The extension bundles self-contained MCP server and CLI executables. No .NET runtime or SDK needed on the target machine.
@@ -138,17 +138,17 @@ vscode-extension/bin/excelcli.exe --version
 2. **Press F5 in VS Code** (opens Extension Development Host)
 
 3. **Check the Debug Console** for activation logs:
-   - ✅ `ExcelMcp extension is now active`
+   - ✅ `PptMcp extension is now active`
    - ❌ NO errors about "Cannot read properties of undefined"
 
 4. **In the Extension Development Host**:
    - Check if extension is loaded: Extensions panel
    - Check if MCP server is registered: Settings → MCP
-   - Ask GitHub Copilot to list Excel tools
+   - Ask GitHub Copilot to list PowerPoint tools
 
 5. **Check Developer Tools Console** (Ctrl+Shift+I):
    - Go to Console tab
-   - Look for "ExcelMcp:" messages
+   - Look for "PptMcp:" messages
    - Verify no errors
 
 ### Package Testing
@@ -160,12 +160,12 @@ vscode-extension/bin/excelcli.exe --version
 
 2. **Install from VSIX**:
    - `Ctrl+Shift+P` → "Install from VSIX"
-   - Select `excelmcp-1.0.0.vsix`
+   - Select `PptMcp-1.0.0.vsix`
 
 3. **Verify**:
    - Extension appears in Extensions panel
    - Welcome message shows on first activation
-   - GitHub Copilot can access Excel tools
+   - GitHub Copilot can access PowerPoint tools
 
 ## Publishing
 
@@ -352,12 +352,12 @@ When VS Code releases new API features:
 - Verify extension ID matches registration
 
 **MCP server not found**
-- Ensure bundled executable exists in `bin/Sbroenne.ExcelMcp.McpServer.exe`
+- Ensure bundled executable exists in `bin/PptMcp.McpServer.exe`
 - Run `npm run build:all` to build both MCP server and CLI executables
-- Verify bundled executable runs: `bin/Sbroenne.ExcelMcp.McpServer.exe --version`
+- Verify bundled executable runs: `bin/PptMcp.McpServer.exe --version`
 
 **CLI not found**
-- Ensure `bin/excelcli.exe` exists
+- Ensure `bin/pptcli.exe` exists
 - Run `npm run build:all` to build both executables
 
 ## Extension Size 
@@ -368,7 +368,7 @@ The extension includes:
 - Main extension code (~10 KB)
 - Bundled self-contained MCP server (~118 MB uncompressed, ~34 MB compressed)
 - Bundled self-contained CLI (~115 MB uncompressed, ~34 MB compressed)
-- Agent Skills (~130 KB for both excel-mcp and excel-cli)
+- Agent Skills (~130 KB for both ppt-mcp and ppt-cli)
 
 Benefits of self-contained bundled approach:
 - ✅ Zero-setup installation (no .NET runtime or SDK required)
@@ -384,7 +384,6 @@ Potential improvements:
 - [ ] Status bar item showing server status
 - [ ] Commands to restart/reload MCP server
 - [ ] Settings for custom tool arguments
-- [ ] Telemetry for usage insights
 - [ ] Automatic update notifications
 
 ## References

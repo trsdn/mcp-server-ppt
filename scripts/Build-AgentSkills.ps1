@@ -1,26 +1,26 @@
 <#
 .SYNOPSIS
-    Builds the Excel MCP Agent Skills package for distribution.
+    Builds the PowerPoint MCP Agent Skills package for distribution.
 
 .DESCRIPTION
     Creates distributable artifacts for Agent Skills:
-    - excel-skills-v{version}.zip: Combined skill package with both excel-mcp and excel-cli
-    - packages/excel-mcp-skill/: npm package for excel-mcp skill (publish with npm publish)
-    - packages/excel-cli-skill/: npm package for excel-cli skill (publish with npm publish)
+    - ppt-skills-v{version}.zip: Combined skill package with both ppt-mcp and ppt-cli
+    - packages/ppt-mcp-skill/: npm package for ppt-mcp skill (publish with npm publish)
+    - packages/ppt-cli-skill/: npm package for ppt-cli skill (publish with npm publish)
     - CLAUDE.md: Claude Code project instructions
     - .cursorrules: Cursor project rules
 
     Shared behavioral guidance from skills/shared/ is automatically copied
-    to both excel-mcp/references/ and excel-cli/references/ during packaging.
+    to both ppt-mcp/references/ and ppt-cli/references/ during packaging.
 
-    Users install with: npx skills add sbroenne/mcp-server-excel
-    Or via npm: npx skillpm install excel-mcp-skill
+    Users install with: npx skills add trsdn/mcp-server-ppt
+    Or via npm: npx skillpm install ppt-mcp-skill
 
 .PARAMETER OutputDir
     Output directory for artifacts. Default: artifacts/skills
 
 .PARAMETER Version
-    Override version from skills/excel-mcp/VERSION
+    Override version from skills/ppt-mcp/VERSION
 
 .PARAMETER PopulateReferences
     Copy shared references to skill folders for local development (without packaging).
@@ -45,25 +45,25 @@ $RepoRoot = Split-Path -Parent $PSScriptRoot
 $SkillsDir = Join-Path $RepoRoot "skills"
 $SharedDir = Join-Path $SkillsDir "shared"
 
-# Function to generate CLI command reference from excelcli --help output
+# Function to generate CLI command reference from pptcli --help output
 function Generate-CliReference {
     param(
         [string]$SkillPath,
-        [string]$ExcelCliPath = $null
+        [string]$pptcliPath = $null
     )
 
-    # Find excelcli binary
-    if (-not $ExcelCliPath) {
-        $ExcelCliPath = Join-Path $RepoRoot "src/ExcelMcp.CLI/bin/Release/net10.0-windows/excelcli.exe"
+    # Find pptcli binary
+    if (-not $pptcliPath) {
+        $pptcliPath = Join-Path $RepoRoot "src/PptMcp.CLI/bin/Release/net10.0-windows/pptcli.exe"
     }
 
-    if (-not (Test-Path $ExcelCliPath)) {
-        Write-Warning "excelcli not found at $ExcelCliPath - skipping CLI reference generation"
-        Write-Warning "Build the CLI first: dotnet build src/ExcelMcp.CLI -c Release"
+    if (-not (Test-Path $pptcliPath)) {
+        Write-Warning "pptcli not found at $pptcliPath - skipping CLI reference generation"
+        Write-Warning "Build the CLI first: dotnet build src/PptMcp.CLI -c Release"
         return
     }
 
-    Write-Host "  Generating CLI command reference from excelcli..." -ForegroundColor Cyan
+    Write-Host "  Generating CLI command reference from pptcli..." -ForegroundColor Cyan
 
     $RefsDir = Join-Path $SkillPath "references"
     if (-not (Test-Path $RefsDir)) {
@@ -74,11 +74,11 @@ function Generate-CliReference {
     $Content = @()
     $Content += "# CLI Command Reference"
     $Content += ""
-    $Content += "> Auto-generated from \`excelcli --help\`. Do not edit manually."
+    $Content += "> Auto-generated from \`pptcli --help\`. Do not edit manually."
     $Content += ""
 
     # Get main help to extract commands
-    $MainHelp = & $ExcelCliPath --help 2>&1 | Out-String
+    $MainHelp = & $pptcliPath --help 2>&1 | Out-String
 
     # Parse commands from main help (look for lines with command names)
     $Commands = @()
@@ -101,7 +101,7 @@ function Generate-CliReference {
         $Content += ""
 
         # Get command help
-        $CmdHelp = & $ExcelCliPath $cmd --help 2>&1 | Out-String
+        $CmdHelp = & $pptcliPath $cmd --help 2>&1 | Out-String
 
         # Extract actions from the description line
         if ($CmdHelp -match "Actions:\s*(.+?)(?:\r?\n|$)") {
@@ -168,13 +168,13 @@ function Copy-SharedReferences {
 
     # Define which files each skill needs (based on SKILL.md @references/)
     $SkillReferences = @{
-        "excel-cli" = @(
+        "ppt-cli" = @(
             "behavioral-rules.md"
             "anti-patterns.md"
             "workflows.md"
             # cli-commands.md is generated dynamically by Generate-CliReference
         )
-        "excel-mcp" = @(
+        "ppt-mcp" = @(
             "behavioral-rules.md"
             "anti-patterns.md"
             "workflows.md"
@@ -218,17 +218,17 @@ function Copy-SharedReferences {
 if ($PopulateReferences) {
     Write-Host "Populating references from shared/ for local development..." -ForegroundColor Cyan
 
-    # Copy to excel-mcp
-    $McpPath = Join-Path $SkillsDir "excel-mcp"
+    # Copy to ppt-mcp
+    $McpPath = Join-Path $SkillsDir "ppt-mcp"
     if (Test-Path $McpPath) {
-        Copy-SharedReferences -SkillPath $McpPath -SkillName "excel-mcp"
+        Copy-SharedReferences -SkillPath $McpPath -SkillName "ppt-mcp"
     }
 
-    # Copy to excel-cli
-    $CliPath = Join-Path $SkillsDir "excel-cli"
+    # Copy to ppt-cli
+    $CliPath = Join-Path $SkillsDir "ppt-cli"
     if (Test-Path $CliPath) {
-        Copy-SharedReferences -SkillPath $CliPath -SkillName "excel-cli"
-        # Generate CLI command reference from excelcli --help
+        Copy-SharedReferences -SkillPath $CliPath -SkillName "ppt-cli"
+        # Generate CLI command reference from pptcli --help
         Generate-CliReference -SkillPath $CliPath
     }
 
@@ -239,7 +239,7 @@ if ($PopulateReferences) {
 
 # Get version
 if (-not $Version) {
-    $VersionFile = Join-Path $SkillsDir "excel-mcp/VERSION"
+    $VersionFile = Join-Path $SkillsDir "ppt-mcp/VERSION"
     if (Test-Path $VersionFile) {
         $Version = (Get-Content $VersionFile -Raw).Trim()
     } else {
@@ -262,7 +262,7 @@ if (-not (Test-Path $OutputPath)) {
 Write-Host "Building combined skills package..." -ForegroundColor Yellow
 
 # Create staging directory
-$StagingDir = Join-Path $env:TEMP "excel-skills-$([guid]::NewGuid().ToString('N').Substring(0,8))"
+$StagingDir = Join-Path $env:TEMP "ppt-skills-$([guid]::NewGuid().ToString('N').Substring(0,8))"
 New-Item -ItemType Directory -Path $StagingDir -Force | Out-Null
 
 try {
@@ -270,24 +270,24 @@ try {
     $SkillsStagingDir = Join-Path $StagingDir "skills"
     New-Item -ItemType Directory -Path $SkillsStagingDir -Force | Out-Null
 
-    # Copy excel-mcp skill
-    $McpSource = Join-Path $SkillsDir "excel-mcp"
+    # Copy ppt-mcp skill
+    $McpSource = Join-Path $SkillsDir "ppt-mcp"
     if (Test-Path $McpSource) {
-        Copy-Item -Path $McpSource -Destination "$SkillsStagingDir/excel-mcp" -Recurse
-        Copy-SharedReferences -SkillPath "$SkillsStagingDir/excel-mcp" -SkillName "excel-mcp"
+        Copy-Item -Path $McpSource -Destination "$SkillsStagingDir/ppt-mcp" -Recurse
+        Copy-SharedReferences -SkillPath "$SkillsStagingDir/ppt-mcp" -SkillName "ppt-mcp"
     } else {
-        Write-Warning "excel-mcp skill not found"
+        Write-Warning "ppt-mcp skill not found"
     }
 
-    # Copy excel-cli skill
-    $CliSource = Join-Path $SkillsDir "excel-cli"
+    # Copy ppt-cli skill
+    $CliSource = Join-Path $SkillsDir "ppt-cli"
     if (Test-Path $CliSource) {
-        Copy-Item -Path $CliSource -Destination "$SkillsStagingDir/excel-cli" -Recurse
-        Copy-SharedReferences -SkillPath "$SkillsStagingDir/excel-cli" -SkillName "excel-cli"
-        # Generate CLI command reference from excelcli --help
-        Generate-CliReference -SkillPath "$SkillsStagingDir/excel-cli"
+        Copy-Item -Path $CliSource -Destination "$SkillsStagingDir/ppt-cli" -Recurse
+        Copy-SharedReferences -SkillPath "$SkillsStagingDir/ppt-cli" -SkillName "ppt-cli"
+        # Generate CLI command reference from pptcli --help
+        Generate-CliReference -SkillPath "$SkillsStagingDir/ppt-cli"
     } else {
-        Write-Warning "excel-cli skill not found"
+        Write-Warning "ppt-cli skill not found"
     }
 
     # Copy skills README to root of package
@@ -297,7 +297,7 @@ try {
     }
 
     # Create ZIP archive
-    $ZipName = "excel-skills-v$Version.zip"
+    $ZipName = "ppt-skills-v$Version.zip"
     $ZipPath = Join-Path $OutputPath $ZipName
 
     if (Test-Path $ZipPath) {
@@ -316,27 +316,27 @@ try {
 Write-Host ""
 Write-Host "Building npm skill packages..." -ForegroundColor Yellow
 
-# Populate excel-mcp-skill npm package
-$NpmMcpDir = Join-Path $RepoRoot "packages/excel-mcp-skill/skills/excel-mcp"
+# Populate ppt-mcp-skill npm package
+$NpmMcpDir = Join-Path $RepoRoot "packages/ppt-mcp-skill/skills/ppt-mcp"
 if (Test-Path $NpmMcpDir) {
     # Clean previous build output (keep .gitkeep)
     Get-ChildItem $NpmMcpDir -Exclude ".gitkeep" -Recurse | Remove-Item -Recurse -Force
     # Copy SKILL.md
-    Copy-Item -Path (Join-Path $SkillsDir "excel-mcp/SKILL.md") -Destination $NpmMcpDir
-    Copy-SharedReferences -SkillPath $NpmMcpDir -SkillName "excel-mcp"
-    Write-Host "  Populated: packages/excel-mcp-skill/" -ForegroundColor Green
+    Copy-Item -Path (Join-Path $SkillsDir "ppt-mcp/SKILL.md") -Destination $NpmMcpDir
+    Copy-SharedReferences -SkillPath $NpmMcpDir -SkillName "ppt-mcp"
+    Write-Host "  Populated: packages/ppt-mcp-skill/" -ForegroundColor Green
 }
 
-# Populate excel-cli-skill npm package
-$NpmCliDir = Join-Path $RepoRoot "packages/excel-cli-skill/skills/excel-cli"
+# Populate ppt-cli-skill npm package
+$NpmCliDir = Join-Path $RepoRoot "packages/ppt-cli-skill/skills/ppt-cli"
 if (Test-Path $NpmCliDir) {
     # Clean previous build output (keep .gitkeep)
     Get-ChildItem $NpmCliDir -Exclude ".gitkeep" -Recurse | Remove-Item -Recurse -Force
     # Copy SKILL.md
-    Copy-Item -Path (Join-Path $SkillsDir "excel-cli/SKILL.md") -Destination $NpmCliDir
-    Copy-SharedReferences -SkillPath $NpmCliDir -SkillName "excel-cli"
+    Copy-Item -Path (Join-Path $SkillsDir "ppt-cli/SKILL.md") -Destination $NpmCliDir
+    Copy-SharedReferences -SkillPath $NpmCliDir -SkillName "ppt-cli"
     Generate-CliReference -SkillPath $NpmCliDir
-    Write-Host "  Populated: packages/excel-cli-skill/" -ForegroundColor Green
+    Write-Host "  Populated: packages/ppt-cli-skill/" -ForegroundColor Green
 }
 
 # Copy CLAUDE.md and .cursorrules
@@ -356,35 +356,35 @@ if (Test-Path $CursorSrc) {
 
 # Generate manifest
 $Manifest = @{
-    name = "excel-skills"
+    name = "ppt-skills"
     version = $Version
-    description = "Excel MCP Server Agent Skills for AI coding assistants"
+    description = "PowerPoint MCP Server Agent Skills for AI coding assistants"
     platforms = @("github-copilot", "claude-code", "cursor", "windsurf", "gemini-cli", "goose", "codex", "opencode", "amp", "kilo", "roo", "trae")
     skills = @(
         @{
-            name = "excel-mcp"
-            path = "skills/excel-mcp"
+            name = "ppt-mcp"
+            path = "skills/ppt-mcp"
             description = "MCP Server skill - for conversational AI (Claude Desktop, VS Code Chat)"
             target = "MCP Server"
         }
         @{
-            name = "excel-cli"
-            path = "skills/excel-cli"
+            name = "ppt-cli"
+            path = "skills/ppt-cli"
             description = "CLI skill - for coding agents (Copilot, Cursor, Windsurf)"
             target = "CLI Tool"
         }
     )
     installation = @{
-        npx = "npx skills add sbroenne/mcp-server-excel"
-        selectSkill = "npx skills add sbroenne/mcp-server-excel --skill excel-cli"
-        installBoth = "npx skills add sbroenne/mcp-server-excel --skill '*'"
+        npx = "npx skills add trsdn/mcp-server-ppt"
+        selectSkill = "npx skills add trsdn/mcp-server-ppt --skill ppt-cli"
+        installBoth = "npx skills add trsdn/mcp-server-ppt --skill '*'"
     }
     files = @(
         @{ name = "CLAUDE.md"; type = "config"; description = "Claude Code project instructions" }
         @{ name = ".cursorrules"; type = "config"; description = "Cursor project rules" }
     )
-    repository = "https://github.com/sbroenne/mcp-server-excel"
-    documentation = "https://excelmcpserver.dev/"
+    repository = "https://github.com/trsdn/mcp-server-ppt"
+    documentation = "https://PptMcpserver.dev/"
     buildDate = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
 }
 
@@ -405,5 +405,5 @@ Get-ChildItem $OutputPath | ForEach-Object {
 
 Write-Host ""
 Write-Host "Installation:" -ForegroundColor Cyan
-Write-Host "  npx skills add sbroenne/mcp-server-excel" -ForegroundColor White
-Write-Host "  (users will be prompted to select excel-cli, excel-mcp, or both)"
+Write-Host "  npx skills add trsdn/mcp-server-ppt" -ForegroundColor White
+Write-Host "  (users will be prompted to select ppt-cli, ppt-mcp, or both)"

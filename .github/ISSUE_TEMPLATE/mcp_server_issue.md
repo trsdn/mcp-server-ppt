@@ -19,9 +19,9 @@ Which AI assistant are you using with the MCP Server?
 
 ## MCP Tool & Action
 Which MCP tool and action are experiencing issues?
-- **Tool**: [e.g., powerquery, worksheet, vba, excel_cell, excel_parameter, file]
+- **Tool**: [e.g., slide, shape, text, chart, vba, file]
 - **Action**: [e.g., list, view, import, export, update, refresh, delete, etc.]
-- **File Path**: [e.g., "C:\Data\workbook.xlsx"]
+- **File Path**: [e.g., "C:\Data\presentation.pptx"]
 - **Additional Parameters**: [describe any other parameters used]
 
 ## Expected Behavior
@@ -47,8 +47,8 @@ How is the MCP Server configured?
 ```json
 {
   "mcpServers": {
-    "excel-mcp": {
-      "command": "mcp-excel",
+    "ppt-mcp": {
+      "command": "mcp-ppt",
       // or other configuration
     }
   }
@@ -57,11 +57,11 @@ How is the MCP Server configured?
 
 ## Environment
 - **Windows Version**: [e.g. Windows 11, Windows 10]
-- **Excel Version**: [e.g. Excel 365, Excel 2019]
-- **ExcelMcp Version**: [e.g. v1.0.0 - run `mcp-excel --version` or `dotnet tool list -g`]
+- **PowerPoint Version**: [e.g. PowerPoint 365, PowerPoint 2019]
+- **PptMcp Version**: [e.g. v1.0.0 - run `mcp-ppt --version` or `dotnet tool list -g`]
 - **.NET Version**: [Run `dotnet --version`]
 - **Installation Method**: 
-  - [ ] Global .NET tool (`dotnet tool install --global ExcelMcp.McpServer`)
+  - [ ] Global .NET tool (`dotnet tool install --global PptMcp.McpServer`)
   - [ ] Source build
   - [ ] Other: [please specify]
 
@@ -80,29 +80,27 @@ If possible, provide relevant logs from the MCP Server:
 ## Conversation Context (Optional)
 If helpful, provide the conversation you had with the AI assistant that led to this issue:
 ```
-User: "Can you list all Power Queries in my workbook?"
+User: "Can you list all slides in my presentation?"
 AI: [response]
 [MCP Server error occurs]
 ```
 
-## Excel File Details
-- **File Format**: [.xlsx or .xlsm]
+## PowerPoint File Details
+- **File Format**: [.pptx or .pptm]
 - **File Size**: [approximate size]
 - **Contains**: 
-  - [ ] Power Queries
   - [ ] VBA Macros
-  - [ ] Named Ranges
-  - [ ] Multiple worksheets
+  - [ ] Multiple slides
   - [ ] External connections
 
 ## VBA-Related Issues (if applicable)
-- [ ] VBA trust is properly configured (`ExcelMcp check-vba-trust`)
-- [ ] Using .xlsm file format for VBA operations
-- [ ] VBA module exists in the workbook
+- [ ] VBA trust is properly configured (`PptMcp check-vba-trust`)
+- [ ] Using .pptm file format for VBA operations
+- [ ] VBA module exists in the presentation
 - [ ] Macro security settings allow programmatic access
 
 ## Additional Context
 Add any other context about the problem here, including:
 - Screenshots of AI assistant interaction
-- Sample Excel files (with sensitive data removed)
+- Sample PowerPoint files (with sensitive data removed)
 - Other relevant information

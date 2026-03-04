@@ -1,5 +1,5 @@
 ---
-applyTo: "src/ExcelMcp.Core/Commands/**/*.cs,src/ExcelMcp.McpServer/**/*.cs"
+applyTo: "src/PptMcp.Core/Commands/**/*.cs,src/PptMcp.McpServer/**/*.cs"
 ---
 
 # Core Commands Coverage - Mandatory Workflow
@@ -23,29 +23,29 @@ applyTo: "src/ExcelMcp.Core/Commands/**/*.cs,src/ExcelMcp.McpServer/**/*.cs"
 
 ```markdown
 1. ✅ Add method to Core Commands interface
-   File: src/ExcelMcp.Core/Commands/[Feature]/I[Feature]Commands.cs
-   Example: Task<OperationResult> NewMethodAsync(IExcelBatch batch);
+   File: src/PptMcp.Core/Commands/[Feature]/I[Feature]Commands.cs
+   Example: Task<OperationResult> NewMethodAsync(IPptBatch batch);
 
 2. ✅ Implement in Core Commands class  
-   File: src/ExcelMcp.Core/Commands/[Feature]/[Feature]Commands.cs
+   File: src/PptMcp.Core/Commands/[Feature]/[Feature]Commands.cs
 
 3. ✅ Add enum value to ToolActions.cs
-   File: src/ExcelMcp.McpServer/Models/ToolActions.cs
-   Example: PowerQueryAction.NewMethod
+   File: src/PptMcp.McpServer/Models/ToolActions.cs
+   Example: SlideAction.NewMethod
    ⚠️ Build will show CS8524 error until steps 4-6 complete
 
 4. ✅ Add ToActionString mapping
-   File: src/ExcelMcp.McpServer/Models/ActionExtensions.cs
-   Example: PowerQueryAction.NewMethod => "new-method",
+   File: src/PptMcp.McpServer/Models/ActionExtensions.cs
+   Example: SlideAction.NewMethod => "new-method",
    ⚠️ CS8524 error persists
 
 5. ✅ Add switch case in MCP Tool
-   File: src/ExcelMcp.McpServer/Tools/Excel[Feature]Tool.cs
-   Example: PowerQueryAction.NewMethod => await NewMethodAsync(...),
+   File: src/PptMcp.McpServer/Tools/Ppt[Feature]Tool.cs
+   Example: SlideAction.NewMethod => await NewMethodAsync(...),
    ⚠️ CS8524 error persists
 
 6. ✅ Implement MCP method
-   File: src/ExcelMcp.McpServer/Tools/Excel[Feature]Tool.cs
+   File: src/PptMcp.McpServer/Tools/Ppt[Feature]Tool.cs
    Example: private static async Task<string> NewMethodAsync(...)
    ✅ CS8524 errors resolved
 
@@ -67,27 +67,27 @@ applyTo: "src/ExcelMcp.Core/Commands/**/*.cs,src/ExcelMcp.McpServer/**/*.cs"
 
 ```csharp
 // Step 3: Add enum value (compiler checks this)
-public enum PowerQueryAction
+public enum SlideAction
 {
     List,
-    View,
+    Get,
     NewMethod  // ⚠️ Forget this → CS8524 error in ActionExtensions.cs
 }
 
 // Step 4: Add ToActionString mapping (compiler checks this)
-public static string ToActionString(this PowerQueryAction action) => action switch
+public static string ToActionString(this SlideAction action) => action switch
 {
-    PowerQueryAction.List => "list",
-    PowerQueryAction.View => "view",
-    PowerQueryAction.NewMethod => "new-method",  // ⚠️ Forget this → CS8524 error
+    SlideAction.List => "list",
+    SlideAction.Get => "get",
+    SlideAction.NewMethod => "new-method",  // ⚠️ Forget this → CS8524 error
 };
 
 // Step 5: Add switch case in Tool (compiler checks this)
 return action switch
 {
-    PowerQueryAction.List => await ListAsync(...),
-    PowerQueryAction.View => await ViewAsync(...),
-    PowerQueryAction.NewMethod => await NewMethodAsync(...),  // ⚠️ Forget this → CS8524 error
+    SlideAction.List => await ListAsync(...),
+    SlideAction.Get => await GetAsync(...),
+    SlideAction.NewMethod => await NewMethodAsync(...),  // ⚠️ Forget this → CS8524 error
 };
 ```
 
@@ -148,12 +148,12 @@ git commit --no-verify -m "Message"
 ```
 Interface           CoreMethods EnumValues Gap Status
 ---------           ----------- ---------- --- ------
-IPowerQueryCommands          18         18   0 ✅
-ISheetCommands               13         13   0 ✅
-IRangeCommands               42         42   0 ✅
-ITableCommands               23         23   0 ✅
+ISlideCommands               15         15   0 ✅
+IShapeCommands               20         20   0 ✅
+ITableCommands               12         12   0 ✅
+IChartCommands               18         18   0 ✅
 
-Summary: 100% coverage ✅ (156 Core methods, 156 enum values)
+Summary: 100% coverage ✅ (65 Core methods, 65 enum values)
 ```
 
 **When gaps detected**:
@@ -162,7 +162,7 @@ Interface           CoreMethods EnumValues Gap Status
 ---------           ----------- ---------- --- ------
 IRangeCommands               42         40   2 ❌
 
-Summary: 98.7% coverage (156 Core methods, 154 enum values, 2 gaps)
+Summary: 98.7% coverage (65 Core methods, 63 enum values, 2 gaps)
 ```
 
 **Fix**: Follow 8-step workflow.

@@ -33,7 +33,7 @@ The release workflow requires the following secret to be configured in your GitH
 4. **Create a publisher account** (if you don't have one)
    - Go to https://marketplace.visualstudio.com/manage
    - Click "Create publisher"
-   - Publisher ID: Should match `package.json` publisher field (e.g., `sbroenne`)
+   - Publisher ID: Should match `package.json` publisher field (e.g., `trsdn`)
    - Display name, description, etc.
 
 5. **Add to GitHub Secrets**

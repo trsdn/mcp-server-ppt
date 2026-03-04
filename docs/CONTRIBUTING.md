@@ -1,10 +1,10 @@
-# Contributing to ExcelMcp
+# Contributing to PptMcp
 
-Thank you for your interest in contributing to Sbroenne.ExcelMcp! This project is designed to be extended by the community, especially to support coding agents like GitHub Copilot.
+Thank you for your interest in contributing to PptMcp! This project is designed to be extended by the community, especially to support coding agents like GitHub Copilot.
 
 ## 🎯 Project Vision
 
-ExcelMcp aims to be the go-to command-line tool for coding agents to interact with Microsoft Excel files. We prioritize:
+PptMcp aims to be the go-to command-line tool for coding agents to interact with Microsoft PowerPoint files. We prioritize:
 
 - **Simplicity** - Clear, predictable commands
 - **Reliability** - Robust COM automation
@@ -16,15 +16,15 @@ ExcelMcp aims to be the go-to command-line tool for coding agents to interact wi
 ### Development Environment
 
 1. **Prerequisites**:
-   - Windows OS (required for Excel COM)
+   - Windows OS (required for PowerPoint COM)
    - Visual Studio 2022 or VS Code
    - .NET 10 SDK
-   - Microsoft Excel installed
+   - Microsoft PowerPoint installed
 
 2. **Setup**:
    ```powershell
-   git clone https://github.com/sbroenne/mcp-server-excel.git
-   cd ExcelMcp
+   git clone https://github.com/trsdn/mcp-server-ppt.git
+   cd PptMcp
    dotnet restore
    dotnet build
    ```
@@ -46,7 +46,7 @@ ExcelMcp aims to be the go-to command-line tool for coding agents to interact wi
 
 3. **Test Your Setup**:
    ```powershell
-   dotnet run -- pq-list "path/to/test.xlsx"
+   dotnet run -- pq-list "path/to/test.pptx"
    ```
 
 ## 📋 Development Guidelines
@@ -80,13 +80,13 @@ public class MyCommands : IMyCommands
         if (!ValidateArgs(args, expectedCount, "usage string"))
             return 1;
             
-        // Excel automation using batch API
+        // PowerPoint automation using batch API
         var task = Task.Run(async () =>
         {
-            await using var batch = await ExcelSession.BeginBatchAsync(filePath);
+            await using var batch = await PptSession.BeginBatchAsync(filePath);
             return batch.Execute((ctx, ct) =>
             {
-                // Use ctx.Book for workbook access
+                // Use ctx.Presentation for presentation access
                 // Your implementation
                 return 0; // Success
             });
@@ -98,15 +98,15 @@ public class MyCommands : IMyCommands
 
 #### Critical Rules
 
-1. **Always use batch API** - Never manage Excel lifecycle manually
-2. **Excel uses 1-based indexing** - `collection.Item(1)` is the first element
+1. **Always use batch API** - Never manage PowerPoint lifecycle manually
+2. **PowerPoint uses 1-based indexing** - `collection.Item(1)` is the first element
 3. **Use `QueryTables.Add()` not `ListObjects.Add()`** - For loading Power Query data
 4. **Escape user input** - Always use `.EscapeMarkup()` with Spectre.Console
 5. **Return 0 for success, 1+ for errors** - Consistent exit codes
 
-### Excel COM Best Practices
+### PowerPoint COM Best Practices
 
-- **Late binding with dynamic types** - Use `Type.GetTypeFromProgID("Excel.Application")`
+- **Late binding with dynamic types** - Use `Type.GetTypeFromProgID("PowerPoint.Application")`
 - **Proper error handling** - Catch `COMException` and provide helpful messages
 - **Resource cleanup** - Batch API handles COM object lifecycle automatically
 - **Input validation** - Check file existence and argument counts early
@@ -115,11 +115,11 @@ public class MyCommands : IMyCommands
 
 Before submitting:
 
-1. **Manual testing** with various Excel files
-2. **Verify Excel process cleanup** - No `excel.exe` should remain after 5 seconds
+1. **Manual testing** with various PowerPoint files
+2. **Verify PowerPoint process cleanup** - No `powerpnt.exe` should remain after 5 seconds
 3. **Test error conditions** - Missing files, invalid arguments, etc.
 4. **VBA script testing** - For script-related commands, test with real VBA macros
-5. **Cross-version compatibility** - Test with different Excel versions if possible
+5. **Cross-version compatibility** - Test with different PowerPoint versions if possible
 
 ## 🔧 Adding New Commands
 
@@ -127,7 +127,7 @@ Before submitting:
 
 ```csharp
 // Commands/INewCommands.cs
-namespace ExcelMcp.Commands;
+namespace PptMcp.Commands;
 
 public interface INewCommands
 {
@@ -141,7 +141,7 @@ public interface INewCommands
 // Commands/NewCommands.cs
 using Spectre.Console;
 
-namespace ExcelMcp.Commands;
+namespace PptMcp.Commands;
 
 public class NewCommands : INewCommands
 {
@@ -175,10 +175,10 @@ Add your command to the help output in `ShowHelp()`.
 
 - [ ] Code builds with zero warnings
 - [ ] All existing commands still work
-- [ ] Excel processes clean up properly
+- [ ] PowerPoint processes clean up properly
 - [ ] Added appropriate error handling
 - [ ] Updated help text if needed
-- [ ] Tested with various Excel files
+- [ ] Tested with various PowerPoint files
 
 ### PR Description Template
 
@@ -193,8 +193,8 @@ Brief description of changes
 - [ ] Documentation update
 
 ## Testing
-- [ ] Tested manually with Excel files
-- [ ] Verified Excel process cleanup
+- [ ] Tested manually with PowerPoint files
+- [ ] Verified PowerPoint process cleanup
 - [ ] Tested error conditions
 - [ ] VBA script execution tested (if applicable)
 - [ ] No build warnings
@@ -237,10 +237,10 @@ AnsiConsole.MarkupLine($"[cyan]{title}[/]");
 
 When reporting bugs, please include:
 
-- **Excel version** and Windows version
+- **PowerPoint version** and Windows version
 - **Command used** and arguments
 - **Expected behavior** vs actual behavior
-- **Sample Excel file** (if possible)
+- **Sample PowerPoint file** (if possible)
 - **Error messages** (full text)
 
 ## 💡 Feature Requests
@@ -249,12 +249,12 @@ Great feature requests include:
 
 - **Use case description** - Why is this needed?
 - **Proposed command syntax** - How should it work?
-- **Excel operations involved** - What APIs would be used?
+- **PowerPoint operations involved** - What APIs would be used?
 - **Target users** - Coding agents? Direct users?
 
 ## 📚 Learning Resources
 
-- [Excel VBA Object Model Reference](https://docs.microsoft.com/en-us/office/vba/api/overview/excel)
+- [PowerPoint VBA Object Model Reference](https://docs.microsoft.com/en-us/office/vba/api/overview/powerpoint)
 - [Power Query M Language Reference](https://docs.microsoft.com/en-us/powerquery-m/)
 - [Spectre.Console Documentation](https://spectreconsole.net/)
 - [.NET COM Interop Guide](https://docs.microsoft.com/en-us/dotnet/framework/interop/interoperating-with-unmanaged-code)
@@ -270,10 +270,10 @@ Great feature requests include:
 - `documentation` - Documentation improvements
 - `good first issue` - Good for newcomers
 - `help wanted` - Extra attention needed  
-- `excel-com` - Excel COM automation issues
+- `ppt-com` - PowerPoint COM automation issues
 - `power-query` - Power Query specific
 - `coding-agent` - Coding agent related
 
 ---
 
-Thank you for contributing to Sbroenne.ExcelMcp! Together we're making Excel automation more accessible to coding agents and developers worldwide. 🚀
+Thank you for contributing to PptMcp! Together we're making PowerPoint automation more accessible to coding agents and developers worldwide. 🚀

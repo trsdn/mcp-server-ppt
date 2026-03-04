@@ -12,26 +12,26 @@ pytestmark = [pytest.mark.aitest, pytest.mark.mcp]
 
 
 @pytest.mark.asyncio
-async def test_mcp_table_create_query(aitest_run, excel_mcp_server, excel_mcp_skill):
+async def test_mcp_table_create_query(aitest_run, ppt_mcp_server, ppt_mcp_skill):
     agent = Agent(
         name="mcp-table-create",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        mcp_servers=[excel_mcp_server],
-        skill=excel_mcp_skill,
+        mcp_servers=[ppt_mcp_server],
+        skill=ppt_mcp_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
 
     prompt = f"""
-1. Create a new empty Excel file at {unique_path('llm-test-table')}
-2. On Sheet1, put these column headers in A1:D1: Product, Quantity, Price, Total
-3. Add data in A2:D3:
+1. Create a new empty PowerPoint presentation at {unique_path('llm-test-table')}
+2. Add a slide with a table using these column headers: Product, Quantity, Price, Total
+3. Add data rows:
    Row 2: Widget, 10, 5.99, 59.90
    Row 3: Gadget, 5, 12.99, 64.95
-4. Create an Excel table from A1:D3 and name it "SalesData"
+4. Name the table "SalesData"
 5. List all tables to confirm SalesData exists
 6. Get the data from the SalesData table
-7. Close the file without saving
+7. Close the presentation without saving
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
@@ -40,26 +40,26 @@ async def test_mcp_table_create_query(aitest_run, excel_mcp_server, excel_mcp_sk
 
 
 @pytest.mark.asyncio
-async def test_mcp_table_lifecycle(aitest_run, excel_mcp_server, excel_mcp_skill):
+async def test_mcp_table_lifecycle(aitest_run, ppt_mcp_server, ppt_mcp_skill):
     agent = Agent(
         name="mcp-table-lifecycle",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        mcp_servers=[excel_mcp_server],
-        skill=excel_mcp_skill,
+        mcp_servers=[ppt_mcp_server],
+        skill=ppt_mcp_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
 
     prompt = f"""
-1. Create a new empty Excel file at {unique_path('llm-test-table-lifecycle')}
-2. Put these column headers in A1:C1: ID, Name, Status
-3. Add data in A2:C3:
+1. Create a new empty PowerPoint presentation at {unique_path('llm-test-table-lifecycle')}
+2. Add a slide with a table using these column headers: ID, Name, Status
+3. Add data rows:
    Row 2: 1, Task One, Active
    Row 3: 2, Task Two, Complete
-4. Create a table from A1:C3 called "TaskList"
+4. Name the table "TaskList"
 5. List all tables to verify TaskList was created
 6. Delete the TaskList table
-7. Close the file without saving
+7. Close the presentation without saving
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success

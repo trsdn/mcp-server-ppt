@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions - ExcelMcp
+# GitHub Copilot Instructions - PptMcp
 
 > **🎯 Optimized for AI Coding Agents** - Modular, path-specific instructions
 
@@ -9,36 +9,36 @@
 - [Architecture Patterns](instructions/architecture-patterns.instructions.md) - Batch API, command pattern, resource management
 
 **Read based on task type:**
-- Adding/fixing commands → [Excel COM Interop](instructions/excel-com-interop.instructions.md)
+- Adding/fixing commands → [PowerPoint COM Interop](instructions/ppt-com-interop.instructions.md)
 - Writing tests → [Testing Strategy](instructions/testing-strategy.instructions.md)
 - MCP Server work → [MCP Server Guide](instructions/mcp-server-guide.instructions.md)
 - Creating PR → [Development Workflow](instructions/development-workflow.instructions.md)
 - Fixing bugs → [Bug Fixing Checklist](instructions/bug-fixing-checklist.instructions.md)
 
 **Less frequently needed:**
-- [Excel Connection Types](instructions/excel-connection-types-guide.instructions.md) - Only for connection-specific work
+- [PowerPoint Connection Types](instructions/ppt-com-patterns-guide.instructions.md) - Only for connection-specific work
 - [README Management](instructions/readme-management.instructions.md) - Only when updating READMEs
 - [Documentation Structure](instructions/documentation-structure.instructions.md) - Only when creating docs
 
 ---
 
-## What is ExcelMcp?
+## What is PptMcp?
 
-**ExcelMcp** is a Windows-only toolset for programmatic Excel automation via COM interop, designed for coding agents and automation scripts.
+**PptMcp** is a Windows-only toolset for programmatic PowerPoint automation via COM interop, designed for coding agents and automation scripts.
 
-> **⚠️ CRITICAL: ExcelMcp has TWO equal entry points — MCP Server AND CLI.**
+> **⚠️ CRITICAL: PptMcp has TWO equal entry points — MCP Server AND CLI.**
 > Both are first-class citizens. Every feature, action, and parameter must work identically through both.
 > When adding/changing features, ALWAYS verify BOTH MCP Server tools AND CLI commands are updated.
 > See Rule 24 (Post-Change Sync) for the full checklist.
 
 **Core Layers:**
-1. **ComInterop** (`src/ExcelMcp.ComInterop`) - Reusable COM automation patterns (STA threading, session management, batch operations, OLE message filter)
-2. **Core** (`src/ExcelMcp.Core`) - Excel-specific business logic (Power Query, VBA, worksheets, parameters)
-3. **Service** (`src/ExcelMcp.Service`) - Excel session management and command routing (in-process for MCP Server, named pipe for CLI daemon)
-4. **CLI** (`src/ExcelMcp.CLI`) - Command-line interface for scripting (EQUAL entry point)
-5. **MCP Server** (`src/ExcelMcp.McpServer`) - Model Context Protocol for AI assistants (EQUAL entry point)
+1. **ComInterop** (`src/PptMcp.ComInterop`) - Reusable COM automation patterns (STA threading, session management, batch operations, OLE message filter)
+2. **Core** (`src/PptMcp.Core`) - PowerPoint-specific business logic (slides, shapes, VBA, parameters)
+3. **Service** (`src/PptMcp.Service`) - PowerPoint session management and command routing (in-process for MCP Server, named pipe for CLI daemon)
+4. **CLI** (`src/PptMcp.CLI`) - Command-line interface for scripting (EQUAL entry point)
+5. **MCP Server** (`src/PptMcp.McpServer`) - Model Context Protocol for AI assistants (EQUAL entry point)
 
-**Source Generators** (`src/ExcelMcp.Generators*`) - Generate CLI commands and MCP tools from Core interfaces
+**Source Generators** (`src/PptMcp.Generators*`) - Generate CLI commands and MCP tools from Core interfaces
 
 ---
 
@@ -53,9 +53,9 @@
 dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust"
 
 # Surgical testing - Feature-specific (2-5 minutes per feature)
-dotnet test --filter "Feature=PowerQuery&RunType!=OnDemand"
-dotnet test --filter "Feature=Ranges&RunType!=OnDemand"
-dotnet test --filter "Feature=PivotTables&RunType!=OnDemand"
+dotnet test --filter "Feature=Slide&RunType!=OnDemand"
+dotnet test --filter "Feature=Shape&RunType!=OnDemand"
+dotnet test --filter "Feature=Text&RunType!=OnDemand"
 
 # Session/batch changes (MANDATORY)
 dotnet test --filter "RunType=OnDemand"
@@ -65,13 +65,13 @@ dotnet test --filter "RunType=OnDemand"
 ```csharp
 // Core: NEVER wrap batch.Execute() in try-catch that returns error result
 // Let exceptions propagate naturally - batch.Execute() handles them via TaskCompletionSource
-public DataType Method(IExcelBatch batch, string arg1)
+public DataType Method(IPptBatch batch, string arg1)
 {
     return batch.Execute((ctx, ct) => {
         dynamic? item = null;
         try {
             // Operation code here
-            item = ctx.Book.SomeObject;
+            item = ctx.Presentation.SomeObject;
             // For CRUD: return void (throws on error)
             // For queries: return actual data
             return someData;
@@ -89,7 +89,7 @@ public DataType Method(IExcelBatch batch, string arg1)
 public int Method(string[] args)
 {
     try {
-        using var batch = ExcelSession.BeginBatch(filePath);
+        using var batch = PptSession.BeginBatch(filePath);
         _coreCommands.Method(batch, arg1);
         return 0;
     } catch (Exception ex) {
@@ -102,7 +102,7 @@ public int Method(string[] args)
 [Fact]
 public void TestMethod()
 {
-    using var batch = ExcelSession.BeginBatch(_testFile);
+    using var batch = PptSession.BeginBatch(_testFile);
     var result = _commands.Method(batch, args);
     Assert.NotNull(result); // Or other appropriate assertion
 }
@@ -122,9 +122,9 @@ public void TestMethod()
 
 **Batch API:** Create NEW simple tests. CLI needs try-catch wrapping.
 
-**Excel Quirks:** Type 3/4 both handle TEXT. `RefreshAll()` unreliable. Use `queryTable.Refresh(false)`.
+**PowerPoint Quirks:** Shape Z-order requires explicit reordering. Slide indices are 1-based. Use `Slides.Item(index)` not zero-based access.
 
-**MCP Design:** Prompts are shortcuts, not tutorials. LLMs know Excel/programming.
+**MCP Design:** Prompts are shortcuts, not tutorials. LLMs know PowerPoint/programming.
 
 **Tool Priority:** `replace_string_in_file` > `grep_search` > `run_in_terminal`. Avoid PowerShell for code.
 
@@ -143,8 +143,8 @@ public void TestMethod()
 GitHub Copilot auto-loads instructions based on files you're editing:
 
 - `tests/**/*.cs` → [Testing Strategy](instructions/testing-strategy.instructions.md)
-- `src/ExcelMcp.Core/**/*.cs` → [Excel COM Interop](instructions/excel-com-interop.instructions.md)
-- `src/ExcelMcp.McpServer/**/*.cs` → [MCP Server Guide](instructions/mcp-server-guide.instructions.md)
+- `src/PptMcp.Core/**/*.cs` → [PowerPoint COM Interop](instructions/ppt-com-interop.instructions.md)
+- `src/PptMcp.McpServer/**/*.cs` → [MCP Server Guide](instructions/mcp-server-guide.instructions.md)
 - `.github/workflows/**/*.yml` → [Development Workflow](instructions/development-workflow.instructions.md)
 - `**` (all files) → [CRITICAL-RULES.md](instructions/critical-rules.instructions.md)
 
@@ -194,7 +194,7 @@ uv run pytest -m aitest -v   # All LLM tests
 
 **Prerequisites:**
 - Azure OpenAI endpoint: `$env:AZURE_OPENAI_ENDPOINT = "https://<resource>.openai.azure.com/"`
-- Build MCP Server: `dotnet build src\ExcelMcp.McpServer -c Release`
+- Build MCP Server: `dotnet build src\PptMcp.McpServer -c Release`
 
 **Structure:**
 - `test_mcp_*.py` - MCP Server workflows
@@ -209,8 +209,8 @@ Two cross-platform AI assistant skill packages:
 
 | Skill | File | Target | Best For |
 |-------|------|--------|----------|
-| **excel-cli** | `skills/excel-cli/SKILL.md` | CLI Tool | Coding agents (token-efficient, `--help` discoverable) |
-| **excel-mcp** | `skills/excel-mcp/SKILL.md` | MCP Server | Conversational AI (rich tool schemas) |
+| **ppt-cli** | `skills/ppt-cli/SKILL.md` | CLI Tool | Coding agents (token-efficient, `--help` discoverable) |
+| **ppt-mcp** | `skills/ppt-mcp/SKILL.md` | MCP Server | Conversational AI (rich tool schemas) |
 
 **Build skills from source:**
 ```powershell
@@ -219,14 +219,14 @@ dotnet build -c Release  # Generates SKILL.md, copies references, and generates 
 
 **Guidance architecture (single source of truth):**
 - `skills/shared/*.md` → auto-copied to skill references AND auto-generated as MCP prompts
-- Skill-based clients (VS Code, Cursor) read `skills/excel-*/references/`
+- Skill-based clients (VS Code, Cursor) read `skills/ppt-*/references/`
 - MCP-only clients (Claude Desktop) read auto-generated `[McpServerPrompt]` methods
 - NEVER create separate prompt files for content that belongs in `skills/shared/`
 
 **Install via npx:**
 ```bash
-npx skills add sbroenne/mcp-server-excel --skill excel-cli   # Coding agents
-npx skills add sbroenne/mcp-server-excel --skill excel-mcp   # Conversational AI
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli   # Coding agents
+npx skills add trsdn/mcp-server-ppt --skill ppt-mcp   # Conversational AI
 ```
 
 ---
@@ -235,11 +235,11 @@ npx skills add sbroenne/mcp-server-excel --skill excel-mcp   # Conversational AI
 
 ### Command File Structure
 ```
-Commands/Sheet/
-├── ISheetCommands.cs           # Interface (defines contract)
-├── SheetCommands.cs            # Partial class (constructor, DI)
-├── SheetCommands.Lifecycle.cs  # Partial (Create, Delete, Rename...)
-└── SheetCommands.Style.cs      # Partial (formatting operations)
+Commands/Slide/
+├── ISlideCommands.cs           # Interface (defines contract)
+├── SlideCommands.cs            # Partial class (constructor, DI)
+├── SlideCommands.Lifecycle.cs  # Partial (Create, Delete, Rename...)
+└── SlideCommands.Style.cs      # Partial (formatting operations)
 ```
 
 **Rules:**
@@ -265,13 +265,13 @@ catch (Exception ex) {
 ### Service Architecture (TWO EQUAL ENTRY POINTS)
 
 ```
-MCP Server ──► In-process ExcelMcpService ──► Core Commands ──► Excel COM
-CLI ─────────► CLI Daemon (named pipe) ─────► Core Commands ──► Excel COM
+MCP Server ──► In-process PptMcpService ──► Core Commands ──► PowerPoint COM
+CLI ─────────► CLI Daemon (named pipe) ─────► Core Commands ──► PowerPoint COM
 ```
 
-**⚠️ MCP Server and CLI are BOTH first-class entry points.** Each hosts its own ExcelMcpService instance:
+**⚠️ MCP Server and CLI are BOTH first-class entry points.** Each hosts its own PptMcpService instance:
 - **MCP Server**: Fully in-process, direct method calls (no pipe)
-- **CLI**: Daemon process with named pipe (`excelmcp-cli-{SID}`), sessions persist across CLI invocations
+- **CLI**: Daemon process with named pipe (`PptMcp-cli-{SID}`), sessions persist across CLI invocations
 - **Feature parity**: Every action available in MCP must be available in CLI and vice versa
 - **Parameter parity**: Same parameters, same defaults, same validation
 

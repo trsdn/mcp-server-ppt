@@ -1,6 +1,6 @@
-# ExcelMcp Tests
+# PptMcp Tests
 
-> **⚠️ No Traditional Unit Tests**: ExcelMcp has no unit tests. Integration tests ARE our unit tests because Excel COM cannot be meaningfully mocked. See [`docs/ADR-001-NO-UNIT-TESTS.md`](../docs/ADR-001-NO-UNIT-TESTS.md) for full architectural rationale.
+> **⚠️ No Traditional Unit Tests**: PptMcp has no unit tests. Integration tests ARE our unit tests because PowerPoint COM cannot be meaningfully mocked. See [`docs/ADR-001-NO-UNIT-TESTS.md`](../docs/ADR-001-NO-UNIT-TESTS.md) for full architectural rationale.
 
 ## Quick Start
 
@@ -29,11 +29,11 @@ dotnet test --filter "(Feature=VBA|Feature=VBATrust)&RunType!=OnDemand"
 
 ```
 tests/
-├── ExcelMcp.Core.Tests/           # Core business logic (Integration)
-├── ExcelMcp.Diagnostics.Tests/    # Excel COM behavior research (OnDemand, Manual)
-├── ExcelMcp.McpServer.Tests/      # MCP protocol layer (Integration)
-├── ExcelMcp.CLI.Tests/            # CLI wrapper (Integration)
-└── ExcelMcp.ComInterop.Tests/     # COM utilities (OnDemand)
+├── PptMcp.Core.Tests/           # Core business logic (Integration)
+├── PptMcp.Diagnostics.Tests/    # PowerPoint COM behavior research (OnDemand, Manual)
+├── PptMcp.McpServer.Tests/      # MCP protocol layer (Integration)
+├── PptMcp.CLI.Tests/            # CLI wrapper (Integration)
+└── PptMcp.ComInterop.Tests/     # COM utilities (OnDemand)
 
 llm-tests/                          # LLM tool behavior validation (Manual)
 ```
@@ -42,19 +42,19 @@ llm-tests/                          # LLM tool behavior validation (Manual)
 
 | Category | Speed | Requirements | Run By Default |
 |----------|-------|--------------|----------------|
-| **Integration** | Medium (10-20 min) | Excel + Windows | ✅ Yes (local) |
-| **OnDemand** | Slow (3-5 min) | Excel + Windows | ❌ No (explicit only) |
-| **Diagnostics** | Slow (varies) | Excel + Windows | ❌ No (manual, excluded from CI) |
-| **LLM Tests** | Slow (varies) | Excel + Azure OpenAI | ❌ No (manual only) |
+| **Integration** | Medium (10-20 min) | PowerPoint + Windows | ✅ Yes (local) |
+| **OnDemand** | Slow (3-5 min) | PowerPoint + Windows | ❌ No (explicit only) |
+| **Diagnostics** | Slow (varies) | PowerPoint + Windows | ❌ No (manual, excluded from CI) |
+| **LLM Tests** | Slow (varies) | PowerPoint + Azure OpenAI | ❌ No (manual only) |
 
 ## Diagnostics Tests
 
-Diagnostics tests are research/exploratory tests in `ExcelMcp.Diagnostics.Tests` that document the actual behavior of Excel's COM APIs without our abstraction layer. These tests are **excluded from CI** to keep automation focused on core functionality.
+Diagnostics tests are research/exploratory tests in `PptMcp.Diagnostics.Tests` that document the actual behavior of PowerPoint's COM APIs without our abstraction layer. These tests are **excluded from CI** to keep automation focused on core functionality.
 
 **Purpose:**
-- Understand Excel COM API behavior for Power Query, Data Model, PivotTables, etc.
+- Understand PowerPoint COM API behavior for Power Query, Data Model, PivotTables, etc.
 - Document findings and edge cases for future implementation decisions
-- Test alternative approaches to complex Excel operations
+- Test alternative approaches to complex PowerPoint operations
 
 **Trait markers:**
 - `Layer=Diagnostics`  
@@ -63,10 +63,10 @@ Diagnostics tests are research/exploratory tests in `ExcelMcp.Diagnostics.Tests`
 **Run diagnostics tests locally:**
 ```powershell
 # All diagnostics tests
-dotnet test tests/ExcelMcp.Diagnostics.Tests/ --filter "RunType=OnDemand&Layer=Diagnostics"
+dotnet test tests/PptMcp.Diagnostics.Tests/ --filter "RunType=OnDemand&Layer=Diagnostics"
 
 # Specific diagnostic tests
-dotnet test tests/ExcelMcp.Diagnostics.Tests/ --filter "Feature=PowerQuery&RunType=OnDemand"
+dotnet test tests/PptMcp.Diagnostics.Tests/ --filter "Feature=PowerQuery&RunType=OnDemand"
 ```
 
 **CI Behavior:**
@@ -98,7 +98,7 @@ dotnet test --filter "Feature=Connections&RunType!=OnDemand"
 
 ## LLM Tests
 
-The `llm-tests/` project validates that LLMs correctly use Excel MCP Server and CLI tools using [pytest-aitest](https://github.com/sbroenne/pytest-aitest).
+The `llm-tests/` project validates that LLMs correctly use PowerPoint MCP Server and CLI tools using [pytest-aitest](https://github.com/trsdn/pytest-aitest).
 
 ### When to Run LLM Tests
 
@@ -117,7 +117,7 @@ uv run pytest -m aitest -v
 ### Prerequisites
 
 - `AZURE_OPENAI_ENDPOINT` environment variable
-- Windows desktop with Excel installed
+- Windows desktop with PowerPoint installed
 - pytest-aitest dependency (local path via uv)
 
 **See [LLM Tests README](../llm-tests/README.md) for complete documentation.**
@@ -129,7 +129,7 @@ uv run pytest -m aitest -v
 VBA tests are excluded from normal test runs because:
 1. **Stable codebase** - VBA features are mature with minimal changes
 2. **Performance** - Excluding VBA tests makes integration tests ~25% faster (10-15 min vs 15-20 min)
-3. **Special requirements** - VBA tests require VBA trust enabled in Excel settings
+3. **Special requirements** - VBA tests require VBA trust enabled in PowerPoint settings
 4. **Opt-in model** - Explicit testing when VBA code changes, rather than every commit
 
 ### When to Run VBA Tests
@@ -155,26 +155,26 @@ dotnet test --filter "Category=Integration&RunType!=OnDemand"
 All VBA tests are tagged with `[Trait("Feature", "VBA")]` or `[Trait("Feature", "VBATrust")]`:
 
 ```
-tests/ExcelMcp.Core.Tests/Integration/Commands/Script/
+tests/PptMcp.Core.Tests/Integration/Commands/Script/
   - ScriptCommandsTests.cs
   - ScriptCommandsTests.Lifecycle.cs
   - VbaTrustDetectionTests.ScriptCommands.cs
   - VbaTrustDetectionTests.cs
 
-tests/ExcelMcp.CLI.Tests/Integration/Commands/
+tests/PptMcp.CLI.Tests/Integration/Commands/
   - ScriptAndSetupCommandsTests.cs
 ```
 
 ### VBA Trust Setup
 
-VBA tests require VBA trust enabled in Excel:
+VBA tests require VBA trust enabled in PowerPoint:
 
 ```powershell
 # Enable VBA trust (required for VBA tests)
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Excel\Security" -Name "AccessVBOM" -Value 1
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\PowerPoint\Security" -Name "AccessVBOM" -Value 1
 
 # Verify setting
-Get-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Excel\Security" -Name "AccessVBOM"
+Get-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\PowerPoint\Security" -Name "AccessVBOM"
 ```
 
 **Security Note:** Only enable VBA trust in development environments. Production systems should keep this disabled.
@@ -183,12 +183,12 @@ Get-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Excel\Security" -Na
 
 - ✅ **File Isolation** - Each test creates unique file (no sharing)
 - ✅ **Binary Assertions** - Pass OR fail, never "accept both"
-- ✅ **Verify Excel State** - Always verify actual Excel state after operations
+- ✅ **Verify PowerPoint State** - Always verify actual PowerPoint state after operations
 - ❌ **No SaveAsync** - Unless testing persistence (see [Rule 14](../.github/instructions/critical-rules.instructions.md#rule-14-no-saveasync-unless-testing-persistence))
 
 ## Getting Help
 
 - **Test failures**: Check test output for detailed error messages
-- **Excel issues**: Ensure Excel 2016+ installed and activated
+- **PowerPoint issues**: Ensure PowerPoint 2016+ installed and activated
 - **Session/batch issues**: Run OnDemand tests to verify cleanup
 - **Writing tests**: See [Testing Strategy](../.github/instructions/testing-strategy.instructions.md)

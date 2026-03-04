@@ -1,7 +1,7 @@
 <Project>
 
   <!-- Copy office.dll (Microsoft.Office.Core) from the .NET Framework GAC to every project's
-       output directory. Microsoft.Office.Interop.Excel.dll references office.dll, which .NET Core
+       output directory. Microsoft.Office.Interop.PowerPoint.dll references office.dll, which .NET Core
        cannot find automatically in the .NET Framework GAC. office.dll is present when Office is
        installed (required for this Windows-only COM automation project).
        Prefers v16 (Office 2016+/365), falls back to v15 (Office 2013). -->

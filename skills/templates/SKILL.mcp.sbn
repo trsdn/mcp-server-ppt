@@ -1,45 +1,45 @@
 ---
-name: excel-mcp
+name: ppt-mcp
 description: >
-  Automate Microsoft Excel on Windows via COM interop. Use when creating, reading,
-  or modifying Excel workbooks. Supports Power Query (M code), Data Model (DAX measures),
-  PivotTables, Tables, Ranges, Charts, Slicers, Formatting, VBA macros, connections, and calculation mode control.
-  Triggers: Excel, spreadsheet, workbook, xlsx, Power Query, DAX, PivotTable, VBA.
+  Automate Microsoft PowerPoint on Windows via COM interop. Use when creating, reading,
+  or modifying PowerPoint presentations. Supports Slides, Shapes, Text, Charts, Tables,
+  Animations, Transitions, Notes, and Media.
+  Triggers: PowerPoint, presentation, pptx, slides, shapes, animations.
 ---
 
-# Excel MCP Server Skill
+# PowerPoint MCP Server Skill
 
-Provides {{ operationcount }} Excel operations via Model Context Protocol. The MCP Server forwards all requests to the shared ExcelMCP Service, enabling session sharing with CLI. Tools are auto-discovered - this documents quirks, workflows, and gotchas.
+Provides {{ operationcount }} PowerPoint operations via Model Context Protocol. The MCP Server forwards all requests to the shared PptMcp Service, enabling session sharing with CLI. Tools are auto-discovered - this documents quirks, workflows, and gotchas.
 
 ## Workflow Checklist
 
 | Step | Tool | Action | When |
 |------|------|--------|------|
 | 1. Open file | `file` | `open` or `create` | Always first |
-| 2. Create sheets | `worksheet` | `create`, `rename` | If needed |
-| 3. Write data | `range` | `set-values` | Always (2D arrays) |
-| 4. Format | `range` | `set-number-format` | After writing |
-| 5. Structure | `table` | `create` | Convert data to tables |
+| 2. Create slides | `slide` | `create`, `duplicate` | If needed |
+| 3. Add shapes | `shape` | `create`, `set-text` | Add visual elements |
+| 4. Add charts | `chart` | `create` | Visualize data |
+| 5. Format | `shape` | `format`, `position` | After adding content |
 | 6. Save & close | `file` | `close` with `save: true` | Always last |
 
 ## Preconditions
 
-- Windows host with Microsoft Excel installed (2016+)
-- Use full Windows paths: `C:\Users\Name\Documents\Report.xlsx`
-- Excel files must not be open in another Excel instance
+- Windows host with Microsoft PowerPoint installed (2016+)
+- Use full Windows paths: `C:\Users\Name\Documents\Report.pptx`
+- PowerPoint files must not be open in another PowerPoint instance
 
-## Calculation Mode Workflow (Batch Performance)
+## Slide Transitions Workflow
 
-Use `calculation_mode` for **bulk write performance optimization**. When writing many values or formulas, disable auto-recalc to avoid recalculating after every cell:
+Use `transition` for **slide transition effects**. Apply transitions to individual slides or across the entire presentation:
 
 ```
-1. calculation_mode(action: 'set-mode', mode: 'manual')  → Disable auto-recalc
-2. Perform all writes (range set-values, set-formulas)
-3. calculation_mode(action: 'calculate', scope: 'workbook')  → Recalculate once
-4. calculation_mode(action: 'set-mode', mode: 'automatic')  → Restore default
+1. transition(action: 'set', slideIndex: 1, effect: 'push')  → Set transition
+2. Add content to slides (shapes, text, charts)
+3. transition(action: 'set', slideIndex: 2, effect: 'fade')  → Set next slide transition
+4. animation(action: 'add', slideIndex: 1, shapeName: 'Title', effect: 'fly-in')  → Animate shapes
 ```
 
-**Note:** You do NOT need manual mode to read formulas - `range get-formulas` returns formula text regardless of calculation mode.
+**Note:** Transitions apply between slides. Animations apply to individual shapes within a slide.
 
 ## CRITICAL: Execution Rules (MUST FOLLOW)
 
@@ -49,10 +49,10 @@ Use `calculation_mode` for **bulk write performance optimization**. When writing
 
 | Bad (Asking) | Good (Discovering) |
 |--------------|-------------------|
-| "Which Excel file should I use?" | `file(list)` → use the open session |
-| "What's the table name?" | `table(list)` → discover tables |
-| "Which sheet has the data?" | `worksheet(list)` → check all sheets |
-| "Should I create a PivotTable?" | YES - create it on a new sheet |
+| "Which PowerPoint file should I use?" | `file(list)` → use the open session |
+| "What shapes are on this slide?" | `shape(list)` → discover shapes |
+| "Which slide has the content?" | `slide(list)` → check all slides |
+| "Should I add an animation?" | YES - add it and apply appropriate timing |
 
 **You have tools to answer your own questions. USE THEM.**
 
@@ -60,33 +60,35 @@ Use `calculation_mode` for **bulk write performance optimization**. When writing
 
 **NEVER end your turn with only a tool call.** After completing all operations, always provide a brief text message confirming what was done. Silent tool-call-only responses are incomplete.
 
-### Rule 3: Format Data Professionally
+### Rule 3: Design Slides Professionally
 
-Always apply number formats after setting values:
+Apply consistent formatting across slides:
 
-| Data Type | Format Code | Result |
-|-----------|-------------|--------|
-| USD | `$#,##0.00` | $1,234.56 |
-| EUR | `€#,##0.00` | €1,234.56 |
-| Percent | `0.00%` | 15.00% |
-| Date (ISO) | `yyyy-mm-dd` | 2025-01-22 |
+| Element | Property | Example |
+|---------|----------|---------|
+| Title | Font size | 28pt+ |
+| Body text | Font size | 18-24pt |
+| Shape fill | Color | Brand colors |
+| Transitions | Duration | 0.5-1.5s |
 
 **Workflow:**
 ```
-1. range set-values (data is now in cells)
-2. range set-number-format (apply format)
+1. shape create (add visual elements)
+2. shape format (apply colors, borders)
+3. text set (add content)
 ```
 
-### Rule 4: Use Excel Tables (Not Plain Ranges)
+### Rule 4: Use Slide Layouts
 
-Always convert tabular data to Excel Tables:
+Always use appropriate slide layouts for consistent design:
 
 ```
-1. range set-values (write data including headers)
-2. table create tableName="SalesData" rangeAddress="A1:D100"
+1. slide(action: 'create', layout: 'Title and Content')  → Structured slide
+2. shape(action: 'set-text', shapeName: 'Title')  → Set title text
+3. shape(action: 'set-text', shapeName: 'Content')  → Set body content
 ```
 
-**Why:** Structured references, auto-expand, required for Data Model/DAX.
+**Why:** Slide layouts provide consistent positioning, fonts, and structure.
 
 ### Rule 5: Session Lifecycle
 
@@ -96,43 +98,40 @@ Always convert tabular data to Excel Tables:
 3. file(action: 'close', save: true)  → saves and closes
 ```
 
-**Unclosed sessions leave Excel processes running, locking files.**
+**Unclosed sessions leave PowerPoint processes running, locking files.**
 
-### Rule 6: Data Model Prerequisites
+### Rule 6: Slide Masters and Layouts
 
-DAX operations require tables in the Data Model:
-
-```
-Step 1: Create table → Table exists
-Step 2: table(action: 'add-to-datamodel') → Table in Data Model
-Step 3: datamodel(action: 'create-measure') → NOW this works
-```
-
-### Rule 7: Power Query Development Lifecycle
-
-**BEST PRACTICE: Test-First Workflow**
+Slides inherit formatting from slide masters:
 
 ```
-1. powerquery(action: 'evaluate', mCode: '...') → Test WITHOUT persisting
-2. powerquery(action: 'create', ...) → Store validated query
-3. powerquery(action: 'refresh', ...) → Load data
+Step 1: Choose layout → slide(action: 'create', layout: 'Title Slide')
+Step 2: Set content → shape(action: 'set-text', shapeName: 'Title', text: '...')
+Step 3: Customize → shape(action: 'format', fillColor: '#0078D4')
 ```
 
-**Why evaluate first:**
-- Catches syntax errors and missing sources BEFORE creating permanent queries
-- Better error messages than COM exceptions from create/update
-- See actual data preview (columns + sample rows)
-- No cleanup needed - like a REPL for M code
-- Skip only for trivial literal tables
+### Rule 7: Animation Sequence
 
-**Common mistake:** Creating/updating without evaluate → pollutes workbook with broken queries
+**BEST PRACTICE: Build animations in logical order**
+
+```
+1. shape(action: 'create', ...) → Add shapes first
+2. animation(action: 'add', effect: 'fade-in', order: 1) → Entrance effect
+3. animation(action: 'add', effect: 'emphasis', order: 2) → Emphasis effect
+4. transition(action: 'set', effect: 'push') → Slide transition
+```
+
+**Why add shapes first:**
+- Shapes must exist before animations can be applied
+- Animation order determines playback sequence
+- Transitions are separate from shape animations
 
 ### Rule 8: Targeted Updates Over Delete-Rebuild
 
-- **Prefer**: `set-values` on specific range (e.g., `A5:C5` for row 5)
-- **Avoid**: Deleting and recreating entire structures
+- **Prefer**: Modifying shape properties directly (text, color, position)
+- **Avoid**: Deleting and recreating entire slides or shapes
 
-**Why:** Preserves formatting, formulas, and references.
+**Why:** Preserves animations, transitions, and layout relationships.
 
 ### Rule 9: Follow suggestedNextActions
 
@@ -140,39 +139,37 @@ Error responses include actionable hints:
 ```json
 {
   "success": false,
-  "errorMessage": "Table 'Sales' not found in Data Model",
-  "suggestedNextActions": ["table(action: 'add-to-data-model', tableName: 'Sales')"]
+  "errorMessage": "Shape 'Title' not found on slide 1",
+  "suggestedNextActions": ["shape(action: 'list', slideIndex: 1)"]
 }
 ```
 
-### Rule 10: Use Calculation Mode for Bulk Write Performance
+### Rule 10: Use Consistent Styling Across Slides
 
-When writing many values/formulas (10+ cells), use `calculation_mode` to avoid recalculating after every write:
+When building multi-slide presentations, maintain consistent colors, fonts, and positioning:
 
 ```
-1. calculation_mode(action: 'set-mode', mode: 'manual')  → Disable auto-recalc
-2. Perform data writes (range set-values, set-formulas)
-3. calculation_mode(action: 'calculate', scope: 'workbook')  → Recalculate once at end
-4. calculation_mode(action: 'set-mode', mode: 'automatic')  → Restore default
+1. Use slide layouts for structure consistency
+2. Apply matching colors to shapes across slides
+3. Keep title positions and sizes uniform
 ```
 
-**When NOT needed:** Reading formulas, small edits (1-10 cells), or when you need immediate calculation results.
+**When NOT needed:** Single-slide modifications or quick text updates.
 
 ## Tool Selection Quick Reference
 
 | Task | Tool | Key Action |
 |------|------|------------|
-| Create/open/save workbooks | `file` | open, create, close |
-| Write/read cell data | `range` | set-values, get-values |
-| Format cells | `range` | set-number-format |
-| Create tables from data | `table` | create |
-| Add table to Power Pivot | `table` | add-to-data-model |
-| Create DAX formulas | `datamodel` | create-measure |
-| Create PivotTables | `pivottable` | create, create-from-datamodel |
-| Filter with slicers | `slicer` | set-slicer-selection |
-| Create charts | `chart` | create-from-range |
-| Control calculation mode | `calculation_mode` | get-mode, set-mode, calculate |
-| Visual verification | `screenshot` | capture, capture-sheet |
+| Create/open/save presentations | `file` | open, create, close |
+| Create/manage slides | `slide` | create, duplicate, delete |
+| Add/modify shapes | `shape` | create, format, position |
+| Set text content | `text` | set, get |
+| Create charts | `chart` | create, update |
+| Add tables to slides | `table` | create |
+| Set animations | `animation` | add, remove, reorder |
+| Set slide transitions | `transition` | set, remove |
+| Add speaker notes | `notes` | set, get |
+| Visual verification | `screenshot` | capture, capture-slide |
 
 ## Reference Documentation
 
@@ -180,17 +177,17 @@ See `references/` for detailed guidance:
 
 - [Core execution rules and LLM guidelines](./references/behavioral-rules.md)
 - [Common mistakes to avoid](./references/anti-patterns.md)
-- [Data Model constraints and patterns](./references/workflows.md)
+- [Presentation workflows and patterns](./references/workflows.md)
 - [Charts and formatting](./references/chart.md)
-- [Conditional formatting operations](./references/conditionalformat.md)
-- [Dashboard and report best practices](./references/dashboard.md)
-- [Data Model/DAX specifics](./references/datamodel.md)
-- [DMV query reference for Data Model analysis](./references/dmv-reference.md)
-- [Power Query M code syntax reference](./references/m-code-syntax.md)
-- [PivotTable operations](./references/pivottable.md)
-- [Power Query specifics](./references/powerquery.md)
-- [Range operations and number formats](./references/range.md)
+- [Shapes and visual elements](./references/conditionalformat.md)
+- [Presentation design best practices](./references/dashboard.md)
+- [Animations and transitions](./references/datamodel.md)
+- [Slide layout reference](./references/dmv-reference.md)
+- [Text formatting reference](./references/m-code-syntax.md)
+- [Table operations](./references/pivottable.md)
+- [Media and embedded content](./references/powerquery.md)
+- [Shapes and positioning](./references/range.md)
 - [Screenshot and visual verification](./references/screenshot.md)
-- [Slicer operations](./references/slicer.md)
+- [Notes and comments](./references/slicer.md)
 - [Table operations](./references/table.md)
-- [Worksheet operations](./references/worksheet.md)
+- [Slide operations](./references/slide.md)

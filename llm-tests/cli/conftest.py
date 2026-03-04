@@ -13,11 +13,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def _resolve_cli_exe() -> Path:
-    """Find the built excelcli.exe."""
-    exe = REPO_ROOT / "src/ExcelMcp.CLI/bin/Release/net10.0-windows/excelcli.exe"
+    """Find the built pptcli.exe."""
+    exe = REPO_ROOT / "src/PptMcp.CLI/bin/Release/net10.0-windows/pptcli.exe"
     if exe.exists():
         return exe
-    raise FileNotFoundError(f"excelcli.exe not found at {exe}. Run: dotnet build -c Release")
+    raise FileNotFoundError(f"pptcli.exe not found at {exe}. Run: dotnet build -c Release")
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -1,5 +1,5 @@
 ---
-applyTo: "src/ExcelMcp.McpServer/Prompts/**/*.md"
+applyTo: "src/PptMcp.McpServer/Prompts/**/*.md"
 ---
 
 # MCP LLM Guidance Creation Guide
@@ -10,7 +10,7 @@ applyTo: "src/ExcelMcp.McpServer/Prompts/**/*.md"
 
 **Write FOR expert LLMs (GitHub Copilot, Claude), not ABOUT the system.**
 
-LLMs already know Excel, JSON, and MCP protocol. They need server-specific patterns only.
+LLMs already know PowerPoint, JSON, and MCP protocol. They need server-specific patterns only.
 
 ## What to Include
 
@@ -24,7 +24,7 @@ LLMs already know Excel, JSON, and MCP protocol. They need server-specific patte
 
 **3. Tool Selection:**
 - When to use this tool vs other tools
-- Example: "Use range for data, worksheet for lifecycle"
+- Example: "Use shape for content, slide for lifecycle"
 
 **4. Server-Specific Behavior:**
 - Quirks of THIS implementation
@@ -42,7 +42,7 @@ LLMs already know Excel, JSON, and MCP protocol. They need server-specific patte
 ## What to Exclude
 
 **❌ DON'T explain:**
-- Excel concepts (ranges, formulas, cells)
+- PowerPoint concepts (slides, shapes, animations)
 - JSON syntax
 - Programming basics (arrays, null, types)
 - MCP protocol syntax
@@ -76,14 +76,14 @@ LLMs already know Excel, JSON, and MCP protocol. They need server-specific patte
 - ✅ One markdown file per tool
 - ✅ 50-150 lines total per tool
 - ✅ Focus on disambiguation, not explanation
-- ❌ Don't write Excel tutorials
+- ❌ Don't write PowerPoint tutorials
 - ❌ Don't explain JSON syntax
 
 ## Format Guidelines
 
 **All MCP prompts are auto-generated from `skills/shared/*.md`:**
 - Source of truth: `skills/shared/*.md` — edit these files
-- Auto-embedded and auto-generated `ExcelSkillPrompts.g.cs` at build time
+- Auto-embedded and auto-generated `PptSkillPrompts.g.cs` at build time
 - NEVER create hand-crafted prompt files — add `.md` to `skills/shared/` instead
 - To add a new prompt: add `.md` to `skills/shared/`, add description override in `GenerateSkillPromptsClass` task in `McpServer.csproj`, rebuild
 
@@ -117,7 +117,7 @@ LLMs already know Excel, JSON, and MCP protocol. They need server-specific patte
 - Already reusable between CLI and MCP Server
 
 **Implementation**:
-- Location: `src/ExcelMcp.McpServer/Tools/*Tool.cs`
+- Location: `src/PptMcp.McpServer/Tools/*Tool.cs`
 - Pattern: Ad-hoc JSON properties in tool responses
 
 **When to Add:**
@@ -125,7 +125,7 @@ LLMs already know Excel, JSON, and MCP protocol. They need server-specific patte
 - After LIST operations: Suggest actions based on count
 - After UPDATE operations: Suggest verification
 - After FAILURE: Suggest troubleshooting
-- Batch mode hints: "Creating multiple? Use begin_excel_batch"
+- Batch mode hints: "Creating multiple? Use begin_ppt_batch"
 
 ## Success Criteria
 
@@ -135,7 +135,7 @@ A good prompt:
 - ✅ Explains server-specific quirks
 - ✅ Helps choose between tools
 - ✅ Under 150 lines
-- ❌ Doesn't teach Excel concepts
+- ❌ Doesn't teach PowerPoint concepts
 - ❌ Doesn't show JSON syntax
 - ❌ Doesn't duplicate schema info
 

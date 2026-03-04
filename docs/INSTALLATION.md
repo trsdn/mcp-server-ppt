@@ -1,12 +1,12 @@
-# Installation Guide - ExcelMcp
+# Installation Guide - PptMcp
 
-Complete installation instructions for the ExcelMcp MCP Server and CLI tool.
+Complete installation instructions for the PptMcp MCP Server and CLI tool.
 
 ## System Requirements
 
 ### Required
 - **Windows OS** (Windows 10 or later)
-- **Microsoft Excel 2016 or later** (Desktop version - Office 365, Professional Plus, or Standalone)
+- **Microsoft PowerPoint 2016 or later** (Desktop version - Office 365, Professional Plus, or Standalone)
 - **.NET 10 Runtime or SDK** (not required for VS Code Extension or MCPB - they bundle it)
 
 ### Optional (for specific features)
@@ -31,7 +31,7 @@ Use this order to avoid setup confusion:
    - Claude Desktop MCPB
    - Manual MCP setup (all other MCP clients)
 2. **Validate MCP setup** (run the quick test prompt in Step 4 of manual setup, or test in your client after extension/MCPB install)
-3. **Optional:** install CLI (`excelcli`) for scripting/RPA
+3. **Optional:** install CLI (`pptcli`) for scripting/RPA
 4. **Optional:** install agent skills for non-extension environments
 
 ### VS Code Extension (Easiest - One-Click Setup)
@@ -41,16 +41,16 @@ Use this order to avoid setup confusion:
 1. **Install the Extension**
    - Open VS Code
    - Press `Ctrl+Shift+X` (Extensions)
-   - Search for **"ExcelMcp"**
+   - Search for **"PptMcp"**
    - Click **Install**
 
 2. **That's It!**
    - Bundles self-contained MCP server and CLI (no .NET runtime or SDK needed)
    - Auto-configures GitHub Copilot
-   - Registers agent skills (excel-mcp + excel-cli) via `chatSkills`
+   - Registers agent skills (ppt-mcp + ppt-cli) via `chatSkills`
    - Shows quick start guide on first launch
 
-**Marketplace Link:** [Excel MCP VS Code Extension](https://marketplace.visualstudio.com/items?itemName=sbroenne.excel-mcp)
+**Marketplace Link:** [PowerPoint MCP VS Code Extension](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp)
 
 ---
 
@@ -58,7 +58,7 @@ Use this order to avoid setup confusion:
 
 **Best for:** Claude Desktop users who want the simplest installation
 
-1. Download `excel-mcp-{version}.mcpb` from the [latest release](https://github.com/sbroenne/mcp-server-excel/releases/latest)
+1. Download `ppt-mcp-{version}.mcpb` from the [latest release](https://github.com/trsdn/mcp-server-ppt/releases/latest)
 2. Double-click the `.mcpb` file (or drag-and-drop onto Claude Desktop)
 3. Restart Claude Desktop
 
@@ -86,19 +86,19 @@ winget install Microsoft.DotNet.Runtime.10
 
 **Manual Download:** [.NET 10 Downloads](https://dotnet.microsoft.com/download/dotnet/10.0)
 
-### Step 2: Install ExcelMcp MCP Server
+### Step 2: Install PptMcp MCP Server
 
 ```powershell
-# Install MCP Server tool (command: mcp-excel)
-dotnet tool install --global Sbroenne.ExcelMcp.McpServer
+# Install MCP Server tool (command: mcp-ppt)
+dotnet tool install --global PptMcp.McpServer
 
 # Verify installation
-dotnet tool list --global | Select-String "ExcelMcp"
+dotnet tool list --global | Select-String "PptMcp"
 ```
 
-> **Optional:** If you also want the standalone CLI command (`excelcli`) for scripting/RPA, install it separately:
+> **Optional:** If you also want the standalone CLI command (`pptcli`) for scripting/RPA, install it separately:
 > ```powershell
-> dotnet tool install --global Sbroenne.ExcelMcp.CLI
+> dotnet tool install --global PptMcp.CLI
 > ```
 
 ### Step 3: Configure Your MCP Client
@@ -108,27 +108,27 @@ dotnet tool list --global | Select-String "ExcelMcp"
 Use [`add-mcp`](https://github.com/neondatabase/add-mcp) to configure all detected coding agents with a single command:
 
 ```powershell
-npx add-mcp "mcp-excel" --name excel-mcp
+npx add-mcp "mcp-ppt" --name ppt-mcp
 ```
 
 This auto-detects and configures **Cursor, VS Code, Claude Code, Claude Desktop, Codex, Zed, Gemini CLI**, and more. Use flags to customize:
 
 ```powershell
 # Configure specific agents only
-npx add-mcp "mcp-excel" --name excel-mcp -a cursor -a claude-code
+npx add-mcp "mcp-ppt" --name ppt-mcp -a cursor -a claude-code
 
 # Configure globally (user-wide, all projects)
-npx add-mcp "mcp-excel" --name excel-mcp -g
+npx add-mcp "mcp-ppt" --name ppt-mcp -g
 
 # Non-interactive (skip prompts)
-npx add-mcp "mcp-excel" --name excel-mcp --all -y
+npx add-mcp "mcp-ppt" --name ppt-mcp --all -y
 ```
 
 > **Requires:** [Node.js](https://nodejs.org/) for `npx`. Install with `winget install OpenJS.NodeJS.LTS` if not already available. No permanent `add-mcp` installation needed — `npx` downloads, runs, and cleans up automatically.
 
 #### Option B: Manual Configuration
 
-**Quick Start:** Ready-to-use config files for all clients are available in [`examples/mcp-configs/`](https://github.com/sbroenne/mcp-server-excel/tree/main/examples/mcp-configs/)
+**Quick Start:** Ready-to-use config files for all clients are available in [`examples/mcp-configs/`](https://github.com/trsdn/mcp-server-ppt/tree/main/examples/mcp-configs/)
 
 **For GitHub Copilot (VS Code):**
 
@@ -137,8 +137,8 @@ Create `.vscode/mcp.json` in your workspace:
 ```json
 {
   "servers": {
-    "excel-mcp": {
-      "command": "mcp-excel"
+    "ppt-mcp": {
+      "command": "mcp-ppt"
     }
   }
 }
@@ -151,8 +151,8 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 ```json
 {
   "servers": {
-    "excel-mcp": {
-      "command": "mcp-excel"
+    "ppt-mcp": {
+      "command": "mcp-ppt"
     }
   }
 }
@@ -162,13 +162,13 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 
 1. Locate config file: `%APPDATA%\Claude\claude_desktop_config.json`
 2. If file doesn't exist, create it with the content below
-3. If file exists, merge the `excel-mcp` entry into your existing `mcpServers` section
+3. If file exists, merge the `ppt-mcp` entry into your existing `mcpServers` section
 
 ```json
 {
   "mcpServers": {
-    "excel-mcp": {
-      "command": "mcp-excel",
+    "ppt-mcp": {
+      "command": "mcp-ppt",
       "args": [],
       "env": {}
     }
@@ -188,8 +188,8 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 ```json
 {
   "mcpServers": {
-    "excel-mcp": {
-      "command": "mcp-excel",
+    "ppt-mcp": {
+      "command": "mcp-ppt",
       "args": [],
       "env": {}
     }
@@ -208,8 +208,8 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 ```json
 {
   "mcpServers": {
-    "excel-mcp": {
-      "command": "mcp-excel",
+    "ppt-mcp": {
+      "command": "mcp-ppt",
       "args": [],
       "env": {}
     }
@@ -228,8 +228,8 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 ```json
 {
   "mcpServers": {
-    "excel-mcp": {
-      "command": "mcp-excel",
+    "ppt-mcp": {
+      "command": "mcp-ppt",
       "args": [],
       "env": {}
     }
@@ -243,16 +243,16 @@ Create `.mcp.json` in your solution directory or `%USERPROFILE%\.mcp.json`:
 
 Restart your MCP client, then ask:
 ```
-Create an empty Excel file called "test.xlsx"
+Create an empty PowerPoint file called "test.pptx"
 ```
 
 If it works, you're all set! 🎉
 
 **💡 Tip:** Want to watch the AI work? Ask:
 ```
-Show me Excel while you work on test.xlsx
+Show me PowerPoint while you work on test.pptx
 ```
-This opens Excel visibly so you can see every change in real-time - great for debugging and demos!
+This opens PowerPoint visibly so you can see every change in real-time - great for debugging and demos!
 
 ---
 
@@ -264,10 +264,10 @@ This opens Excel visibly so you can see every change in real-time - great for de
 
 ```powershell
 # Install CLI as a separate .NET tool
-dotnet tool install --global Sbroenne.ExcelMcp.CLI
+dotnet tool install --global PptMcp.CLI
 
 # Verify CLI is available
-excelcli --version
+pptcli --version
 ```
 
 > **⚠️ Version Sync:** If you install both MCP Server and CLI, keep both packages on the same version.
@@ -275,15 +275,15 @@ excelcli --version
 ### Quick Test
 
 ```powershell
-# Session-based workflow (keeps Excel open between commands)
-excelcli -q session open test.xlsx                   # Returns session ID
-excelcli -q sheet list --session <session-id>        # List worksheets
-excelcli -q session close --session <session-id> --save
+# Session-based workflow (keeps PowerPoint open between commands)
+pptcli -q session open test.pptx                   # Returns session ID
+pptcli -q slide list --session <session-id>        # List slides
+pptcli -q session close --session <session-id> --save
 ```
 
 > **💡 Tip:** Use `-q` (quiet mode) to suppress banner and get JSON output only - perfect for scripting and automation.
 
-**CLI Documentation:** [CLI Guide](https://github.com/sbroenne/mcp-server-excel/blob/main/src/ExcelMcp.CLI/README.md)
+**CLI Documentation:** [CLI Guide](https://github.com/trsdn/mcp-server-ppt/blob/main/src/PptMcp.CLI/README.md)
 
 ---
 
@@ -295,17 +295,17 @@ Skills are auto-installed by the VS Code extension. For other platforms:
 
 ```powershell
 # CLI skill (for coding agents - token-efficient workflows)
-npx skills add sbroenne/mcp-server-excel --skill excel-cli
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli
 
 # MCP skill (for conversational AI - rich tool schemas)
-npx skills add sbroenne/mcp-server-excel --skill excel-mcp
+npx skills add trsdn/mcp-server-ppt --skill ppt-mcp
 
 # Install for specific agents
-npx skills add sbroenne/mcp-server-excel --skill excel-cli -a cursor
-npx skills add sbroenne/mcp-server-excel --skill excel-mcp -a claude-code
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli -a cursor
+npx skills add trsdn/mcp-server-ppt --skill ppt-mcp -a claude-code
 
 # Install globally (user-wide)
-npx skills add sbroenne/mcp-server-excel --skill excel-cli --global
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli --global
 ```
 
 **Supports 43+ agents** including claude-code, github-copilot, cursor, windsurf, gemini-cli, codex, goose, cline, continue, replit, and more.
@@ -314,16 +314,16 @@ npx skills add sbroenne/mcp-server-excel --skill excel-cli --global
 
 ---
 
-## Updating ExcelMcp
+## Updating PptMcp
 
 ### Check Installed Version
 
 **MCP Server and CLI:**
 ```powershell
-dotnet tool list --global | Select-String "ExcelMcp"
+dotnet tool list --global | Select-String "PptMcp"
 
 # Or check CLI version
-excelcli --version
+pptcli --version
 ```
 
 ### Update Installed Tools
@@ -332,18 +332,18 @@ excelcli --version
 
 **Step 1: Update both tools**
 ```powershell
-dotnet tool update --global Sbroenne.ExcelMcp.McpServer
-dotnet tool update --global Sbroenne.ExcelMcp.CLI
+dotnet tool update --global PptMcp.McpServer
+dotnet tool update --global PptMcp.CLI
 ```
 
 **Step 2: Verify update**
 ```powershell
 # Check installed version
-dotnet tool list --global | Select-String "ExcelMcp"
+dotnet tool list --global | Select-String "PptMcp"
 
 # Verify both tools work
-excelcli --version
-mcp-excel --version
+pptcli --version
+mcp-ppt --version
 ```
 
 **Step 3: Restart your MCP client**
@@ -357,15 +357,15 @@ mcp-excel --version
 **Error: "Tool not found"**
 ```powershell
 # The tool may need to be reinstalled
-dotnet tool uninstall --global Sbroenne.ExcelMcp.McpServer
-dotnet tool install --global Sbroenne.ExcelMcp.McpServer
+dotnet tool uninstall --global PptMcp.McpServer
+dotnet tool install --global PptMcp.McpServer
 ```
 
 **Error: "Access denied"**
 - Run PowerShell as Administrator
 - Or install in user directory (not global):
 ```powershell
-dotnet tool update --global Sbroenne.ExcelMcp.McpServer --install-dir ~/.dotnet/tools
+dotnet tool update --global PptMcp.McpServer --install-dir ~/.dotnet/tools
 ```
 
 #### MCP Server Still Running Old Version
@@ -378,8 +378,8 @@ dotnet tool update --global Sbroenne.ExcelMcp.McpServer --install-dir ~/.dotnet/
 **Still not working?**
 ```powershell
 # Reinstall the tool
-dotnet tool uninstall --global Sbroenne.ExcelMcp.McpServer
-dotnet tool install --global Sbroenne.ExcelMcp.McpServer
+dotnet tool uninstall --global PptMcp.McpServer
+dotnet tool install --global PptMcp.McpServer
 ```
 
 ### Rollback to Previous Version
@@ -388,18 +388,18 @@ If an update causes issues, you can downgrade:
 
 ```powershell
 # Uninstall current version
-dotnet tool uninstall --global Sbroenne.ExcelMcp.McpServer
+dotnet tool uninstall --global PptMcp.McpServer
 
 # Install specific version
-dotnet tool install --global Sbroenne.ExcelMcp.McpServer --version 1.2.3
+dotnet tool install --global PptMcp.McpServer --version 1.2.3
 # Replace 1.2.3 with the version you want
 ```
 
 ### Check What's New
 
 Before updating, check the release notes:
-- **GitHub Releases:** https://github.com/sbroenne/mcp-server-excel/releases
-- **Changelog:** https://github.com/sbroenne/mcp-server-excel/blob/main/CHANGELOG.md
+- **GitHub Releases:** https://github.com/trsdn/mcp-server-ppt/releases
+- **Changelog:** https://github.com/trsdn/mcp-server-ppt/blob/main/CHANGELOG.md
 
 ---
 
@@ -415,40 +415,40 @@ Before updating, check the release notes:
 
 **Check if tool is installed:**
 ```powershell
-dotnet tool list --global | Select-String "ExcelMcp"
+dotnet tool list --global | Select-String "PptMcp"
 ```
 
 **Reinstall if missing:**
 ```powershell
-dotnet tool uninstall --global Sbroenne.ExcelMcp.McpServer
-dotnet tool install --global Sbroenne.ExcelMcp.McpServer
+dotnet tool uninstall --global PptMcp.McpServer
+dotnet tool install --global PptMcp.McpServer
 ```
 
-#### 3. "Workbook is locked" or "Cannot open file"
+#### 3. "Presentation is locked" or "Cannot open file"
 
-**Solution:** Close all Excel windows before running ExcelMcp
+**Solution:** Close all PowerPoint windows before running PptMcp
 
-ExcelMcp requires exclusive access to workbooks (Excel COM limitation).
+PptMcp requires exclusive access to presentations (PowerPoint COM limitation).
 
 ## Uninstallation
 
 ### Uninstall MCP Server
 ```powershell
-dotnet tool uninstall --global Sbroenne.ExcelMcp.McpServer
+dotnet tool uninstall --global PptMcp.McpServer
 ```
 
 ### Uninstall CLI
 ```powershell
-dotnet tool uninstall --global Sbroenne.ExcelMcp.CLI
+dotnet tool uninstall --global PptMcp.CLI
 ```
 
 ---
 
 ## Getting Help
 
-- **Documentation:** [GitHub Repository](https://github.com/sbroenne/mcp-server-excel)
-- **Issues:** [GitHub Issues](https://github.com/sbroenne/mcp-server-excel/issues)
-- **Contributing:** [Contributing Guide](https://github.com/sbroenne/mcp-server-excel/blob/main/docs/CONTRIBUTING.md)
+- **Documentation:** [GitHub Repository](https://github.com/trsdn/mcp-server-ppt)
+- **Issues:** [GitHub Issues](https://github.com/trsdn/mcp-server-ppt/issues)
+- **Contributing:** [Contributing Guide](https://github.com/trsdn/mcp-server-ppt/blob/main/docs/CONTRIBUTING.md)
 
 ---
 
@@ -456,19 +456,19 @@ dotnet tool uninstall --global Sbroenne.ExcelMcp.CLI
 
 After installation:
 
-1. **Learn the basics:** Try simple commands like creating worksheets, setting values
-2. **Explore features:** See [README](https://github.com/sbroenne/mcp-server-excel#readme) for complete feature list
+1. **Learn the basics:** Try simple commands like creating slides, setting values
+2. **Explore features:** See [README](https://github.com/trsdn/mcp-server-ppt#readme) for complete feature list
 3. **Read the guides:**
-   - [MCP Server Guide](https://github.com/sbroenne/mcp-server-excel/blob/main/src/ExcelMcp.McpServer/README.md)
-   - [CLI Guide](https://github.com/sbroenne/mcp-server-excel/blob/main/src/ExcelMcp.CLI/README.md)
-   - [Agent Skills](https://github.com/sbroenne/mcp-server-excel/blob/main/skills/excel-mcp/SKILL.md) - Cross-platform AI guidance
+   - [MCP Server Guide](https://github.com/trsdn/mcp-server-ppt/blob/main/src/PptMcp.McpServer/README.md)
+   - [CLI Guide](https://github.com/trsdn/mcp-server-ppt/blob/main/src/PptMcp.CLI/README.md)
+   - [Agent Skills](https://github.com/trsdn/mcp-server-ppt/blob/main/skills/ppt-mcp/SKILL.md) - Cross-platform AI guidance
 4. **Join the community:** Star the repo, report issues, contribute improvements
 
 ---
 
 ## Agent Skills (Optional)
 
-Agent Skills provide domain-specific guidance to AI coding assistants, helping them use Excel MCP Server more effectively.
+Agent Skills provide domain-specific guidance to AI coding assistants, helping them use PowerPoint MCP Server more effectively.
 
 > **Note:** Agent Skills are for **coding agents** (GitHub Copilot, Claude Code, Cursor). **Claude Desktop** uses MCP Prompts instead (included automatically via the MCP Server).
 
@@ -476,8 +476,8 @@ Agent Skills provide domain-specific guidance to AI coding assistants, helping t
 
 | Skill | Target | Best For |
 |-------|--------|----------|
-| **excel-cli** | CLI Tool | **Coding agents** (Copilot, Cursor, Windsurf) - token-efficient, `excelcli --help` discoverable |
-| **excel-mcp** | MCP Server | **Conversational AI** (Claude Desktop, VS Code Chat) - rich tool schemas, exploratory workflows |
+| **ppt-cli** | CLI Tool | **Coding agents** (Copilot, Cursor, Windsurf) - token-efficient, `pptcli --help` discoverable |
+| **ppt-mcp** | MCP Server | **Conversational AI** (Claude Desktop, VS Code Chat) - rich tool schemas, exploratory workflows |
 
 **VS Code Extension:** Skills are installed automatically to `~/.copilot/skills/`.
 
@@ -485,37 +485,37 @@ Agent Skills provide domain-specific guidance to AI coding assistants, helping t
 
 ```powershell
 # Install CLI skill (recommended for coding agents - Copilot, Cursor, Windsurf, Codex, etc.)
-npx skills add sbroenne/mcp-server-excel --skill excel-cli
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli
 
 # Install MCP skill (for conversational AI - Claude Desktop, VS Code Chat)
-npx skills add sbroenne/mcp-server-excel --skill excel-mcp
+npx skills add trsdn/mcp-server-ppt --skill ppt-mcp
 
-# Interactive install - prompts to select excel-cli, excel-mcp, or both
-npx skills add sbroenne/mcp-server-excel
+# Interactive install - prompts to select ppt-cli, ppt-mcp, or both
+npx skills add trsdn/mcp-server-ppt
 
 # Install specific skill directly
-npx skills add sbroenne/mcp-server-excel --skill excel-cli   # Coding agents
-npx skills add sbroenne/mcp-server-excel --skill excel-mcp   # Conversational AI
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli   # Coding agents
+npx skills add trsdn/mcp-server-ppt --skill ppt-mcp   # Conversational AI
 
 # Install both skills
-npx skills add sbroenne/mcp-server-excel --skill '*'
+npx skills add trsdn/mcp-server-ppt --skill '*'
 
 # Target specific agent (optional - auto-detects if omitted)
-npx skills add sbroenne/mcp-server-excel --skill excel-cli -a cursor
-npx skills add sbroenne/mcp-server-excel --skill excel-mcp -a claude-code
+npx skills add trsdn/mcp-server-ppt --skill ppt-cli -a cursor
+npx skills add trsdn/mcp-server-ppt --skill ppt-mcp -a claude-code
 ```
 
 **Manual Installation:**
-1. Download `excel-skills-v{version}.zip` from [GitHub Releases](https://github.com/sbroenne/mcp-server-excel/releases/latest)
+1. Download `ppt-skills-v{version}.zip` from [GitHub Releases](https://github.com/trsdn/mcp-server-ppt/releases/latest)
 2. The package contains both skills:
-   - `skills/excel-cli/` - for coding agents (Copilot, Cursor, Windsurf)
-   - `skills/excel-mcp/` - for conversational AI (Claude Desktop, VS Code Chat)
+   - `skills/ppt-cli/` - for coding agents (Copilot, Cursor, Windsurf)
+   - `skills/ppt-mcp/` - for conversational AI (Claude Desktop, VS Code Chat)
 3. Extract the skill(s) you need to your AI assistant's skills directory:
-   - Copilot: `~/.copilot/skills/excel-cli/` or `~/.copilot/skills/excel-mcp/`
-   - Claude Code: `.claude/skills/excel-cli/` or `.claude/skills/excel-mcp/`
-   - Cursor: `.cursor/skills/excel-cli/` or `.cursor/skills/excel-mcp/`
+   - Copilot: `~/.copilot/skills/ppt-cli/` or `~/.copilot/skills/ppt-mcp/`
+   - Claude Code: `.claude/skills/ppt-cli/` or `.claude/skills/ppt-mcp/`
+   - Cursor: `.cursor/skills/ppt-cli/` or `.cursor/skills/ppt-mcp/`
 
-**See:** [Agent Skills Documentation](https://github.com/sbroenne/mcp-server-excel/blob/main/skills/README.md)
+**See:** [Agent Skills Documentation](https://github.com/trsdn/mcp-server-ppt/blob/main/skills/README.md)
 
 ---
 

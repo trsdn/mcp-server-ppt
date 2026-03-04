@@ -1,10 +1,10 @@
 # MCP Registry Publishing Guide
 
-This document describes how the ExcelMcp server is published to the [Model Context Protocol (MCP) Registry](https://registry.modelcontextprotocol.io/).
+This document describes how the PptMcp server is published to the [Model Context Protocol (MCP) Registry](https://registry.modelcontextprotocol.io/).
 
 ## Overview
 
-The ExcelMcp server is automatically published to the MCP Registry whenever a new release is tagged with the format `v*` (e.g., `v1.0.10`). This is handled by the GitHub Actions workflow `.github/workflows/release-mcp-server.yml`.
+The PptMcp server is automatically published to the MCP Registry whenever a new release is tagged with the format `v*` (e.g., `v1.0.10`). This is handled by the GitHub Actions workflow `.github/workflows/release-mcp-server.yml`.
 
 **Note**: The same tag also triggers CLI release - both MCP Server and CLI are released together with unified versioning.
 
@@ -12,21 +12,21 @@ The ExcelMcp server is automatically published to the MCP Registry whenever a ne
 
 ### server.json
 
-Location: `src/ExcelMcp.McpServer/.mcp/server.json`
+Location: `src/PptMcp.McpServer/.mcp/server.json`
 
 This is the MCP registry metadata file that describes the server:
 
 ```json
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
-  "name": "io.github.sbroenne/mcp-server-excel",
-  "title": "Excel COM Automation",
-  "description": "Excel COM automation - Power Query, DAX measures, VBA, Tables, ranges, connections",
+  "name": "io.github.trsdn/mcp-server-ppt",
+  "title": "PowerPoint COM Automation",
+  "description": "PowerPoint COM automation - Slides, shapes, text, charts, tables, animations, transitions, VBA",
   "version": "1.0.0",
   "packages": [
     {
       "registryType": "nuget",
-      "identifier": "Sbroenne.ExcelMcp.McpServer",
+      "identifier": "PptMcp.McpServer",
       "version": "1.0.0",
       "transport": {
         "type": "stdio"
@@ -34,14 +34,14 @@ This is the MCP registry metadata file that describes the server:
     }
   ],
   "repository": {
-    "url": "https://github.com/sbroenne/mcp-server-excel",
+    "url": "https://github.com/trsdn/mcp-server-ppt",
     "source": "github"
   }
 }
 ```
 
 Key fields:
-- `name`: Registry namespace (uses GitHub namespace `io.github.sbroenne/*`)
+- `name`: Registry namespace (uses GitHub namespace `io.github.trsdn/*`)
 - `title`: Human-readable name
 - `description`: Brief description of capabilities
 - `version`: Server version (automatically updated by release workflow)
@@ -51,11 +51,11 @@ Key fields:
 
 For NuGet packages, the MCP Registry validates ownership by checking for `mcp-name:` in the package README.
 
-Location: `src/ExcelMcp.McpServer/README.md`
+Location: `src/PptMcp.McpServer/README.md`
 
 The README includes this validation metadata:
 ```markdown
-<!-- mcp-name: io.github.sbroenne/mcp-server-excel -->
+<!-- mcp-name: io.github.trsdn/mcp-server-ppt -->
 ```
 
 This HTML comment is invisible to users but allows the registry to verify the package belongs to this server.
@@ -73,7 +73,7 @@ When a tag like `mcp-v1.0.10` is pushed, the workflow:
 ### 2. Build and Test
 - Restores dependencies
 - Builds the MCP server in Release configuration
-- Skips tests (they require Excel)
+- Skips tests (they require PowerPoint)
 
 ### 3. NuGet Publishing
 - Packs the NuGet package
@@ -105,10 +105,10 @@ Uses **NuGet Trusted Publishing** via OIDC:
 - `NUGET_USER`: Your NuGet.org username (profile name)
 
 **NuGet.org Configuration:**
-- Package: `Sbroenne.ExcelMcp.McpServer`
+- Package: `PptMcp.McpServer`
 - Trusted Publisher: GitHub Actions
-- Owner: `sbroenne`
-- Repository: `mcp-server-excel`
+- Owner: `trsdn`
+- Repository: `mcp-server-ppt`
 - Workflow: `release-mcp-server.yml`
 
 ### MCP Registry Authentication
@@ -142,9 +142,9 @@ The workflow has `id-token: write` permission enabled for OIDC authentication.
    - Verify all steps complete successfully
 
 4. **Verify publication**
-   - **NuGet**: https://www.nuget.org/packages/Sbroenne.ExcelMcp.McpServer
-   - **MCP Registry**: https://registry.modelcontextprotocol.io/servers/io.github.sbroenne/mcp-server-excel
-   - **GitHub Release**: https://github.com/sbroenne/mcp-server-excel/releases
+   - **NuGet**: https://www.nuget.org/packages/PptMcp.McpServer
+   - **MCP Registry**: https://registry.modelcontextprotocol.io/servers/io.github.trsdn/mcp-server-ppt
+   - **GitHub Release**: https://github.com/trsdn/mcp-server-ppt/releases
 
 ### Version Numbering
 
@@ -176,12 +176,12 @@ The workflow has `id-token: write` permission enabled for OIDC authentication.
 
 **Manual Solution**:
 - Wait 5-10 minutes after NuGet publication for full CDN propagation
-- Verify README is accessible: `https://api.nuget.org/v3-flatcontainer/sbroenne.excelmcp.mcpserver/{version}/readme`
+- Verify README is accessible: `https://api.nuget.org/v3-flatcontainer/PptMcp.mcpserver/{version}/readme`
 - Manually publish to MCP Registry using the manual publishing process below
 
 **Verification Steps**:
 1. Check that `mcp-name:` is present in the package README
-2. Verify the mcp-name matches the server.json name exactly: `io.github.sbroenne/mcp-server-excel`
+2. Verify the mcp-name matches the server.json name exactly: `io.github.trsdn/mcp-server-ppt`
 3. Ensure NuGet package has been published successfully
 
 **Note**: As of the latest workflow update, MCP Registry publishing failures do not block the release process. The NuGet package will still be published successfully, and you can manually publish to the MCP Registry later if needed.
@@ -210,7 +210,7 @@ The workflow has `id-token: write` permission enabled for OIDC authentication.
 Once published, the server will be:
 
 1. **Discoverable**: Users can search for it in MCP-compatible clients
-2. **Auto-installable**: `dnx Sbroenne.ExcelMcp.McpServer --yes`
+2. **Auto-installable**: `dnx PptMcp.McpServer --yes`
 3. **Version-managed**: Users can install specific versions
 4. **Documented**: Description and README visible in registry
 
@@ -232,11 +232,11 @@ tar xf mcp-publisher.tar.gz
 ```
 
 ### 3. Update server.json Version
-Edit `src/ExcelMcp.McpServer/.mcp/server.json` and update the version fields.
+Edit `src/PptMcp.McpServer/.mcp/server.json` and update the version fields.
 
 ### 4. Publish
 ```powershell
-cd src/ExcelMcp.McpServer
+cd src/PptMcp.McpServer
 ../../mcp-publisher publish
 ```
 

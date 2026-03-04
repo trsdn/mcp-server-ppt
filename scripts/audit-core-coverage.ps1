@@ -11,7 +11,7 @@
     .\audit-core-coverage.ps1
 
 .NOTES
-    Author: ExcelMcp Team
+    Author: PptMcp Team
     Created: 2025-01-28
     Purpose: Prevent Core Commands from being added without MCP Server exposure
 #>
@@ -282,10 +282,10 @@ function Find-InterfaceForEnum {
     }
 }
 
-$toolActionsPath = "$rootDir/src/ExcelMcp.Core/Models/Actions/ToolActions.cs"
+$toolActionsPath = "$rootDir/src/PptMcp.Core/Models/Actions/ToolActions.cs"
 
 # Dynamically discover all interfaces to check
-$commandsPath = Join-Path $rootDir "src\ExcelMcp.Core\Commands"
+$commandsPath = Join-Path $rootDir "src\PptMcp.Core\Commands"
 $enumTypes = Get-AllEnumTypes -ToolActionsPath $toolActionsPath
 
 $interfaces = @()
@@ -617,7 +617,7 @@ function Get-HandledEnumValues {
 }
 
 # Check switch completeness for each tool
-$toolsPath = Join-Path $rootDir "src\ExcelMcp.McpServer\Tools"
+$toolsPath = Join-Path $rootDir "src\PptMcp.McpServer\Tools"
 $switchIssues = @()
 $hasSwitchIssues = $false
 
@@ -645,7 +645,7 @@ foreach ($mapping in $enumMappings) {
 
     if ($toolFiles.Count -gt 1) {
         # Multiple files use this enum - pick the one with matching name pattern
-        # e.g., RangeAction -> RangeTool.cs or ExcelRangeTool.cs
+        # e.g., RangeAction -> RangeTool.cs or PptRangeTool.cs
         $enumBase = $mapping.Enum -replace 'Action$', ''
         $primaryTool = $toolFiles | Where-Object {
             $_.Name -match "$enumBase`Tool\.cs"

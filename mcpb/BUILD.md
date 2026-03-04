@@ -1,6 +1,6 @@
 # MCPB Build & Packaging Guide
 
-This document contains developer information for building and submitting the Excel MCP Server to the Claude Desktop directory.
+This document contains developer information for building and submitting the PowerPoint MCP Server to the Claude Desktop directory.
 
 ## Directory Contents
 
@@ -27,7 +27,7 @@ From the `mcpb` directory:
 .\Build-McpBundle.ps1
 ```
 
-This creates `mcpb/artifacts/ExcelMcp.McpServer-win-x64.zip`.
+This creates `mcpb/artifacts/PptMcp.McpServer-win-x64.zip`.
 
 ### Build Options
 
@@ -44,8 +44,8 @@ This creates `mcpb/artifacts/ExcelMcp.McpServer-win-x64.zip`.
 The MCPB zip file contains:
 
 ```
-ExcelMcp.McpServer-win-x64.zip/
-├── Sbroenne.ExcelMcp.McpServer.exe  # Self-contained executable (~15 MB)
+PptMcp.McpServer-win-x64.zip/
+├── PptMcp.McpServer.exe  # Self-contained executable (~15 MB)
 ├── .mcp/
 │   └── server.json                   # MCP server configuration
 ├── manifest.json                     # MCPB manifest
@@ -57,11 +57,11 @@ ExcelMcp.McpServer-win-x64.zip/
 
 1. **Create GitHub Release:**
    - Tag format: `v1.x.x`
-   - Upload `ExcelMcp.McpServer-win-x64.zip` as release asset
+   - Upload `PptMcp.McpServer-win-x64.zip` as release asset
 
 2. **Update manifest.json download URL:**
    - Verify the `install.win32.download` URL points to the release asset
-   - URL format: `https://github.com/sbroenne/mcp-server-excel/releases/latest/download/ExcelMcp.McpServer-win-x64.zip`
+   - URL format: `https://github.com/trsdn/mcp-server-ppt/releases/latest/download/PptMcp.McpServer-win-x64.zip`
 
 3. **Submit to Claude Directory:**
    - Follow Anthropic's submission process
@@ -75,15 +75,15 @@ The manifest follows MCPB version 0.3 specification:
 {
   "manifestVersion": "0.3",
   "server": {
-    "id": "excel-mcp-server",
-    "name": "Excel MCP Server",
+    "id": "ppt-mcp-server",
+    "name": "PowerPoint MCP Server",
     "type": "binary",
     "platforms": ["win32"]
   },
   "install": {
     "win32": {
-      "download": "https://github.com/.../ExcelMcp.McpServer-win-x64.zip",
-      "command": "Sbroenne.ExcelMcp.McpServer.exe"
+      "download": "https://github.com/.../PptMcp.McpServer-win-x64.zip",
+      "command": "PptMcp.McpServer.exe"
     }
   }
 }
@@ -91,10 +91,10 @@ The manifest follows MCPB version 0.3 specification:
 
 ## Tool Annotations
 
-All 22 MCP tools include the `Destructive = true` annotation since they can modify Excel files:
+All 22 MCP tools include the `Destructive = true` annotation since they can modify PowerPoint files:
 
 ```csharp
-[McpServerTool(Name = "range", Title = "Excel Range Operations", Destructive = true)]
+[McpServerTool(Name = "range", Title = "PowerPoint Range Operations", Destructive = true)]
 ```
 
 ## Technical Notes
@@ -107,7 +107,7 @@ All 22 MCP tools include the `Destructive = true` annotation since they can modi
 
 ### Why No Trimming?
 
-Excel COM interop uses `Type.GetTypeFromProgID()` which requires reflection. Trimming would break COM activation with IL2072 errors.
+PowerPoint COM interop uses `Type.GetTypeFromProgID()` which requires reflection. Trimming would break COM activation with IL2072 errors.
 
 ### Why Windows x64 Only?
 
@@ -121,7 +121,7 @@ After building, verify the package:
 
 ```powershell
 # List zip contents
-Expand-Archive ./artifacts/ExcelMcp.McpServer-win-x64.zip -DestinationPath ./test-extract
+Expand-Archive ./artifacts/PptMcp.McpServer-win-x64.zip -DestinationPath ./test-extract
 dir ./test-extract
 Remove-Item -Recurse ./test-extract
 ```

@@ -7,13 +7,13 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'src/ExcelMcp.McpServer/**'
-      - 'src/ExcelMcp.Core/**'
-      - 'src/ExcelMcp.ComInterop/**'
-      - 'tests/ExcelMcp.McpServer.Tests/**'
-      - 'tests/ExcelMcp.Core.Tests/**'
-      - 'tests/ExcelMcp.Diagnostics.Tests/**'
-      - 'tests/ExcelMcp.ComInterop.Tests/**'
+      - 'src/PptMcp.McpServer/**'
+      - 'src/PptMcp.Core/**'
+      - 'src/PptMcp.ComInterop/**'
+      - 'tests/PptMcp.McpServer.Tests/**'
+      - 'tests/PptMcp.Core.Tests/**'
+      - 'tests/PptMcp.Diagnostics.Tests/**'
+      - 'tests/PptMcp.ComInterop.Tests/**'
       - 'global.json'
       - 'Directory.Build.props'
       - 'Directory.Packages.props'
@@ -32,10 +32,10 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Restore dependencies
-      run: dotnet restore src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj
+      run: dotnet restore src/PptMcp.McpServer/PptMcp.McpServer.csproj
 
     - name: Build MCP Server
-      run: dotnet build src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj --no-restore --configuration Release
+      run: dotnet build src/PptMcp.McpServer/PptMcp.McpServer.csproj --no-restore --configuration Release
 
     - name: Verify Core Commands Coverage
       run: |
@@ -51,19 +51,19 @@ jobs:
     - name: Verify MCP Server build
       run: |
         # Check MCP Server executable
-        if (Test-Path "src/ExcelMcp.McpServer/bin/Release/net10.0-windows/Sbroenne.ExcelMcp.McpServer.exe") {
-          Write-Output "✅ Sbroenne.ExcelMcp.McpServer.exe built successfully"
-          $mcpVersion = (Get-Item "src/ExcelMcp.McpServer/bin/Release/net10.0-windows/Sbroenne.ExcelMcp.McpServer.exe").VersionInfo.FileVersion
+        if (Test-Path "src/PptMcp.McpServer/bin/Release/net10.0-windows/PptMcp.McpServer.exe") {
+          Write-Output "✅ PptMcp.McpServer.exe built successfully"
+          $mcpVersion = (Get-Item "src/PptMcp.McpServer/bin/Release/net10.0-windows/PptMcp.McpServer.exe").VersionInfo.FileVersion
           Write-Output "📦 MCP Server Version: $mcpVersion"
 
           # Check for MCP server.json configuration
-          if (Test-Path "src/ExcelMcp.McpServer/bin/Release/net10.0-windows/.mcp/server.json") {
+          if (Test-Path "src/PptMcp.McpServer/bin/Release/net10.0-windows/.mcp/server.json") {
             Write-Output "✅ MCP server.json configuration found"
           } else {
             Write-Warning "⚠️ MCP server.json configuration not found"
           }
         } else {
-          Write-Error "❌ Sbroenne.ExcelMcp.McpServer.exe not found"
+          Write-Error "❌ PptMcp.McpServer.exe not found"
           exit 1
         }
 
@@ -73,5 +73,5 @@ jobs:
     - name: Upload MCP Server build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ExcelMcp-MCP-Server-${{ github.sha }}
-        path: src/ExcelMcp.McpServer/bin/Release/net10.0-windows/
+        name: PptMcp-MCP-Server-${{ github.sha }}
+        path: src/PptMcp.McpServer/bin/Release/net10.0-windows/

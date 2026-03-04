@@ -1,36 +1,30 @@
 ---
-name: excel-cli
+name: ppt-cli
 description: >
-  Automate Microsoft Excel on Windows via CLI. Use when creating, reading,
-  or modifying Excel workbooks from scripts, CI/CD, or coding agents.
-  Supports Power Query, DAX, PivotTables, Tables, Ranges, Charts, VBA.
-  Triggers: Excel, spreadsheet, workbook, xlsx, excelcli, CLI automation.
+  Automate Microsoft PowerPoint on Windows via CLI. Use when creating, reading,
+  or modifying PowerPoint presentations from scripts, CI/CD, or coding agents.
+  Supports Slides, Shapes, Text, Charts, Animations, Transitions.
+  Triggers: PowerPoint, presentation, pptx, pptcli, CLI automation.
 ---
 
-# Excel Automation with excelcli
+# PowerPoint Automation with pptcli
 
 ## Preconditions
 
-- Windows host with Microsoft Excel installed (2016+)
+- Windows host with Microsoft PowerPoint installed (2016+)
 - Uses COM interop — does NOT work on macOS or Linux
-- Install: `dotnet tool install --global Sbroenne.ExcelMcp.CLI`
+- Install: `dotnet tool install --global PptMcp.CLI`
 
 ## Workflow Checklist
 
 | Step | Command | When |
 |------|---------|------|
 | 1. Session | `session create/open` | Always first |
-| 2. Sheets | `worksheet create/rename` | If needed |
-| 3. Write data | See below | If writing values |
+| 2. Slides | `slide create/duplicate` | If needed |
+| 3. Add content | `shape`, `text`, `chart` | Add shapes, text, charts |
 | 4. Save & close | `session close --save` | Always last |
 
-> **10+ commands?** Use `excelcli -q batch --input commands.json` — sends all commands in one process with automatic session management. See Rule 8.
-
-**Writing Data (Step 3):**
-- `--values` takes a JSON 2D array string: `--values '[["Header1","Header2"],[1,2]]'`
-- Write **one row at a time** for reliability: `--range-address A1:B1 --values '[["Name","Age"]]'`
-- Strings MUST be double-quoted in JSON: `"text"`. Numbers are bare: `42`
-- Always wrap the entire JSON value in single quotes to protect special characters
+> **10+ commands?** Use `pptcli -q batch --input commands.json` — sends all commands in one process with automatic session management. See Rule 8.
 
 ## CRITICAL RULES (MUST FOLLOW)
 
@@ -42,9 +36,9 @@ Execute commands to discover the answer instead:
 
 | DON'T ASK | DO THIS INSTEAD |
 |-----------|-----------------|
-| "Which file should I use?" | `excelcli -q session list` |
-| "What table should I use?" | `excelcli -q table list --session <id>` |
-| "Which sheet has the data?" | `excelcli -q worksheet list --session <id>` |
+| "Which file should I use?" | `pptcli -q session list` |
+| "Which slide has the content?" | `pptcli -q slide list --session <id>` |
+| "What shapes are on this slide?" | `pptcli -q shape list --session <id>` |
 
 **You have commands to answer your own questions. USE THEM.**
 
@@ -57,10 +51,10 @@ Execute commands to discover the answer instead:
 **Creating vs Opening Files:**
 ```powershell
 # NEW file - use session create
-excelcli -q session create C:\path\newfile.xlsx  # Creates file + returns session ID
+pptcli -q session create C:\path\newfile.pptx  # Creates file + returns session ID
 
 # EXISTING file - use session open
-excelcli -q session open C:\path\existing.xlsx   # Opens file + returns session ID
+pptcli -q session open C:\path\existing.pptx   # Opens file + returns session ID
 ```
 
 **CRITICAL: Use `session create` for new files. `session open` on non-existent files will fail!**
@@ -69,77 +63,73 @@ excelcli -q session open C:\path\existing.xlsx   # Opens file + returns session 
 
 ```powershell
 # Example: capture session ID from output, then use it
-excelcli -q session create C:\path\file.xlsx     # Returns JSON with sessionId
-excelcli -q range set-values --session <returned-session-id> ...
-excelcli -q session close --session <returned-session-id> --save
+pptcli -q session create C:\path\file.pptx     # Returns JSON with sessionId
+pptcli -q slide list --session <returned-session-id>
+pptcli -q session close --session <returned-session-id> --save
 ```
 
-**Unclosed sessions leave Excel processes running, locking files.**
+**Unclosed sessions leave PowerPoint processes running, locking files.**
 
-### Rule 4: Data Model Prerequisites
+### Rule 4: Slide Layout and Masters
 
-DAX operations require tables in the Data Model:
+Slides inherit layouts from slide masters:
 
 ```powershell
-excelcli -q table add-to-data-model --session <id> --table-name Sales  # Step 1
-excelcli -q datamodel create-measure --session <id> ...               # Step 2 - NOW works
+pptcli -q slide create --session <id> --layout "Title and Content"  # Use a layout
+pptcli -q slide list --session <id>                                  # See all slides
 ```
 
-### Rule 5: Power Query Development Lifecycle
+### Rule 5: Shape and Text Workflow
 
-**BEST PRACTICE: Test M code before creating permanent queries**
+**BEST PRACTICE: Add shapes then set their text/properties**
 
 ```powershell
-# Step 1: Test M code without persisting (catches errors early)
-excelcli -q powerquery evaluate --session 1 --m-code-file query.m
+# Step 1: Add a shape to a slide
+pptcli -q shape create --session <id> --slide-index 1 --shape-type rectangle
 
-# Step 2: Create permanent query with validated code
-excelcli -q powerquery create --session 1 --query-name Q1 --m-code-file query.m
+# Step 2: Set text content
+pptcli -q text set --session <id> --slide-index 1 --shape-name "Rectangle 1" --text "Hello World"
 
-# Step 3: Load data to destination
-excelcli -q powerquery refresh --session 1 --query-name Q1
+# Step 3: Apply formatting
+pptcli -q shape format --session <id> --slide-index 1 --shape-name "Rectangle 1" --fill-color "#0078D4"
 ```
 
 ### Rule 6: Report File Errors Immediately
 
 If you see "File not found" or "Path not found" - STOP and report to user. Don't retry.
 
-### Rule 7: Use Calculation Mode for Bulk Writes
+### Rule 7: Use Animations and Transitions Thoughtfully
 
-When writing many values/formulas (10+ cells), disable auto-recalc for performance:
+When adding animations to multiple shapes, apply them in logical order:
 
 ```powershell
-# 1. Set manual mode
-excelcli -q calculationmode set-mode --session 1 --mode manual
+# 1. Add entrance animation to title
+pptcli -q animation add --session 1 --slide-index 1 --shape-name "Title" --effect "fade-in"
 
-# 2. Write data row by row for reliability
-excelcli -q range set-values --session 1 --sheet-name Sheet1 --range-address A1:B1 --values '[["Name","Amount"]]'
-excelcli -q range set-values --session 1 --sheet-name Sheet1 --range-address A2:B2 --values '[["Salary",5000]]'
+# 2. Add entrance animation to content
+pptcli -q animation add --session 1 --slide-index 1 --shape-name "Content" --effect "fly-in" --delay 0.5
 
-# 3. Recalculate once at end
-excelcli -q calculationmode calculate --session 1 --scope workbook
-
-# 4. Restore automatic mode
-excelcli -q calculationmode set-mode --session 1 --mode automatic
+# 3. Set slide transition
+pptcli -q transition set --session 1 --slide-index 1 --effect "push" --duration 1.0
 ```
 
 ### Rule 8: Use Batch Mode for Bulk Operations (10+ commands)
 
-When executing 10+ commands on the same file, use `excelcli batch` to send all commands in a single process launch. This avoids per-process startup overhead and terminal buffer saturation.
+When executing 10+ commands on the same file, use `pptcli batch` to send all commands in a single process launch. This avoids per-process startup overhead and terminal buffer saturation.
 
 ```powershell
 # Create a JSON file with all commands
 @'
 [
-  {"command": "session.open", "args": {"filePath": "C:\\path\\file.xlsx"}},
-  {"command": "range.set-values", "args": {"sheetName": "Sheet1", "rangeAddress": "A1", "values": [["Hello"]]}},
-  {"command": "range.set-values", "args": {"sheetName": "Sheet1", "rangeAddress": "A2", "values": [["World"]]}},
+  {"command": "session.open", "args": {"filePath": "C:\\path\\file.pptx"}},
+  {"command": "slide.create", "args": {"layout": "Blank"}},
+  {"command": "shape.create", "args": {"slideIndex": 2, "shapeType": "rectangle"}},
   {"command": "session.close", "args": {"save": true}}
 ]
 '@ | Set-Content commands.json
 
 # Execute all commands at once
-excelcli -q batch --input commands.json
+pptcli -q batch --input commands.json
 ```
 
 **Key features:**
@@ -149,12 +139,12 @@ excelcli -q batch --input commands.json
 - **`--session <id>`**: Pre-set session ID for all commands (skip session.open)
 
 **Input formats:**
-- JSON array from file: `excelcli -q batch --input commands.json`
-- NDJSON from stdin: `Get-Content commands.ndjson | excelcli -q batch`
+- JSON array from file: `pptcli -q batch --input commands.json`
+- NDJSON from stdin: `Get-Content commands.ndjson | pptcli -q batch`
 
 ## CLI Command Reference
 
-> Auto-generated from `excelcli --help`. Use these exact parameter names.
+> Auto-generated from `pptcli --help`. Use these exact parameter names.
 
 {{ for cmd in clicommands }}
 ### {{ cmd.name }}
@@ -172,64 +162,49 @@ excelcli -q batch --input commands.json
 
 ## Common Pitfalls
 
-### --values-file Must Be an Existing File
+### Slide Indices Are 1-Based
 
-`--values-file` expects a path to an **existing** JSON or CSV file on disk. Do NOT pass inline JSON as the value — the CLI will look for a file at that path and fail with "File not found". If you don't have a file, use `--values` with inline JSON instead.
+Slide indices start at 1, not 0. `--slide-index 0` is invalid and will error.
 
 ### --timeout Must Be Greater Than Zero
 
 When using `--timeout`, the value must be a positive integer (seconds). `--timeout 0` is invalid and will error. Omit `--timeout` entirely to use the default (300 seconds for most operations).
 
-### Power Query Operations Are Slow
+### Shape Names Must Be Exact
 
-`powerquery create`, `powerquery refresh`, and `powerquery evaluate` may take 30+ seconds depending on data volume. Either omit `--timeout` (uses 5-minute default) or set a generous value like `--timeout 120`.
+Shape names are case-sensitive and must match exactly. Use `shape list` to discover correct names before targeting shapes.
 
 ### JSON Values Format
 
-`--values` takes a 2D JSON array wrapped in single quotes:
+`--values` takes a JSON string wrapped in single quotes:
 ```powershell
-# CORRECT: 2D array with single-quote wrapper
---values '[["Name","Age"],["Alice",30],["Bob",25]]'
+# CORRECT: JSON with single-quote wrapper
+--values '{"text": "Hello World", "fontSize": 24}'
 
-# WRONG: Not a 2D array
---values '["Alice",30]'
-
-# WRONG: Object instead of array
---values '{"Name":"Alice","Age":30}'
+# WRONG: Missing quotes
+--values {text: Hello World}
 ```
 
 ### List Parameters Use JSON Arrays
 
-Parameters that accept lists (e.g., `--selected-items` for slicers) require JSON array format:
+Parameters that accept lists require JSON array format:
 ```powershell
 # CORRECT: JSON array with single-quote wrapper
---selected-items '["West","East"]'
-
-# CORRECT: Escaped inner quotes
---selected-items "[\"West\",\"East\"]"
-
-# CORRECT: Clear selection
---selected-items '[]'
+--selected-items '["Slide 1","Slide 3"]'
 
 # WRONG: Comma-separated string (not valid)
---selected-items "West,East"
+--selected-items "Slide 1,Slide 3"
 ```
 
 ## Reference Documentation
 
 - [Core execution rules and LLM guidelines](./references/behavioral-rules.md)
 - [Common mistakes to avoid](./references/anti-patterns.md)
-- [Data Model constraints and patterns](./references/workflows.md)
+- [Presentation workflows and patterns](./references/workflows.md)
 - [Charts, positioning, and formatting](./references/chart.md)
-- [Conditional formatting operations](./references/conditionalformat.md)
-- [Dashboard and report best practices](./references/dashboard.md)
-- [Data Model/DAX specifics](./references/datamodel.md)
-- [DMV query reference for Data Model analysis](./references/dmv-reference.md)
-- [Power Query M code syntax reference](./references/m-code-syntax.md)
-- [PivotTable operations](./references/pivottable.md)
-- [Power Query specifics](./references/powerquery.md)
-- [Range operations and number formats](./references/range.md)
+- [CLI commands reference](./references/cli-commands.md)
+- [Presentation design best practices](./references/dashboard.md)
 - [Screenshot and visual verification](./references/screenshot.md)
-- [Slicer operations](./references/slicer.md)
 - [Table operations](./references/table.md)
-- [Worksheet operations](./references/worksheet.md)
+- [Window management](./references/window.md)
+- [Agent mode patterns](./references/ppt_agent_mode.md)

@@ -12,12 +12,12 @@ Implement breaking changes from `MCP-BREAKING-CHANGES-PROPOSAL.md` before the 1.
 
 ## Objectives
 
-Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes without affecting users. This is a **golden opportunity** to improve the API before 1.0.
+Since PptMcp MCP Server hasn't been released yet, we can make breaking changes without affecting users. This is a **golden opportunity** to improve the API before 1.0.
 
 ### Key Changes
 
 1. **Better Terminology**: `batchId` → `sessionId` (clearer intent)
-2. **Consistent Naming**: `excelPath` → `filePath`, `sheetName` → `worksheetName`
+2. **Consistent Naming**: `presentationPath` → `filePath`, `slideIndex` parameter changes
 3. **Standardized Errors**: Error codes and structured error responses
 4. **Cleaner Code**: Remove redundant validation attributes
 5. **Richer Responses**: Add metadata to all tool outputs
@@ -34,12 +34,12 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
 
 - [ ] Rename `BatchSessionTool.cs` → `SessionTool.cs`
 - [ ] Rename tools:
-  - `begin_excel_batch` → `begin_excel_session`
-  - `commit_excel_batch` → `end_excel_session`
-  - `list_excel_batches` → `list_excel_sessions`
+  - `begin_ppt_batch` → `begin_ppt_session`
+  - `commit_ppt_batch` → `end_ppt_session`
+  - `list_ppt_batches` → `list_ppt_sessions`
 - [ ] Update all `batchId` parameters to `sessionId` in:
-  - All 9 tool files in `src/ExcelMcp.McpServer/Tools/`
-  - `ExcelToolsBase.cs`
+  - All 9 tool files in `src/PptMcp.McpServer/Tools/`
+  - `PptToolsBase.cs`
   - All prompt files (4 files)
 - [ ] Update documentation:
   - `BATCH-SESSION-GUIDE.md` → `SESSION-GUIDE.md`
@@ -49,30 +49,30 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
 - [ ] Update tests (all files referencing batchId)
 - [ ] Update Program.cs cleanup handler
 
-#### 1.2 excelPath → filePath
+#### 1.2 presentationPath → filePath
 **Affected files**: 16 C# files
 
 - [ ] Update all tool files:
-  - `ExcelPowerQueryTool.cs`
-  - `ExcelWorksheetTool.cs`
-  - `ExcelParameterTool.cs`
-  - `ExcelCellTool.cs`
-  - `ExcelVbaTool.cs`
-  - `ExcelConnectionTool.cs`
-  - `ExcelDataModelTool.cs`
-  - `ExcelFileTool.cs`
-  - `HyperlinkTool.cs`
-  - `TableTool.cs`
+  - `PptSlideTool.cs`
+  - `PptShapeTool.cs`
+  - `PptTextTool.cs`
+  - `PptChartTool.cs`
+  - `PptVbaTool.cs`
+  - `PptAnimationTool.cs`
+  - `PptTransitionTool.cs`
+  - `PptFileTool.cs`
+  - `PptNotesTool.cs`
+  - `PptMediaTool.cs`
 - [ ] Update all Core command interfaces
 - [ ] Update all Core command implementations
 - [ ] Update all tests
 - [ ] Update all prompt content and documentation
 
-#### 1.3 sheetName → worksheetName
+#### 1.3 slideIndex parameter changes
 **Affected files**: ~5 files
 
-- [ ] `ExcelWorksheetTool.cs`
-- [ ] Worksheet Core commands
+- [ ] `PptSlideTool.cs`
+- [ ] Slide Core commands
 - [ ] Related tests
 - [ ] Prompt content
 - [ ] Documentation
@@ -80,16 +80,16 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
 ### Phase 2: Error Response Standardization (1-2 days)
 
 #### 2.1 Define Error Codes
-- [ ] Create `src/ExcelMcp.Core/Models/ErrorCodes.cs`
+- [ ] Create `src/PptMcp.Core/Models/ErrorCodes.cs`
 - [ ] Define standard error codes:
   ```csharp
   FILE_NOT_FOUND
-  QUERY_NOT_FOUND
-  WORKSHEET_NOT_FOUND
-  INVALID_M_CODE
-  PRIVACY_LEVEL_REQUIRED
+  SLIDE_NOT_FOUND
+  SHAPE_NOT_FOUND
+  INVALID_PARAMETER
+  ANIMATION_ERROR
   VBA_TRUST_REQUIRED
-  EXCEL_BUSY
+  POWERPOINT_BUSY
   SESSION_NOT_FOUND
   SESSION_FILE_MISMATCH
   ```
@@ -100,11 +100,11 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
   {
     "success": false,
     "error": {
-      "code": "QUERY_NOT_FOUND",
-      "message": "Power Query 'SalesData' not found",
+      "code": "SLIDE_NOT_FOUND",
+      "message": "Slide 'Intro' not found",
       "details": {
-        "queryName": "SalesData",
-        "availableQueries": ["Data1", "Data2"]
+        "slideName": "Intro",
+        "availableSlides": ["Slide1", "Slide2"]
       }
     }
   }
@@ -183,8 +183,8 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
 ## Files Affected
 
 **C# Files**: ~30 files
-- 9 tool files in `src/ExcelMcp.McpServer/Tools/`
-- 4 prompt files in `src/ExcelMcp.McpServer/Prompts/`
+- 9 tool files in `src/PptMcp.McpServer/Tools/`
+- 4 prompt files in `src/PptMcp.McpServer/Prompts/`
 - 1 Program.cs
 - ~10 Core command files
 - ~10 test files
@@ -201,8 +201,8 @@ Since ExcelMcp MCP Server hasn't been released yet, we can make breaking changes
 ## Success Criteria
 
 - [ ] All `batchId` references changed to `sessionId`
-- [ ] All `excelPath` references changed to `filePath`
-- [ ] All `sheetName` references changed to `worksheetName`
+- [ ] All `presentationPath` references changed to `filePath`
+- [ ] All `slideIndex` references updated consistently
 - [ ] Error response format standardized with error codes
 - [ ] Validation attributes cleaned up
 - [ ] Rich metadata added to all responses
@@ -233,7 +233,7 @@ git checkout -b feature/breaking-changes-pre-1.0
 git commit -m "Phase 1.1: Rename batchId to sessionId"
 # Test
 # Implement Phase 1.2
-git commit -m "Phase 1.2: Rename excelPath to filePath"
+git commit -m "Phase 1.2: Rename presentationPath to filePath"
 # Continue...
 ```
 

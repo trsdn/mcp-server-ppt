@@ -45,8 +45,8 @@
   },
   "insights": {
     "recommendation": {
-      "configuration": "azure/gpt-5-mini / default / excel-mcp",
-      "summary": "Deploy the configuration with the excel-mcp skill enabled because it achieves a 100% pass rate on calculation-mode tests, while the no-skill configuration fails to discover excel_calculation_mode for formula verification.",
+      "configuration": "azure/gpt-5-mini / default / ppt-mcp",
+      "summary": "Deploy the configuration with the ppt-mcp skill enabled because it achieves a 100% pass rate on calculation-mode tests, while the no-skill configuration fails to discover excel_calculation_mode for formula verification.",
       "reasoning": "Both skill-backed tests passed and correctly followed the manual → calculate → automatic workflow. The no-skill configuration failed test_mcp_calculation_mode_formula_verify_no_skill because the agent never called excel_calculation_mode, despite explicit user intent to verify formulas before calculation. This shows the skill provides critical behavioral guidance not reliably inferred from tool descriptions alone.",
       "alternatives": [
         "azure/gpt-5-mini / default (no skill) – lower token usage and cost, but unreliable for formula verification scenarios requiring manual calculation mode discovery."
@@ -63,7 +63,7 @@
     ],
     "mcp_feedback": [
       {
-        "server_name": "excel-mcp",
+        "server_name": "ppt-mcp",
         "tools": [
           {
             "tool_name": "excel_calculation_mode",
@@ -106,7 +106,7 @@
     ],
     "skill_feedback": [
       {
-        "skill_name": "excel-mcp",
+        "skill_name": "ppt-mcp",
         "usage_rate": 0.5,
         "impact": "positive",
         "token_cost": 25000,
@@ -120,7 +120,7 @@
       {
         "category": "efficiency",
         "severity": "recommended",
-        "title": "Reduce reliance on full excel-mcp skill for calculation-mode tasks",
+        "title": "Reduce reliance on full ppt-mcp skill for calculation-mode tasks",
         "current_state": "Skill-backed runs consume ~54k–58k tokens and ~60–70s duration, compared to ~17k–30k tokens and ~30–38s without the skill.",
         "suggested_change": "Move calculation-mode best practices into the excel_calculation_mode tool description and/or a minimal calculation-mode-only skill.",
         "expected_impact": "Expected 40–60% token reduction and faster runtimes while maintaining correct calculation-mode behavior."
@@ -919,7 +919,7 @@
       "outcome": "failed",
       "duration_ms": 30567.560099996626,
       "docstring": "Test that LLM uses manual mode for formula verification (no skill).\n\n    Without the skill, the LLM must discover from tool descriptions that\n    manual mode allows verifying formulas before calculation.\n    ",
-      "error": "aitest_run = <function aitest_run.<locals>.run_agent at 0x00000225173ECA40>\nexcel_mcp_server = MCPServer(command=['dotnet', 'run', '--project', 'D:\\\\source\\\\mcp-server-excel\\\\src\\\\ExcelMcp.McpServer\\\\ExcelMcp.McpS...=Wait(strategy=<WaitStrategy.READY: 'ready'>, pattern=None, tools=None, timeout_ms=30000), cwd=None, name='--no-build')\n\n    @pytest.mark.asyncio\n    async def test_mcp_calculation_mode_formula_verify_no_skill(aitest_run, excel_mcp_server):\n        \"\"\"Test that LLM uses manual mode for formula verification (no skill).\n    \n        Without the skill, the LLM must discover from tool descriptions that\n        manual mode allows verifying formulas before calculation.\n        \"\"\"\n        agent = Agent(\n            name=\"mcp-calc-verify-noskill\",\n            provider=Provider(model=\"azure/gpt-5-mini\", rpm=10, tpm=10000),\n            mcp_servers=[excel_mcp_server],\n            # No skill - relying on tool descriptions only\n            allowed_tools=[\n                \"excel_calculation_mode\",\n                \"excel_file\",\n                \"excel_range\",\n                \"excel_worksheet\",\n            ],\n            max_turns=20,\n        )\n    \n        prompt = f\"\"\"\n    I need to verify a SUMPRODUCT formula is correct before it calculates.\n    \n    Create a new Excel file at {unique_results_path('calc-verify-noskill')}\n    \n    Set up this data on Sheet1:\n    - A1: \"Region\", B1: \"Sales\", C1: \"Target\"\n    - A2: \"North\", B2: 15000, C2: 12000\n    - A3: \"South\", B3: 8000, C3: 10000\n    - A4: \"East\", B4: 12000, C4: 11000\n    \n    In cell E2, write this SUMPRODUCT formula: =SUMPRODUCT((B2:B4>C2:C4)*B2:B4)\n    \n    I want to verify the formula text was written correctly BEFORE it calculates.\n    Read back the formula in E2 first, then calculate and report the result.\n    \n    The expected result is 27000 (North 15000 + East 12000 where Sales > Target).\n    \"\"\"\n        result = await aitest_run(agent, prompt, timeout_ms=180000)\n        assert result.success\n>       assert result.tool_was_called(\"excel_calculation_mode\"), \\\n            \"LLM without skill should discover excel_calculation_mode for formula verification\"\nE       AssertionError: LLM without skill should discover excel_calculation_mode for formula verification\nE       assert False\nE        +  where False = tool_was_called('excel_calculation_mode')\nE        +    where tool_was_called = AgentResult(SUCCESS)\\n  Turns: 7\\n  Tools called: excel_file, excel_range\\n  Duration: 29231ms\\n  Tokens: 17517 | Cost: $0...0\\n  Final: 'I created the workbook and verified the formula.\\n\\nDetails:\\n- File created: D:/source/mcp-server-exce'....tool_was_called\n\nmcp\\test_mcp_calculation_mode.py:207: AssertionError",
+      "error": "aitest_run = <function aitest_run.<locals>.run_agent at 0x00000225173ECA40>\nppt_mcp_server = MCPServer(command=['dotnet', 'run', '--project', 'D:\\\\source\\\\mcp-server-excel\\\\src\\\\PptMcp.McpServer\\\\PptMcp.McpS...=Wait(strategy=<WaitStrategy.READY: 'ready'>, pattern=None, tools=None, timeout_ms=30000), cwd=None, name='--no-build')\n\n    @pytest.mark.asyncio\n    async def test_mcp_calculation_mode_formula_verify_no_skill(aitest_run, ppt_mcp_server):\n        \"\"\"Test that LLM uses manual mode for formula verification (no skill).\n    \n        Without the skill, the LLM must discover from tool descriptions that\n        manual mode allows verifying formulas before calculation.\n        \"\"\"\n        agent = Agent(\n            name=\"mcp-calc-verify-noskill\",\n            provider=Provider(model=\"azure/gpt-5-mini\", rpm=10, tpm=10000),\n            mcp_servers=[ppt_mcp_server],\n            # No skill - relying on tool descriptions only\n            allowed_tools=[\n                \"excel_calculation_mode\",\n                \"excel_file\",\n                \"excel_range\",\n                \"excel_worksheet\",\n            ],\n            max_turns=20,\n        )\n    \n        prompt = f\"\"\"\n    I need to verify a SUMPRODUCT formula is correct before it calculates.\n    \n    Create a new Excel file at {unique_results_path('calc-verify-noskill')}\n    \n    Set up this data on Sheet1:\n    - A1: \"Region\", B1: \"Sales\", C1: \"Target\"\n    - A2: \"North\", B2: 15000, C2: 12000\n    - A3: \"South\", B3: 8000, C3: 10000\n    - A4: \"East\", B4: 12000, C4: 11000\n    \n    In cell E2, write this SUMPRODUCT formula: =SUMPRODUCT((B2:B4>C2:C4)*B2:B4)\n    \n    I want to verify the formula text was written correctly BEFORE it calculates.\n    Read back the formula in E2 first, then calculate and report the result.\n    \n    The expected result is 27000 (North 15000 + East 12000 where Sales > Target).\n    \"\"\"\n        result = await aitest_run(agent, prompt, timeout_ms=180000)\n        assert result.success\n>       assert result.tool_was_called(\"excel_calculation_mode\"), \\\n            \"LLM without skill should discover excel_calculation_mode for formula verification\"\nE       AssertionError: LLM without skill should discover excel_calculation_mode for formula verification\nE       assert False\nE        +  where False = tool_was_called('excel_calculation_mode')\nE        +    where tool_was_called = AgentResult(SUCCESS)\\n  Turns: 7\\n  Tools called: excel_file, excel_range\\n  Duration: 29231ms\\n  Tokens: 17517 | Cost: $0...0\\n  Final: 'I created the workbook and verified the formula.\\n\\nDetails:\\n- File created: D:/source/mcp-server-exce'....tool_was_called\n\nmcp\\test_mcp_calculation_mode.py:207: AssertionError",
       "error_count": 1,
       "metadata": {
         "model": "azure/gpt-5-mini",

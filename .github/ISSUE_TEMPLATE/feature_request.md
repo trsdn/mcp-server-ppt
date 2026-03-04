@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest an idea for ExcelMcp
+about: Suggest an idea for PptMcp
 title: '[FEATURE] '
 labels: 'enhancement'
 assignees: ''
@@ -25,11 +25,11 @@ A clear and concise description of what you want to happen.
 
 **For CLI:**
 ```bash
-ExcelMcp new-command <file.xlsx> <parameters>
+PptMcp new-command <file.pptx> <parameters>
 ```
 
 **For MCP Server:**
-- Tool: [e.g., powerquery, worksheet, vba]
+- Tool: [e.g., slide, shape, text, vba]
 - Action: [e.g., new-action]
 - Parameters: [describe expected parameters]
 
@@ -38,32 +38,30 @@ A clear and concise description of any alternative solutions or features you've 
 
 ## Use Case
 Describe the specific use case this feature would address:
-- [ ] Power Query management
 - [ ] VBA script automation
-- [ ] Worksheet operations  
+- [ ] Slide operations  
 - [ ] Data analysis
 - [ ] Coding agent automation
-- [ ] Macro-enabled workbook (.xlsm) operations
+- [ ] Macro-enabled presentation (.pptm) operations
 - [ ] Other: [please specify]
 
 ## Target Users
 Who would benefit from this feature?
 - [ ] **AI Assistants** (GitHub Copilot, Claude, ChatGPT via MCP Server)
 - [ ] **Direct CLI Users** (Command-line automation)
-- [ ] **CI/CD Pipelines** (Automated Excel development workflows)
-- [ ] **Excel Developers** (Power Query, VBA development)
+- [ ] **CI/CD Pipelines** (Automated PowerPoint development workflows)
+- [ ] **PowerPoint Developers** (VBA development)
 - [ ] **Data Engineers** (ETL workflows)
 - [ ] Other: [please specify]
 
-## Excel Operations Involved
-What Excel APIs or operations would this feature likely use?
-- [ ] Power Query (Workbook.Queries)
-- [ ] Worksheets (Worksheet operations)
-- [ ] Named Ranges (Workbook.Names)
-- [ ] Charts/PivotTables
+## PowerPoint Operations Involved
+What PowerPoint APIs or operations would this feature likely use?
+- [ ] Slides (Slide operations)
+- [ ] Shapes (Shape operations)
+- [ ] Charts
 - [ ] VBA/Macros (VBProject.VBComponents)
-- [ ] External connections
-- [ ] Macro-enabled workbooks (.xlsm)
+- [ ] Animations/Transitions
+- [ ] Macro-enabled presentations (.pptm)
 - [ ] Other: [please specify]
 
 ## Additional context

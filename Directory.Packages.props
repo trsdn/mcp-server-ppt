@@ -5,31 +5,25 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Excel COM Interop PIA -->
-    <PackageVersion Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" />
+    <!-- PowerPoint COM Interop PIA -->
+    <PackageVersion Include="Microsoft.Office.Interop.PowerPoint" Version="15.0.4420.1018" />
     <!-- UI Framework -->
-    <PackageVersion Include="Dax.Formatter" Version="1.2.0" />
     <PackageVersion Include="Spectre.Console" Version="0.54.0" />
     <PackageVersion Include="Spectre.Console.Cli" Version="0.53.1" />
     <!-- Microsoft Extensions for MCP Server -->
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.3" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.4" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
-    <!-- Application Insights Worker Service SDK for telemetry (Users, Sessions, Funnels, User Flows) -->
-    <!-- Worker Service SDK provides proper DI integration, auto-collection modules, and host lifetime awareness -->
-    <PackageVersion Include="Microsoft.ApplicationInsights.WorkerService" Version="2.23.0" />
-    <!-- Base SDK needed for tests that directly use TelemetryClient -->
-    <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.23.0" />
-    <PackageVersion Include="Microsoft.Extensions.Resilience" Version="10.3.0" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
-    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Resilience" Version="9.1.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.4" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
+    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="9.0.4" />
     <PackageVersion Include="StreamJsonRpc" Version="2.24.84" />
     <PackageVersion Include="System.Text.Json" Version="10.0.3" />
     <!-- MCP SDK - Latest stable preview -->
     <PackageVersion Include="ModelContextProtocol" Version="0.9.0-preview.2" />
     <!-- Testing Framework -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageVersion Include="System.Net.Http" Version="4.3.5" />
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.2" />
     <PackageVersion Include="xunit" Version="2.9.3" />
@@ -37,13 +31,13 @@
     <PackageVersion Include="coverlet.collector" Version="6.1.0" />
     <PackageVersion Include="MartinCostello.Logging.XUnit" Version="0.7.0" />
     <!-- Code Analysis and Security -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.103" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" />
     <!-- Template Engine for Skill Generation -->
     <PackageVersion Include="Scriban" Version="6.5.3" />
     <!-- MSBuild Task Development -->
-    <PackageVersion Include="Microsoft.Build.Framework" Version="18.3.3" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.3.3" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.14.8" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.14.8" />
   </ItemGroup>
 </Project>

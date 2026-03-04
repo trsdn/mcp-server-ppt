@@ -27,7 +27,7 @@ Write-Host ""
 $violations = @()
 
 # Scan all Core Commands files
-Get-ChildItem -Path "$rootDir\src\ExcelMcp.Core\Commands" -Filter "*.cs" -Recurse | ForEach-Object {
+Get-ChildItem -Path "$rootDir\src\PptMcp.Core\Commands" -Filter "*.cs" -Recurse | ForEach-Object {
     $lines = Get-Content $_.FullName
     
     for ($i = 0; $i -lt $lines.Count; $i++) {

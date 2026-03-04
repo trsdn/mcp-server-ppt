@@ -1,4 +1,4 @@
-"""Fixtures and helpers for ExcelMcp LLM integration tests."""
+"""Fixtures and helpers for PptMcp LLM integration tests."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ DEFAULT_MODEL = "gpt-4.1"
 DEFAULT_RPM = 10
 DEFAULT_TPM = 10000
 DEFAULT_MAX_TURNS = 20
-DEFAULT_RETRIES = 3  # Excel COM operations need more retries than default (1)
+DEFAULT_RETRIES = 3  # PowerPoint COM operations need more retries than default (1)
 DEFAULT_TIMEOUT_MS = 600000  # 10 min - Azure GlobalStandard can be slow under load
 
 
@@ -42,13 +42,13 @@ def pytest_configure(config: pytest.Config) -> None:
         config.option.llm_model = "azure/gpt-4.1"
 
 
-def unique_path(prefix: str, suffix: str = ".xlsx") -> str:
+def unique_path(prefix: str, suffix: str = ".pptx") -> str:
     temp_dir = Path(os.environ.get("TEMP", tempfile.gettempdir()))
     path = temp_dir / f"{prefix}-{uuid.uuid4()}{suffix}"
     return path.as_posix()
 
 
-def unique_results_path(prefix: str, suffix: str = ".xlsx") -> str:
+def unique_results_path(prefix: str, suffix: str = ".pptx") -> str:
     path = TEST_RESULTS_DIR / f"{prefix}-{uuid.uuid4()}{suffix}"
     return path.as_posix()
 
@@ -59,7 +59,7 @@ def assert_regex(text: str, pattern: str) -> None:
 
 
 def _parse_cli_results(result: Any) -> list[dict[str, Any]]:
-    calls = result.tool_calls_for("excel_execute")
+    calls = result.tool_calls_for("ppt_execute")
     outputs: list[dict[str, Any]] = []
     for call in calls:
         if call.result:
@@ -103,7 +103,7 @@ def assert_cli_exit_codes(result: Any, *, strict: bool = False) -> None:
 
 
 def assert_cli_args_contain(result: Any, token: str) -> None:
-    calls = result.tool_calls_for("excel_execute")
+    calls = result.tool_calls_for("ppt_execute")
     for call in calls:
         args = call.arguments.get("args", "")
         if token in args:
@@ -117,11 +117,11 @@ def _resolve_mcp_command() -> list[str]:
         return shlex.split(env_command)
 
     # Windows-specific build with COM interop support
-    exe_path = REPO_ROOT / "src/ExcelMcp.McpServer/bin/Release/net10.0-windows/Sbroenne.ExcelMcp.McpServer.exe"
+    exe_path = REPO_ROOT / "src/PptMcp.McpServer/bin/Release/net10.0-windows/PptMcp.McpServer.exe"
     if exe_path.exists():
         return [str(exe_path)]
 
-    project_path = REPO_ROOT / "src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj"
+    project_path = REPO_ROOT / "src/PptMcp.McpServer/PptMcp.McpServer.csproj"
     return [
         "dotnet",
         "run",
@@ -139,16 +139,16 @@ def _resolve_cli_command() -> str:
         return env_command
 
     # Windows-specific build with COM interop support
-    exe_path = REPO_ROOT / "src/ExcelMcp.CLI/bin/Release/net10.0-windows/excelcli.exe"
+    exe_path = REPO_ROOT / "src/PptMcp.CLI/bin/Release/net10.0-windows/pptcli.exe"
     if exe_path.exists():
         return str(exe_path)
 
-    # Fallback to excelcli in PATH
-    return "excelcli"
+    # Fallback to pptcli in PATH
+    return "pptcli"
 
 
 @pytest.fixture(scope="session")
-def excel_mcp_server() -> MCPServer:
+def ppt_mcp_server() -> MCPServer:
     return MCPServer(
         command=_resolve_mcp_command(),
         wait=Wait.ready(timeout_ms=30000),
@@ -156,29 +156,29 @@ def excel_mcp_server() -> MCPServer:
 
 
 @pytest.fixture(scope="session")
-def excel_cli_server() -> CLIServer:
+def ppt_cli_server() -> CLIServer:
     command = _resolve_cli_command()
     temp_dir = Path(os.environ.get("TEMP", tempfile.gettempdir()))
     return CLIServer(
-        name="excel-cli",
+        name="ppt-cli",
         command=command,
-        tool_prefix="excel",
+        tool_prefix="ppt",
         shell="none",
         cwd=str(temp_dir),
         discover_help=False,  # Skill Rule 0 requires LLM to run --help first
-        description="Excel CLI automation. Run 'excelcli --help' to discover available commands before use.",
-        timeout=120.0,  # Excel COM operations (especially session close) can take >30s
+        description="PowerPoint CLI automation. Run 'pptcli --help' to discover available commands before use.",
+        timeout=120.0,  # PowerPoint COM operations (especially session close) can take >30s
     )
 
 
 @pytest.fixture(scope="session")
-def excel_mcp_skill() -> Skill:
-    return Skill.from_path(REPO_ROOT / "skills/excel-mcp")
+def ppt_mcp_skill() -> Skill:
+    return Skill.from_path(REPO_ROOT / "skills/ppt-mcp")
 
 
 @pytest.fixture(scope="session")
-def excel_cli_skill() -> Skill:
-    return Skill.from_path(REPO_ROOT / "skills/excel-cli")
+def ppt_cli_skill() -> Skill:
+    return Skill.from_path(REPO_ROOT / "skills/ppt-cli")
 
 
 @pytest.fixture(scope="session")

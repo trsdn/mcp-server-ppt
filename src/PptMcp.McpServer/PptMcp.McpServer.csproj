@@ -1,0 +1,339 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Assembly and Namespace Configuration -->
+    <AssemblyName>PptMcp.McpServer</AssemblyName>
+    <RootNamespace>PptMcp.McpServer</RootNamespace>
+
+    <!-- MCP Server doesn't need XML documentation warnings - API docs are in MCP schema -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <!-- Emit source generator output to disk for debugging -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+
+    <!-- Version inherited from Directory.Build.props; overridden by CI via -p:Version -->
+
+    <!-- NuGet MCP Server Configuration -->
+    <PackageId>PptMcp.McpServer</PackageId>
+    <!-- Note: McpServer type is added via _AddMcpServerPackageType target below
+         because .NET 8 SDK unconditionally sets PackageType=DotnetTool when PackAsTool=true -->
+    <Title>MCP Server for PowerPoint</Title>
+    <Description>PowerPoint automation for AI assistants - manage Slides, Shapes, Text, Charts, and more. Requires PowerPoint to be installed. Only runs on Windows.</Description>
+    <PackageTags>mcp;model-context-protocol;powerpoint;microsoft;office;presentation;automation;slides;shapes;copilot;ai;github-copilot</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>See https://github.com/trsdn/mcp-server-ppt/releases for release notes</PackageReleaseNotes>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+
+    <!-- .NET Tool Configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>mcp-ppt</ToolCommandName>
+
+    <!-- Multi-Architecture Support for Windows x64 and ARM64 -->
+    <PublishSelfContained>false</PublishSelfContained>
+    <PublishTrimmed>false</PublishTrimmed>
+    <!-- RuntimeIdentifier removed for portable deployment -->
+
+    <!-- Package Validation -->
+    <EnablePackageValidation>true</EnablePackageValidation>
+
+  </PropertyGroup>
+
+  <!-- Workaround for .NET 8 SDK unconditionally setting PackageType=DotnetTool when PackAsTool=true.
+       This target runs before Pack and appends McpServer to the package type.
+       In .NET 10+, just setting <PackageType>McpServer</PackageType> would work. -->
+  <Target Name="_AddMcpServerPackageType" BeforeTargets="GenerateNuspec;Pack">
+    <PropertyGroup>
+      <PackageType>$(PackageType);McpServer</PackageType>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Workaround for NETSDK1146: PackAsTool doesn't support net9.0-windows -->
+  <!-- See: https://github.com/dotnet/sdk/issues/12055#issuecomment-2125927648 -->
+  <Target Name="HackBeforePackToolValidation" BeforeTargets="_PackToolValidation">
+    <PropertyGroup>
+      <TargetPlatformIdentifier></TargetPlatformIdentifier>
+      <TargetPlatformMoniker></TargetPlatformMoniker>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="HackAfterPackToolValidation" AfterTargets="_PackToolValidation" BeforeTargets="PackTool">
+    <PropertyGroup>
+      <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Inline task: Write text to file (semicolons safe, unlike WriteLinesToFile) -->
+  <UsingTask TaskName="WriteTextFile" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <FilePath ParameterType="System.String" Required="true" />
+      <Content ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+        System.IO.File.WriteAllText(FilePath, Content);
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Inline task: Generate PptSkillPrompts.g.cs from skills/shared/*.md files -->
+  <UsingTask TaskName="GenerateSkillPromptsClass" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <SkillFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <OutputFile ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
+<![CDATA[
+// Description overrides for better MCP prompt discoverability
+// Keys are skill filenames (without .md), values are LLM-friendly descriptions
+var descriptionOverrides = new System.Collections.Generic.Dictionary<string, string>
+{
+    { "anti-patterns", "Common mistakes to avoid when using PowerPoint MCP tools" },
+    { "behavioral-rules", "Rules and constraints for PowerPoint MCP operations" },
+    { "chart", "Chart creation, types, positioning, and multi-chart layouts" },
+    { "conditionalformat", "Conditional formatting rule types, parameters, and examples" },
+    { "dashboard", "Dashboard and report best practices: Tables, formatting, charts, verification" },
+    { "datamodel", "Data Model (Power Pivot) operations, DAX measures, and prerequisites" },
+    { "dmv-reference", "DMV query reference for PowerPoint's embedded Analysis Services (TMSCHEMA catalog)" },
+    { "m-code-syntax", "Power Query M code syntax: column quoting, named ranges, query chaining" },
+    { "pivottable", "PivotTable creation, fields, calculated items, and required parameters" },
+    { "powerquery", "Power Query M code workflows, refresh patterns, and development tips" },
+    { "range", "Range number formats, locale-aware formatting, and format codes" },
+    { "screenshot", "Screenshot capture for visual verification of charts and dashboards" },
+    { "slicer", "Slicer types, creation patterns, and multi-select filtering" },
+    { "table", "PowerPoint Table operations, Data Model integration, and column management" },
+    { "workflows", "Key constraints, batch operations, and session management patterns" },
+    { "worksheet", "Worksheet operations including cross-file copy and move" },
+};
+
+var sb = new System.Text.StringBuilder();
+sb.AppendLine("// Auto-generated from skills/shared/*.md - do not edit manually");
+sb.AppendLine("// To update: modify files in skills/shared/ and rebuild");
+sb.AppendLine("using System.ComponentModel;");
+sb.AppendLine("using System.Reflection;");
+sb.AppendLine("using Microsoft.Extensions.AI;");
+sb.AppendLine("using ModelContextProtocol.Server;");
+sb.AppendLine();
+sb.AppendLine("namespace PptMcp.McpServer.Prompts;");
+sb.AppendLine();
+sb.AppendLine("/// <summary>");
+sb.AppendLine("/// Auto-generated MCP prompts from skills/shared/*.md files.");
+sb.AppendLine("/// Ensures Claude Desktop and other MCP clients get the same guidance as skill-based clients.");
+sb.AppendLine("/// </summary>");
+sb.AppendLine("[McpServerPromptType]");
+sb.AppendLine("public static class PptSkillPrompts");
+sb.AppendLine("{");
+sb.AppendLine("    private static readonly Assembly _assembly = typeof(PptSkillPrompts).Assembly;");
+sb.AppendLine();
+sb.AppendLine("    private static string LoadResource(string fileName)");
+sb.AppendLine("    {");
+sb.AppendLine("        var name = $\"PptMcp.McpServer.Prompts.Content.Skills.{fileName}\";");
+sb.AppendLine("        using var stream = _assembly.GetManifestResourceStream(name)");
+sb.AppendLine("            ?? _assembly.GetManifestResourceStream(name.Replace(\"-\", \"_\"));");
+sb.AppendLine("        if (stream == null) throw new FileNotFoundException($\"Embedded resource not found: {name}\");");
+sb.AppendLine("        using var reader = new StreamReader(stream);");
+sb.AppendLine("        return reader.ReadToEnd();");
+sb.AppendLine("    }");
+
+foreach (var item in SkillFiles)
+{
+    var fileName = System.IO.Path.GetFileNameWithoutExtension(item.ItemSpec);
+
+    // Convert file-name to PascalCase method name (e.g., "anti-patterns" -> "AntiPatterns")
+    var parts = fileName.Split('-');
+    var methodName = "";
+    foreach (var part in parts)
+    {
+        if (part.Length > 0)
+            methodName += char.ToUpper(part[0]) + part.Substring(1);
+    }
+
+    // Prompt name uses underscores (e.g., "anti_patterns_guide")
+    var promptName = fileName.Replace("-", "_") + "_guide";
+
+    // Use override description if available, otherwise extract from heading
+    string description;
+    if (descriptionOverrides.ContainsKey(fileName))
+    {
+        description = descriptionOverrides[fileName];
+    }
+    else
+    {
+        // Fallback: extract from first heading
+        description = "";
+        using (var reader = new System.IO.StreamReader(item.ItemSpec))
+        {
+            var line = reader.ReadLine();
+            while (line != null)
+            {
+                if (line.StartsWith("# "))
+                {
+                    description = line.Substring(2).Trim();
+                    break;
+                }
+                line = reader.ReadLine();
+            }
+        }
+        if (string.IsNullOrEmpty(description))
+            description = methodName + " reference guide";
+        description = description.Replace("```markdown", "").Replace("```", "").Trim();
+    }
+
+    sb.AppendLine();
+    sb.AppendLine($"    [McpServerPrompt(Name = \"{promptName}\")]");
+    sb.AppendLine($"    [Description(\"{description.Replace("\"", "\\\"")}\")]");
+    sb.AppendLine($"    public static ChatMessage {methodName}()");
+    sb.AppendLine("    {");
+    sb.AppendLine($"        return new ChatMessage(ChatRole.User, LoadResource(\"{fileName}.md\"));");
+    sb.AppendLine("    }");
+}
+
+sb.AppendLine("}");
+
+var dir = System.IO.Path.GetDirectoryName(OutputFile);
+if (!System.IO.Directory.Exists(dir))
+    System.IO.Directory.CreateDirectory(dir);
+System.IO.File.WriteAllText(OutputFile, sb.ToString());
+]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Generate MCP prompt class from skills/shared/*.md before compilation -->
+  <Target Name="GenerateSkillPrompts" BeforeTargets="BeforeCompile;CoreCompile">
+    <PropertyGroup>
+      <SkillsSharedDir>$(MSBuildProjectDirectory)\..\..\skills\shared</SkillsSharedDir>
+      <SkillPromptsGenFile>$(IntermediateOutputPath)PptSkillPrompts.g.cs</SkillPromptsGenFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <SkillSharedFiles Include="$(SkillsSharedDir)\*.md" />
+    </ItemGroup>
+    <!-- Generate the C# class with [McpServerPrompt] methods -->
+    <GenerateSkillPromptsClass SkillFiles="@(SkillSharedFiles)" OutputFile="$(SkillPromptsGenFile)" />
+    <ItemGroup>
+      <Compile Include="$(SkillPromptsGenFile)" />
+    </ItemGroup>
+    <Message Text="Generated $(SkillPromptsGenFile) from @(SkillSharedFiles->Count()) skill files" Importance="high" />
+  </Target>
+
+  <!-- Release Build Optimizations -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Disable debug symbols in Release builds -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+
+    <!-- Generate XML docs for analyzers but exclude from publish -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Additional optimization flags -->
+    <Optimize>true</Optimize>
+    <TieredCompilation>true</TieredCompilation>
+    <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+  </PropertyGroup>
+
+  <!-- Exclude XML and PDB files from publish output -->
+  <Target Name="RemoveXmlAndPdbFromPublish" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
+    <ItemGroup>
+      <XmlFilesToDelete Include="$(PublishDir)**\*.xml" />
+      <PdbFilesToDelete Include="$(PublishDir)**\*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(XmlFilesToDelete)" />
+    <Delete Files="@(PdbFilesToDelete)" />
+    <Message Text="Removed XML documentation and PDB files from publish output" Importance="high" />
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PptMcp.Core\PptMcp.Core.csproj">
+      <!-- Don't copy XML docs from referenced projects in Release builds -->
+      <Private>true</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\PptMcp.Service\PptMcp.Service.csproj" />
+
+    <!-- MCP Tool Generator - generates [McpServerToolType] classes from Core [ServiceCategory] interfaces -->
+    <ProjectReference Include="..\PptMcp.Generators.Mcp\PptMcp.Generators.Mcp.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+
+    <!-- Build.Tasks - ensures skill generator is built before AfterBuild target runs -->
+    <ProjectReference Include="..\PptMcp.Build.Tasks\PptMcp.Build.Tasks.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Allow test project to access internal members (e.g., McpProgressAdapter) -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="PptMcp.McpServer.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include MCP Server Configuration -->
+    <Content Include=".mcp/server.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackagePath>.mcp/server.json</PackagePath>
+    </Content>
+
+    <!-- Include README and LICENSE in package -->
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embed skills/shared/*.md as MCP prompts (single source of truth) -->
+    <EmbeddedResource Include="..\..\skills\shared\*.md" Link="Prompts\Content\Skills\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- Import the Build.Tasks project to use GenerateSkillFile task -->
+  <UsingTask TaskName="PptMcp.Build.Tasks.GenerateSkillFile"
+             AssemblyFile="$(MSBuildProjectDirectory)\..\PptMcp.Build.Tasks\bin\$(Configuration)\netstandard2.0\PptMcp.Build.Tasks.dll" />
+
+  <!-- Generate MCP Skill file from template after build -->
+  <Target Name="GenerateMcpSkill" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'"
+          Inputs="$(MSBuildProjectDirectory)\..\..\skills\templates\SKILL.mcp.sbn;$(MSBuildProjectDirectory)\..\PptMcp.Core\obj\GeneratedFiles\PptMcp.Generators\PptMcp.Generators.ServiceRegistryGenerator\_SkillManifest.g.cs"
+          Outputs="$(MSBuildProjectDirectory)\..\..\skills\ppt-mcp\SKILL.md">
+    <PropertyGroup>
+      <SkillTemplatePath>$(MSBuildProjectDirectory)\..\..\skills\templates\SKILL.mcp.sbn</SkillTemplatePath>
+      <SkillOutputPath>$(MSBuildProjectDirectory)\..\..\skills\ppt-mcp\SKILL.md</SkillOutputPath>
+      <!-- Manifest is generated by ServiceRegistryGenerator into Core's GeneratedFiles folder -->
+      <SkillManifestPath>$(MSBuildProjectDirectory)\..\PptMcp.Core\obj\GeneratedFiles\PptMcp.Generators\PptMcp.Generators.ServiceRegistryGenerator\_SkillManifest.g.cs</SkillManifestPath>
+    </PropertyGroup>
+    <Message Text="Generating MCP Skill from template..." Importance="high" />
+    <GenerateSkillFile
+      TemplatePath="$(SkillTemplatePath)"
+      OutputPath="$(SkillOutputPath)"
+      ManifestPath="$(SkillManifestPath)" />
+    <Message Text="Generated MCP Skill: $(SkillOutputPath)" Importance="high" />
+  </Target>
+
+  <!-- Copy shared references to MCP skill folder after skill generation -->
+  <Target Name="CopyMcpReferences" AfterTargets="GenerateMcpSkill" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <SharedDir>$(MSBuildProjectDirectory)\..\..\skills\shared</SharedDir>
+      <RefsDir>$(MSBuildProjectDirectory)\..\..\skills\ppt-mcp\references</RefsDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <!-- Copy ALL skill references from shared directory -->
+      <McpReferenceFiles Include="$(SharedDir)\*.md" />
+    </ItemGroup>
+    <MakeDir Directories="$(RefsDir)" Condition="!Exists('$(RefsDir)')" />
+    <Copy SourceFiles="@(McpReferenceFiles)" DestinationFolder="$(RefsDir)" SkipUnchangedFiles="true" />
+    <Message Text="Copied MCP references to $(RefsDir)" Importance="high" />
+  </Target>
+
+</Project>

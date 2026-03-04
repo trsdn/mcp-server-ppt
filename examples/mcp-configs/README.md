@@ -4,10 +4,10 @@ This directory contains ready-to-use MCP configuration files for various AI codi
 
 ## Quick Setup Guide
 
-### 1. Install ExcelMcp MCP Server
+### 1. Install PptMcp MCP Server
 
 ```powershell
-dotnet tool install --global Sbroenne.ExcelMcp.McpServer
+dotnet tool install --global PptMcp.McpServer
 ```
 
 ### 2. Choose Your Client and Copy the Config
@@ -27,12 +27,12 @@ Select the configuration file for your AI assistant and follow the instructions 
 1. Open File Explorer and navigate to: `%APPDATA%\Claude\`
 2. If `claude_desktop_config.json` doesn't exist, create it
 3. Copy the contents of `claude-desktop-config.json` from this folder
-4. If you already have a config file, merge the `excel-mcp` server entry into your existing `mcpServers` section
+4. If you already have a config file, merge the `ppt-mcp` server entry into your existing `mcpServers` section
 5. Restart Claude Desktop
 
 **Test it:**
 ```
-Create an Excel file called "test.xlsx"
+Create a PowerPoint file called "test.pptx"
 ```
 
 ---
@@ -51,12 +51,12 @@ Create an Excel file called "test.xlsx"
 2. Search for "MCP" in settings
 3. Click "Edit in settings.json" or manually create the config file at the location above
 4. Copy the contents of `cursor-mcp-config.json` from this folder
-5. If you already have a config file, merge the `excel-mcp` server entry
+5. If you already have a config file, merge the `ppt-mcp` server entry
 6. Restart Cursor
 
 **Test it:**
 ```
-Create an Excel file called "test.xlsx"
+Create a PowerPoint file called "test.pptx"
 ```
 
 ---
@@ -79,7 +79,7 @@ Create an Excel file called "test.xlsx"
 
 **Test it:**
 ```
-Create an Excel file called "test.xlsx"
+Create a PowerPoint file called "test.pptx"
 ```
 
 ---
@@ -101,7 +101,7 @@ Create an Excel file called "test.xlsx"
 
 **Test it:**
 ```
-Create an Excel file called "test.xlsx"
+Create a PowerPoint file called "test.pptx"
 ```
 
 ---
@@ -115,7 +115,7 @@ Create an Excel file called "test.xlsx"
 **Setup Steps:**
 
 **Option A: Use VS Code Extension (Recommended)**
-1. Install the [Excel MCP VS Code Extension](https://marketplace.visualstudio.com/items?itemName=sbroenne.excel-mcp)
+1. Install the [PowerPoint MCP VS Code Extension](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp)
 2. Configuration is automatic!
 
 **Option B: Manual Configuration**
@@ -125,7 +125,7 @@ Create an Excel file called "test.xlsx"
 
 **Test it:**
 ```
-Create an Excel file called "test.xlsx"
+Create a PowerPoint file called "test.pptx"
 ```
 
 ---
@@ -136,7 +136,7 @@ Create an Excel file called "test.xlsx"
 
 1. **Verify installation:**
    ```powershell
-   dotnet tool list --global | Select-String "ExcelMcp"
+   dotnet tool list --global | Select-String "PptMcp"
    ```
 
 2. **Check .NET is installed:**
@@ -147,24 +147,24 @@ Create an Excel file called "test.xlsx"
 
 3. **Reinstall if needed:**
    ```powershell
-   dotnet tool uninstall --global Sbroenne.ExcelMcp.McpServer
-   dotnet tool install --global Sbroenne.ExcelMcp.McpServer
+   dotnet tool uninstall --global PptMcp.McpServer
+   dotnet tool install --global PptMcp.McpServer
    ```
 
-### Excel Not Found
+### PowerPoint Not Found
 
-- Ensure Microsoft Excel Desktop (2016+) is installed
-- ExcelMcp requires Windows OS with Excel installed
+- Ensure Microsoft PowerPoint Desktop (2016+) is installed
+- PptMcp requires Windows OS with PowerPoint installed
 
 ### Permission Issues
 
-- Close all Excel windows before running ExcelMcp
-- Ensure your user account has Excel access
+- Close all PowerPoint windows before running PptMcp
+- Ensure your user account has PowerPoint access
 
 ### Still Having Issues?
 
 - Check the [main installation guide](../../docs/INSTALLATION.md)
-- Report issues on [GitHub](https://github.com/sbroenne/mcp-server-excel/issues)
+- Report issues on [GitHub](https://github.com/trsdn/mcp-server-ppt/issues)
 
 ---
 
@@ -182,5 +182,5 @@ If you work with multiple workspaces, you can:
 
 - **[Main README](../../README.md)** - Feature overview and examples
 - **[Installation Guide](../../docs/INSTALLATION.md)** - Comprehensive setup instructions
-- **[MCP Server README](../../src/ExcelMcp.McpServer/README.md)** - Tool documentation
-- **[GitHub Repository](https://github.com/sbroenne/mcp-server-excel)** - Source code and issues
+- **[MCP Server README](../../src/PptMcp.McpServer/README.md)** - Tool documentation
+- **[GitHub Repository](https://github.com/trsdn/mcp-server-ppt)** - Source code and issues

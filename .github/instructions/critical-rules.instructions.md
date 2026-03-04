@@ -4,7 +4,7 @@ applyTo: "**"
 
 # CRITICAL RULES - MUST FOLLOW
 
-> **⚠️ NON-NEGOTIABLE rules for all ExcelMcp development**
+> **⚠️ NON-NEGOTIABLE rules for all PptMcp development**
 
 ## Rule 0: NEVER Commit Without Running Tests (CRITICAL)
 
@@ -46,22 +46,22 @@ applyTo: "**"
 
 **Forbidden in commits/PRs/issues:**
 - Customer project names (e.g., "CP Toolkit", "Contoso Deal")
-- Specific file paths from customer projects (e.g., "MSX Plan.xlsx", "Milestone_Export")
+- Specific file paths from customer projects (e.g., "MSX Plan.pptx", "Milestone_Export")
 - Internal tool names that reveal customer context
 - Any information that could identify a specific customer engagement
 
 **Allowed:**
-- Generic descriptions ("a Power Query", "an Excel workbook")
+- Generic descriptions ("a slide shape", "a PowerPoint presentation")
 - Technical details that don't identify the source ("a column with a hyphen in the name")
 - Error messages and stack traces (sanitized of paths/names)
 
 **Example:**
 ```
 # ❌ WRONG: Reveals confidential project
-Discovered while debugging Milestone_Export query in CP Toolkit's MSX Plan.xlsx
+Discovered while debugging Milestone_Export query in CP Toolkit's MSX Plan.pptx
 
 # ✅ CORRECT: Generic description
-Discovered while debugging a Power Query that referenced a column with a hyphen
+Discovered while debugging a slide shape that referenced an embedded object
 ```
 
 **Enforcement:**
@@ -90,7 +90,7 @@ Discovered while debugging a Power Query that referenced a column with a hyphen
 | 29. TDD | Write test FIRST → RED → implement → GREEN | Proves tests catch real bugs |
 | 30. Integration tests | NEVER write unit tests — integration tests only | Unit tests prove nothing for COM interop |
 | 22. COM cleanup | ALWAYS use try-finally, NEVER swallow exceptions | Prevents leaks and silent failures |
-| 7. COM API | Use Excel COM first, validate docs | Prevents wrong dependencies |
+| 7. COM API | Use PowerPoint COM first, validate docs | Prevents wrong dependencies |
 | 9. GitHub search | Search OTHER repos for VBA/COM examples FIRST | Learn from working code |
 | 2. NotImplementedException | Never use, full implementation only | No placeholders allowed |
 | 15. Enum mappings | All enum values mapped in ToActionString() | Runtime errors otherwise |
@@ -139,7 +139,7 @@ Discovered while debugging a Power Query that referenced a column with a hyphen
 ```csharp
 // ❌ CRITICAL BUG: Confuses LLMs and users
 result.Success = true;
-result.ErrorMessage = "Query imported but failed to load...";
+result.ErrorMessage = "Shape added but failed to format...";
 
 // ✅ CORRECT: Success only when NO errors
 if (!loadResult.Success) {
@@ -183,12 +183,12 @@ try {
 
 **Enforcement:**
 - Pre-commit hook runs `check-success-flag.ps1` to detect violations
-- Regression tests verify this invariant (PowerQuerySuccessErrorRegressionTests)
+- Regression tests verify this invariant (SlideSuccessErrorRegressionTests)
 - Code review MUST check every `Success = ` assignment
 - Search pattern: `Success.*true.*ErrorMessage`
 
 **Examples of bugs found:**
-- 43 violations across Connection, PowerQuery, DataModel, VBA, Range, Table commands
+- 43 violations across Slide, Shape, Text, VBA, Chart, Animation commands
 - All followed pattern: `Success = true` at start, `ErrorMessage` set in catch without `Success = false`
 
 ---
@@ -199,13 +199,13 @@ try {
 
 ```csharp
 // ❌ CRITICAL BUG: Suppressing exceptions with error result
-public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
+public async Task<OperationResult> CreateAsync(IPptBatch batch, string name)
 {
     try
     {
         return await batch.Execute((ctx, ct) => {
-            var sheet = ctx.Book.Worksheets.Add();
-            sheet.Name = name;
+            var slide = ctx.Presentation.Slides.Add(1, 1);
+            slide.Name = name;
             return ValueTask.FromResult(new OperationResult { Success = true });
         });
     }
@@ -221,18 +221,18 @@ public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
 }
 
 // ✅ CORRECT: Let exception propagate to batch.Execute()
-public async Task<OperationResult> CreateAsync(IExcelBatch batch, string name)
+public async Task<OperationResult> CreateAsync(IPptBatch batch, string name)
 {
     return await batch.Execute((ctx, ct) => {
-        var sheet = ctx.Book.Worksheets.Add();
-        sheet.Name = name;
+        var slide = ctx.Presentation.Slides.Add(1, 1);
+        slide.Name = name;
         return ValueTask.FromResult(new OperationResult { Success = true });
     });
     // batch.Execute() catches via TaskCompletionSource → returns OperationResult { Success = false }
 }
 
 // ✅ CORRECT: Finally blocks are allowed for COM resource cleanup
-public async Task<OperationResult> ComplexAsync(IExcelBatch batch, dynamic item)
+public async Task<OperationResult> ComplexAsync(IPptBatch batch, dynamic item)
 {
     dynamic? temp = null;
     try
@@ -283,7 +283,7 @@ Core Command Method (NO try-catch wrapping)
 
 ## Rule 2: No NotImplementedException
 
-**Every feature must be fully implemented with real Excel COM operations and passing tests. No placeholders.**
+**Every feature must be fully implemented with real PowerPoint COM operations and passing tests. No placeholders.**
 
 ---
 
@@ -305,7 +305,7 @@ Core Command Method (NO try-catch wrapping)
 
 All `dynamic` COM objects must be released in `finally` blocks using `ComUtilities.Release(ref obj!)`.
 
-Exception: Session management files (ExcelBatch.cs, ExcelSession.cs).
+Exception: Session management files (PptBatch.cs, PptSession.cs).
 
 ---
 
@@ -328,9 +328,9 @@ git commit -m "your message"                 # Commit to feature branch
 
 ## Rule 7: COM API First
 
-**Use Excel COM API for everything it supports. Only use external libraries (TOM) for features Excel COM doesn't provide.**
+**Use PowerPoint COM API for everything it supports. Only use external libraries (TOM) for features PowerPoint COM doesn't provide.**
 
-Validate against [Microsoft docs](https://learn.microsoft.com/office/vba/api/overview/excel) before adding dependencies.
+Validate against [Microsoft docs](https://learn.microsoft.com/office/vba/api/overview/powerpoint) before adding dependencies.
 
 ---
 
@@ -344,21 +344,21 @@ Delete commented-out code (use git history). Exception: Documentation files only
 
 ## Rule 9: Search External GitHub Repositories for Working Examples First
 
-**BEFORE creating new Excel COM Interop code or troubleshooting COM issues:**
+**BEFORE creating new PowerPoint COM Interop code or troubleshooting COM issues:**
 
 - **ALWAYS** search OTHER open source GitHub repositories for working examples
 - **NEVER** search your own repository - only search external projects
 - **NetOffice is THE BEST source for ALL COM Interop work**: https://github.com/NetOfficeFw/NetOffice
   - Strongly-typed C# wrappers for ALL Office COM APIs (Excel, Word, PowerPoint, Outlook, etc.)
-  - Search for ANY Excel COM operation: ranges, worksheets, PivotTables, Power Query, charts, VBA, connections, formatting, etc.
+  - Search for ANY PowerPoint COM operation: slides, shapes, animations, transitions, text frames, formatting, etc.
   - Study their patterns for dynamic interop conversion and proper COM object handling
-  - NetOffice source code is essentially a comprehensive reference for every Excel COM API
-- Look for repositories with Excel automation, VBA code, or Office interop projects
-- Search for the specific COM object/method you need (e.g., "PivotTable CreatePivotTable VBA", "QueryTable Refresh VBA", "Range.Value2 NetOffice")
+  - NetOffice source code is essentially a comprehensive reference for every PowerPoint COM API
+- Look for repositories with PowerPoint automation, VBA code, or Office interop projects
+- Search for the specific COM object/method you need (e.g., "Slide AddShape VBA", "Shape TextFrame VBA", "Presentation.Slides NetOffice")
 - Study proven patterns from other projects before writing new code
 - Avoid reinventing solutions - learn from working implementations in the wild
 
-**Why:** Excel COM is quirky. Real-world VBA examples from other projects prevent common pitfalls (1-based indexing, object cleanup, async issues, variant types, etc.)
+**Why:** PowerPoint COM is quirky. Real-world VBA examples from other projects prevent common pitfalls (1-based indexing, object cleanup, async issues, variant types, etc.)
 
 ---
 
@@ -382,7 +382,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 
 **Violations:**
 - ❌ `<InternalsVisibleTo Include="*.Tests" />` in production `.csproj`
-- ❌ `using Sbroenne.ExcelMcp.*.Tests` in production code
+- ❌ `using PptMcp.*.Tests` in production code
 - ❌ Production code calling test helper methods
 - ❌ Production business logic in helper classes that tests use
 
@@ -404,9 +404,9 @@ Delete commented-out code (use git history). Exception: Documentation files only
 - ✅ Uses `IClassFixture<TempDirectoryFixture>` (NOT manual IDisposable)
 - ✅ Each test creates unique file via `CoreTestHelper.CreateUniqueTestFile()`
 - ✅ NEVER shares test files between tests
-- ✅ VBA tests use `.xlsm` extension (NOT .xlsx renamed)
+- ✅ VBA tests use `.pptm` extension (NOT .pptx renamed)
 - ✅ Binary assertions only (NO "accept both" patterns)
-- ✅ All required traits present (Category, Speed, Layer, RequiresExcel, Feature)
+- ✅ All required traits present (Category, Speed, Layer, RequiresPowerPoint, Feature)
 - ✅ Batch API pattern used correctly (no ValueTask.FromResult wrapper)
 - ✅ NO duplicate helper methods (use CoreTestHelper)
 
@@ -432,7 +432,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 
 **Why:** Incomplete bug fixes lead to regressions, confusion, and wasted time. Comprehensive fixes prevent future issues.
 
-**Example:** Refresh + loadDestination bug = 1 code file + 13 tests + 5 doc files + detailed PR description = complete fix.
+**Example:** Shape rotation + positioning bug = 1 code file + 13 tests + 5 doc files + detailed PR description = complete fix.
 
 ---
 
@@ -442,7 +442,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 
 **Quick Rules:**
 - ❌ FORBIDDEN: Tests only verifying operation success or in-memory state
-- ✅ REQUIRED: Round-trip tests verifying data persists after workbook close/reopen
+- ✅ REQUIRED: Round-trip tests verifying data persists after presentation close/reopen
 - ⚡ REASON: Save is slow (~2-5s). Removing unnecessary saves makes tests 50%+ faster
 
 **See:** [testing-strategy.instructions.md](testing-strategy.instructions.md) for complete Save patterns, when to use, and detailed examples.
@@ -460,7 +460,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 | 4. Instructions | Update after significant work | 5-10 min |
 | 5. COM leaks | Run `scripts\check-com-leaks.ps1` | 1 min |
 | 6. PRs | Always use PRs, never direct commit | Always |
-| 7. COM API | Use Excel COM first, validate docs | Always |
+| 7. COM API | Use PowerPoint COM first, validate docs | Always |
 | 8. TODO markers | Must resolve before commit | 1 min |
 | 9. GitHub search | Search OTHER repos for VBA/COM examples FIRST | 1-2 min |
 | 10. Test debugging | Run tests one by one, never all together | Per test |
@@ -532,12 +532,12 @@ dotnet test --filter "Category=Integration&RunType!=OnDemand"
 **Correct:**
 ```bash
 # ✅ CORRECT: Test only the feature you changed
-dotnet test --filter "Feature=PowerQuery&RunType!=OnDemand"  # PowerQuery changes only
-dotnet test --filter "Feature=Connection&RunType!=OnDemand"  # Connection changes only
-dotnet test --filter "Feature=Sheet&RunType!=OnDemand"       # Sheet changes only
+dotnet test --filter "Feature=Slide&RunType!=OnDemand"       # Slide changes only
+dotnet test --filter "Feature=Shape&RunType!=OnDemand"      # Shape changes only
+dotnet test --filter "Feature=Text&RunType!=OnDemand"       # Text changes only
 ```
 
-**Why Critical:** Integration tests require Excel COM automation and are SLOW. Running all tests wastes time and resources.
+**Why Critical:** Integration tests require PowerPoint COM automation and are SLOW. Running all tests wastes time and resources.
 
 **Enforcement:**
 - Only run tests for files you modified
@@ -587,10 +587,10 @@ private static async Task<string> SomeAction(...)
 
 **Example - Business Error (return JSON):**
 ```csharp
-// Core returns: { Success = false, ErrorMessage = "Table 'Sales' not found" }
+// Core returns: { Success = false, ErrorMessage = "Shape 'Title' not found" }
 // MCP Tool: Return this as-is
 return JsonSerializer.Serialize(result, JsonOptions);
-// Client gets: {"success": false, "errorMessage": "Table 'Sales' not found"}
+// Client gets: {"success": false, "errorMessage": "Shape 'Title' not found"}
 ```
 
 **Example - Validation Error (throw exception):**
@@ -615,38 +615,38 @@ if (string.IsNullOrWhiteSpace(tableName))
 1. **Purpose and Use Cases Clear**:
    ```csharp
    // ❌ WRONG: Vague description
-   /// <summary>Manage worksheets</summary>
+   /// <summary>Manage slides</summary>
    
    // ✅ CORRECT: Clear purpose and use cases
    /// <summary>
-   /// Manage Excel worksheet lifecycle: create, rename, copy, delete sheets.
+   /// Manage PowerPoint slide lifecycle: create, rename, copy, delete slides.
    /// </summary>
    ```
 
 2. **Non-Enum Parameter Values Documented**:
    ```csharp
    // ❌ WRONG: Parameter values not explained
-   /// <summary>Import Power Query with loadDestination parameter</summary>
+   /// <summary>Add shape with shapeType parameter</summary>
    
    // ✅ CORRECT: Non-enum parameter values explained
    /// <summary>
-   /// Import Power Query.
+   /// Add shape to slide.
    /// 
-   /// LOAD DESTINATIONS:
-   /// - 'worksheet': Load to worksheet (DEFAULT)
-   /// - 'data-model': Load to Power Pivot
-   /// - 'both': Load to BOTH
-   /// - 'connection-only': Don't load data
+   /// SHAPE TYPES:
+   /// - 'rectangle': Add rectangle shape (DEFAULT)
+   /// - 'oval': Add oval shape
+   /// - 'textbox': Add text box
+   /// - 'line': Add line shape
    /// </summary>
    ```
 
 3. **Server-Specific Behavior Documented**:
    ```csharp
    // ❌ WRONG: Behavior changed but description outdated
-   /// <summary>Default: loadDestination='connection-only'</summary>  // Wrong!
+   /// <summary>Default: shapeType='line'</summary>  // Wrong!
    
    // ✅ CORRECT: Description reflects actual default
-   /// <summary>Default: loadDestination='worksheet'</summary>
+   /// <summary>Default: shapeType='rectangle'</summary>
    ```
 
 **What NOT to include:**
@@ -661,7 +661,7 @@ if (string.IsNullOrWhiteSpace(tableName))
 
 **When to Update:**
 - Changing default values or server behavior
-- Adding/changing non-enum parameter values (loadDestination, formatCode, etc.)
+- Adding/changing non-enum parameter values (shapeType, transitionType, etc.)
 - Changing which tools to use for related operations
 - Adding performance guidance (batch mode)
 
@@ -678,10 +678,10 @@ if (string.IsNullOrWhiteSpace(tableName))
 # ⚠️ IMPORTANT: gh CLI requires authentication with a PERSONAL GitHub account.
 # Enterprise Managed User (EMU) accounts cannot access public repos via gh CLI.
 # Use: gh auth login --with-token (with a personal access token)
-gh api repos/sbroenne/mcp-server-excel/pulls/PULL_NUMBER/comments --paginate
+gh api repos/trsdn/mcp-server-ppt/pulls/PULL_NUMBER/comments --paginate
 
 # Or use the mcp_github tool if available
-mcp_github_github_pull_request_read(method="get_review_comments", owner="sbroenne", repo="mcp-server-excel", pullNumber=PULL_NUMBER)
+mcp_github_github_pull_request_read(method="get_review_comments", owner="trsdn", repo="mcp-server-ppt", pullNumber=PULL_NUMBER)
 ```
 
 **Common automated reviewers:**
@@ -724,11 +724,11 @@ mcp_github_github_pull_request_read(method="get_review_comments", owner="sbroenn
 // ❌ WRONG: Swallows exception, sets fallback value
 try
 {
-    dynamic pivotLayout = chart.PivotLayout;
-    dynamic pivotTable = pivotLayout.PivotTable;
-    name = pivotTable.Name?.ToString() ?? string.Empty;
-    ComUtilities.Release(ref pivotTable!);  // Won't execute if exception occurs!
-    ComUtilities.Release(ref pivotLayout!);
+    dynamic slideLayout = slide.CustomLayout;
+    dynamic shapePlaceholder = slideLayout.SlideMaster;
+    name = shapePlaceholder.Name?.ToString() ?? string.Empty;
+    ComUtilities.Release(ref shapePlaceholder!);  // Won't execute if exception occurs!
+    ComUtilities.Release(ref slideLayout!);
 }
 catch
 {
@@ -736,18 +736,18 @@ catch
 }
 
 // ✅ CORRECT: Finally ensures cleanup, exceptions propagate
-dynamic? pivotLayout = null;
-dynamic? pivotTable = null;
+dynamic? slideLayout = null;
+dynamic? shapePlaceholder = null;
 try
 {
-    pivotLayout = chart.PivotLayout;
-    pivotTable = pivotLayout.PivotTable;
-    name = pivotTable.Name?.ToString() ?? string.Empty;
+    slideLayout = slide.CustomLayout;
+    shapePlaceholder = slideLayout.SlideMaster;
+    name = shapePlaceholder.Name?.ToString() ?? string.Empty;
 }
 finally
 {
-    if (pivotTable != null) ComUtilities.Release(ref pivotTable!);
-    if (pivotLayout != null) ComUtilities.Release(ref pivotLayout!);
+    if (shapePlaceholder != null) ComUtilities.Release(ref shapePlaceholder!);
+    if (slideLayout != null) ComUtilities.Release(ref slideLayout!);
 }
 // Exception propagates naturally, COM objects always released
 ```
@@ -769,7 +769,7 @@ finally
 
 **See Also:**
 - Rule 1b: Exception propagation pattern
-- excel-com-interop.instructions.md for complete patterns
+- ppt-com-interop.instructions.md for complete patterns
 
 ---
 
@@ -835,11 +835,11 @@ When adding a NEW action to an existing tool:
 | 2. Mapping | `ActionExtensions.cs` - Add ToActionString() case |
 | 3. Interface | `I*Commands.cs` - Add interface method |
 | 4. Core | `*Commands.*.cs` - Implement method |
-| 5. MCP Server | `Excel*Tool.cs` - Add switch case + handler |
-| 6. CLI Daemon | `ExcelDaemon.cs` - Add switch case |
+| 5. MCP Server | `Ppt*Tool.cs` - Add switch case + handler |
+| 6. CLI Daemon | `PptDaemon.cs` - Add switch case |
 | 7. Feature Count | `FEATURES.md` - Update operation count |
 | 8. README Files | All READMEs with operation counts (main, MCP, CLI, mcpb, vscode) |
-| 9. Skills Docs | `skills/shared/excel_*.md` - Document new action |
+| 9. Skills Docs | `skills/shared/ppt_*.md` - Document new action |
 
 **Quick Check Commands:**
 ```powershell
@@ -862,13 +862,13 @@ grep -r "209 operations\|210 operations\|10 ops\|11 ops" --include="*.md"
 - Before EVERY commit that touches tool/action code
 
 **Historical Example (Jan 2026):**
-PowerQuery `unload` action was added to:
+Slide `duplicate` action was added to:
 - ✅ ToolActions.cs enum
 - ✅ ActionExtensions.cs mapping
-- ✅ IPowerQueryCommands.cs interface
-- ✅ PowerQueryCommands.Lifecycle.cs implementation
-- ✅ ExcelPowerQueryTool.cs MCP handler
-- ❌ ExcelDaemon.cs CLI handler (MISSED!)
+- ✅ ISlideCommands.cs interface
+- ✅ SlideCommands.Lifecycle.cs implementation
+- ✅ PptSlideTool.cs MCP handler
+- ❌ PptDaemon.cs CLI handler (MISSED!)
 - ❌ FEATURES.md count (MISSED!)
 - ❌ README files (MISSED!)
 
@@ -878,24 +878,24 @@ Result: Caught during commit review, required additional fixes.
 
 ## Rule 25: Use PowerShell Syntax in Documentation (CRITICAL)
 
-**ExcelMcp is Windows-only. ALL documentation code blocks MUST use PowerShell syntax, NOT bash.**
+**PptMcp is Windows-only. ALL documentation code blocks MUST use PowerShell syntax, NOT bash.**
 
 ```markdown
 # ❌ WRONG: bash syntax
 ```bash
 dotnet build
-excelcli sheet list --file "test.xlsx"
+pptcli sheet list --file "test.pptx"
 ```
 
 # ✅ CORRECT: PowerShell syntax
 ```powershell
 dotnet build
-excelcli sheet list --file "test.xlsx"
+pptcli sheet list --file "test.pptx"
 ```
 ```
 
 **Why Critical:**
-- ExcelMcp requires Windows + Excel COM interop
+- PptMcp requires Windows + PowerPoint COM interop
 - bash syntax confuses Windows users
 - PowerShell is the native Windows shell
 - Syntax highlighting differs between bash/powershell
@@ -970,35 +970,35 @@ Select-String -Path "**/*.md" -Pattern '```bash' -Recurse
 > **If the COM method's parameter name is clear and self-describing in our flat tool schema, use it.
 > If the COM name is opaque or ambiguous without its parent context, keep a more descriptive name.**
 
-**Why:** MCP tool parameters appear in a flat schema — they lose the context of the parent class/method. A name that works when you see `PivotTable.RowAxisLayout(RowLayout)` may be opaque when the LLM just sees a `row_layout` parameter. Conversely, inventing a name like `layoutType` when COM already calls it `RowLayout` adds unnecessary indirection.
+**Why:** MCP tool parameters appear in a flat schema — they lose the context of the parent class/method. A name that works when you see `Shape.Rotation` may be opaque when the LLM just sees a `rotation` parameter. Conversely, inventing a name like `rotationAngle` when COM already calls it `Rotation` adds unnecessary indirection.
 
 **Decision Framework:**
 
 | COM API | COM Param | Our Param | Rationale |
 |---------|-----------|-----------|-----------|
-| `Names.Add(Name)` | `Name` | `name` | ✅ Clear in flat schema — "name of the named range" |
-| `PivotTable.RowAxisLayout(RowLayout)` | `RowLayout` | `rowLayout` | ✅ `row_layout` values 0/1/2 are self-describing in tool schema |
-| `Range.Value2` | (property) | `value` | ✅ Clear in context |
-| `Workbook.Connections` | (collection) | `connectionName` | ✅ Keep descriptive — COM's `Name` property is too generic |
-| `PivotField.Subtotals` | (property) | `subtotalFunction` | ✅ Keep descriptive — `subtotals` alone is ambiguous |
+| `Slides.Add(Index, Layout)` | `Index` | `slideIndex` | ✅ Keep descriptive — `index` alone is ambiguous |
+| `Shape.Rotation` | `Rotation` | `rotation` | ✅ `rotation` is self-describing in tool schema |
+| `Shape.Name` | `Name` | `shapeName` | ✅ Keep descriptive — COM's `Name` property is too generic in flat schema |
+| `TextFrame.Text` | (property) | `text` | ✅ Clear in context |
+| `SlideRange.Item(Index)` | `Index` | `slideIndex` | ✅ Keep descriptive — `index` alone is ambiguous |
 
 **Implementation Pattern:**
 ```csharp
 // ✅ COM name is clear → use it directly
-void Write(IExcelBatch batch, [FromString("name")] string name, ...);
+void SetRotation(IPptBatch batch, string shapeName, float rotation, ...);
 
 // ✅ COM name works in flat schema → use it
-OperationResult SetLayout(IExcelBatch batch, string pivotTableName, int rowLayout);
+OperationResult SetText(IPptBatch batch, string shapeName, string text);
 
 // ✅ COM name too generic → keep descriptive
-void AddField(IExcelBatch batch, string pivotTableName, string fieldName, string fieldArea);
+void AddShape(IPptBatch batch, int slideIndex, string shapeName, string shapeType);
 ```
 
 **When Adding New Parameters:**
 1. Check the COM API docs for the original parameter name
 2. Ask: "Would an LLM understand `{com_param_name}` without seeing the method/class name?"
-3. If YES → use COM name (e.g., `name`, `rowLayout`, `reference`)
-4. If NO → use descriptive name (e.g., `fieldName` not `Name`, `subtotalFunction` not `Function`)
+3. If YES → use COM name (e.g., `rotation`, `text`, `left`)
+4. If NO → use descriptive name (e.g., `shapeName` not `Name`, `slideIndex` not `Index`)
 
 ---
 
@@ -1077,9 +1077,9 @@ public void ProgressAdapter_Maps_Current_To_Progress()
 
 ## Rule 30: Integration Tests Over Unit Tests (CRITICAL)
 
-**NEVER write unit tests. Unit tests that mock COM objects, fake contexts, or test adapter mappings in isolation prove NOTHING. Write integration tests that exercise real Excel COM automation.**
+**NEVER write unit tests. Unit tests that mock COM objects, fake contexts, or test adapter mappings in isolation prove NOTHING. Write integration tests that exercise real PowerPoint COM automation.**
 
-**Why Critical:** ExcelMcp is a COM interop project. The bugs that matter — STA threading deadlocks, COM object leaks, OleMessageFilter re-entrancy, type conversion failures (`double` vs `int`), QueryTable persistence — **only manifest when real Excel is running**. A unit test that verifies an adapter maps field A to field B catches zero real bugs. An integration test that opens a workbook, refreshes a Power Query, and verifies the result catches ALL of them.
+**Why Critical:** PptMcp is a COM interop project. The bugs that matter — STA threading deadlocks, COM object leaks, OleMessageFilter re-entrancy, type conversion failures (`double` vs `int`), shape persistence — **only manifest when real PowerPoint is running**. A unit test that verifies an adapter maps field A to field B catches zero real bugs. An integration test that opens a presentation, adds a shape, and verifies the result catches ALL of them.
 
 ```csharp
 // ❌ WRONG: Unit test that proves nothing
@@ -1095,35 +1095,35 @@ public void Adapter_Maps_Field_A_To_Field_B()
 // ✅ CORRECT: Integration test that catches real bugs
 [Fact]
 [Trait("Category", "Integration")]
-[Trait("Feature", "PowerQuery")]
-public void Refresh_ReportsProgress_DuringExecution()
+[Trait("Feature", "Slide")]
+public void AddShape_ReportsProgress_DuringExecution()
 {
-    using var batch = ExcelSession.BeginBatch(_testFile);
+    using var batch = PptSession.BeginBatch(_testFile);
     var progress = new List<ProgressInfo>();
-    var result = _commands.Refresh(batch, "TestQuery",
+    var result = _commands.AddShape(batch, 1, "Rectangle",
         new Progress<ProgressInfo>(p => progress.Add(p)));
     Assert.True(result.Success);
-    Assert.NotEmpty(progress);  // Real Excel, real refresh, real progress
+    Assert.NotEmpty(progress);  // Real PowerPoint, real shape creation, real progress
 }
 ```
 
 **What Counts as Integration:**
-- ✅ Opens a real Excel workbook via COM
+- ✅ Opens a real PowerPoint presentation via COM
 - ✅ Exercises real batch.Execute() on STA thread
 - ✅ Verifies real data flows through the full pipeline
 - ✅ Catches COM threading, type conversion, and persistence bugs
 
 **What Does NOT Count:**
-- ❌ Mocking IProgress, IExcelBatch, or any COM interface
+- ❌ Mocking IProgress, IPptBatch, or any COM interface
 - ❌ Testing adapter/mapper classes in isolation
 - ❌ Verifying AsyncLocal behavior without COM context
-- ❌ Any test that passes without Excel.exe running
+- ❌ Any test that passes without PowerPoint.exe running
 
 **Enforcement:**
 - Code review MUST reject unit tests for COM-dependent features
 - All new tests MUST have `[Trait("Category", "Integration")]`
-- If a test doesn't require Excel, question whether it tests anything meaningful
+- If a test doesn't require PowerPoint, question whether it tests anything meaningful
 - The only acceptable non-integration tests are for pure algorithmic utilities with zero COM dependency (e.g., string parsing, enum mapping validation)
 
-**Historical Lesson:** 10 unit tests were written for the MCP progress feature (McpProgressAdapter mapping, ProgressContext AsyncLocal). All 10 passed. Zero of them would have caught the real bugs: STA thread affinity issues, COM callback re-entrancy during refresh, or progress notifications not flowing through the generated code pipeline. The unit tests tested the unit tests.
+**Historical Lesson:** 10 unit tests were written for the MCP progress feature (McpProgressAdapter mapping, ProgressContext AsyncLocal). All 10 passed. Zero of them would have caught the real bugs: STA thread affinity issues, COM callback re-entrancy during shape operations, or progress notifications not flowing through the generated code pipeline. The unit tests tested the unit tests.
 
