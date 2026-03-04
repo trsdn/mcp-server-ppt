@@ -3,36 +3,36 @@
 ## Implementation Status
 
 > **⚠️ SUPERSEDED** - This spec described the shared-daemon architecture. The actual implementation uses a hybrid model:
-> - **MCP Server**: Fully in-process ExcelMcpService with direct method calls (no named pipe)
-> - **CLI**: Daemon process with named pipe (`excelmcp-cli-{SID}`) and system tray
+> - **MCP Server**: Fully in-process PptMcpService with direct method calls (no named pipe)
+> - **CLI**: Daemon process with named pipe (`PptMcp-cli-{SID}`) and system tray
 >
 > See `architecture-patterns.instructions.md` for current architecture.
 
 ### Completed Features (Phase 1)
 
-- ✅ **Rename Daemon to ExcelMCP Service** - All code, pipes, mutex, lock files updated
+- ✅ **Rename Daemon to PptMcp Service** - All code, pipes, mutex, lock files updated
 - ✅ **Session Origin Tracking** - Sessions labeled [CLI] or [MCP] in tray UI
 - ✅ **About Dialog** - Version info and helpful links in tray menu
 - ✅ **Removed Manual Daemon Commands** - No more `daemon start/stop/status` commands
 - ✅ **Service Client Library** - Shared `ServiceClient/` in ComInterop for CLI and MCP
 - ✅ **MCP Server Infrastructure** - Service mode detection and forwarding framework
 - ✅ **All MCP Tools Forward to Service** - Removed standalone mode, all tools use `ForwardToService` pattern
-- ✅ **Removed Standalone Mode** - No more `EXCELMCP_STANDALONE` or `UseServiceMode` toggles
+- ✅ **Removed Standalone Mode** - No more `PptMcp_STANDALONE` or `UseServiceMode` toggles
 
 ### In Progress (Phase 2 - Unified Package)
 
-- 🔄 **Bundle CLI with MCP Server Package** - Single NuGet package includes both `excelmcp.exe` and `excelcli.exe`
-- 🔄 **Deprecate Separate CLI Package** - `Sbroenne.ExcelMcp.CLI` deprecated, points to unified package
-- ⏳ **Update ServiceLauncher** - Find `excelcli.exe` next to current executable
+- 🔄 **Bundle CLI with MCP Server Package** - Single NuGet package includes both `PptMcp.exe` and `pptcli.exe`
+- 🔄 **Deprecate Separate CLI Package** - `PptMcp.CLI` deprecated, points to unified package
+- ⏳ **Update ServiceLauncher** - Find `pptcli.exe` next to current executable
 - ⏳ **Deduplicate Update Notifications** - Single notification per process lifetime
 - ⏳ **Update Release Workflow** - Single unified release artifact
 
 ### Problem Discovered During Testing
 
 MCP Server tests fail because:
-1. Service lives in CLI project (`excelcli service run`)
+1. Service lives in CLI project (`pptcli service run`)
 2. Tests only build MCP Server, not CLI
-3. `ServiceLauncher` can't find `excelcli.exe`
+3. `ServiceLauncher` can't find `pptcli.exe`
 4. Installing MCP-only doesn't include the service
 
 ### Solution: Unified Package (Simpler Than Service Extraction)
@@ -40,29 +40,29 @@ MCP Server tests fail because:
 Instead of extracting a separate service project, **bundle CLI with MCP Server**:
 
 ```
-Sbroenne.ExcelMcp.McpServer  → excelmcp.exe + excelcli.exe (both included)
-Sbroenne.ExcelMcp.CLI        → DEPRECATED (points to McpServer package)
+PptMcp.McpServer  → PptMcp.exe + pptcli.exe (both included)
+PptMcp.CLI        → DEPRECATED (points to McpServer package)
 ```
 
 **Benefits:**
 - ✅ No version mismatch possible (everything upgrades together)
 - ✅ No new project needed (keep service in CLI)
 - ✅ Simpler release (one package)
-- ✅ MCP always finds service (excelcli.exe next to excelmcp.exe)
+- ✅ MCP always finds service (pptcli.exe next to PptMcp.exe)
 
 **Installation (After):**
 ```powershell
 # One package, both tools
-dotnet tool install --global Sbroenne.ExcelMcp.McpServer
+dotnet tool install --global PptMcp.McpServer
 
 # Both commands available
-excelmcp    # MCP Server for AI assistants
-excelcli    # CLI for coding agents
+PptMcp    # MCP Server for AI assistants
+pptcli    # CLI for coding agents
 ```
 
 ### Architecture
 
-**Service-Only Mode**: MCP Server is now a thin JSON-over-named-pipe layer that forwards ALL requests to the ExcelMCP Service. This enables CLI and MCP Server to share sessions transparently.
+**Service-Only Mode**: MCP Server is now a thin JSON-over-named-pipe layer that forwards ALL requests to the PptMcp Service. This enables CLI and MCP Server to share sessions transparently.
 
 ```
 MCP Client (VS Code, etc.)
@@ -70,14 +70,14 @@ MCP Client (VS Code, etc.)
     ▼
 ┌──────────────────────────┐
 │     MCP Server           │
-│  ForwardToService()      │  ──────► Named Pipe: excelmcp-{UserSid}
+│  ForwardToService()      │  ──────► Named Pipe: PptMcp-{UserSid}
 │  (no local Core cmds)    │
 └──────────────────────────┘
                                       │
                                       ▼
                            ┌──────────────────────────┐
-                           │   ExcelMCP Service       │
-                           │  (runs via excelcli)     │
+                           │   PptMcp Service       │
+                           │  (runs via pptcli)     │
                            │  ┌────────────────────┐  │
                            │  │  SessionManager    │  │
                            │  │  (shared sessions) │  │
@@ -93,31 +93,31 @@ MCP Client (VS Code, etc.)
 
 **User installs ONLY MCP Server:**
 ```powershell
-dotnet tool install --global Sbroenne.ExcelMcp.McpServer
+dotnet tool install --global PptMcp.McpServer
 ```
-- MCP Server tries to start `excelcli.exe service run`
-- `excelcli.exe` doesn't exist because CLI isn't installed
+- MCP Server tries to start `pptcli.exe service run`
+- `pptcli.exe` doesn't exist because CLI isn't installed
 - **All operations fail** ❌
 
 ### Solution: Separate Service Project
 
-Create `ExcelMcp.Service` as an independent project that produces `excelservice.exe`:
+Create `PptMcp.Service` as an independent project that produces `excelservice.exe`:
 
 ```
 src/
-  ExcelMcp.Service/              ← NEW PROJECT
-    ExcelMcp.Service.csproj      ← net10.0-windows (WinForms for tray)
+  PptMcp.Service/              ← NEW PROJECT
+    PptMcp.Service.csproj      ← net10.0-windows (WinForms for tray)
     Program.cs                   ← Entry point
-    ExcelMcpService.cs           ← Moved from CLI/Service/
+    PptMcpService.cs           ← Moved from CLI/Service/
     ServiceTray.cs               ← Moved from CLI/Service/
     ...
 
-  ExcelMcp.CLI/
-    ExcelMcp.CLI.csproj          ← BUNDLES excelservice.exe
+  PptMcp.CLI/
+    PptMcp.CLI.csproj          ← BUNDLES excelservice.exe
     Commands/                     ← CLI commands only
 
-  ExcelMcp.McpServer/
-    ExcelMcp.McpServer.csproj    ← BUNDLES excelservice.exe
+  PptMcp.McpServer/
+    PptMcp.McpServer.csproj    ← BUNDLES excelservice.exe
     Tools/                        ← MCP tools only
 ```
 
@@ -126,7 +126,7 @@ src/
 **User installs CLI only:**
 ```
 ~/.dotnet/tools/
-  excelcli.exe              ← CLI tool
+  pptcli.exe              ← CLI tool
   excelservice.exe          ← Bundled service
 ```
 ✅ CLI finds service next to itself
@@ -134,7 +134,7 @@ src/
 **User installs MCP only:**
 ```
 ~/.dotnet/tools/
-  excelmcp.exe              ← MCP Server
+  PptMcp.exe              ← MCP Server
   excelservice.exe          ← Bundled service
 ```
 ✅ MCP finds service next to itself
@@ -142,8 +142,8 @@ src/
 **User installs BOTH:**
 ```
 ~/.dotnet/tools/
-  excelcli.exe
-  excelmcp.exe
+  pptcli.exe
+  PptMcp.exe
   excelservice.exe          ← One copy, shared
 ```
 ✅ Either can start it, sessions are shared
@@ -210,7 +210,7 @@ public async Task<bool> EnsureServiceRunningAsync()
 ### Files to Move
 
 **From `CLI/Service/` to new `Service/` project:**
-- `ExcelMcpService.cs` (2282 lines - the main service)
+- `PptMcpService.cs` (2282 lines - the main service)
 - `ServiceTray.cs` - Windows Forms tray icon
 - `DialogService.cs` - About dialog
 - `ServiceProtocol.cs` - Command routing
@@ -228,7 +228,7 @@ Both CLI and MCP Server `.csproj` files need to bundle `excelservice.exe`:
 ```xml
 <ItemGroup>
   <!-- Bundle the service executable -->
-  <None Include="$(OutputPath)\..\ExcelMcp.Service\net10.0-windows\excelservice.exe"
+  <None Include="$(OutputPath)\..\PptMcp.Service\net10.0-windows\excelservice.exe"
         Pack="true"
         PackagePath="tools\net10.0-windows\any\" />
 </ItemGroup>
@@ -361,10 +361,10 @@ Unify the MCP Server with the existing CLI daemon architecture to provide persis
 
 **Goal:** Create reusable client library that both CLI and MCP can use.
 
-**New Project:** `ExcelMcp.Daemon.Client`
+**New Project:** `PptMcp.Daemon.Client`
 
 ```csharp
-namespace Sbroenne.ExcelMcp.Daemon.Client;
+namespace PptMcp.Daemon.Client;
 
 public class DaemonClient : IDisposable
 {
@@ -375,9 +375,9 @@ public class DaemonClient : IDisposable
 ```
 
 **Files to create:**
-- `src/ExcelMcp.Daemon.Client/DaemonClient.cs`
-- `src/ExcelMcp.Daemon.Client/DaemonProtocol.cs` (shared message types)
-- `src/ExcelMcp.Daemon.Client/DaemonLauncher.cs` (auto-start logic)
+- `src/PptMcp.Daemon.Client/DaemonClient.cs`
+- `src/PptMcp.Daemon.Client/DaemonProtocol.cs` (shared message types)
+- `src/PptMcp.Daemon.Client/DaemonLauncher.cs` (auto-start logic)
 
 ### Phase 2: Refactor CLI to Use Client Library
 
@@ -394,7 +394,7 @@ public class DaemonClient : IDisposable
 
 **Before:**
 ```csharp
-public class ExcelFileTool
+public class PptFileTool
 {
     private static readonly SessionManager _sessionManager = new();
     
@@ -408,7 +408,7 @@ public class ExcelFileTool
 
 **After:**
 ```csharp
-public class ExcelFileTool
+public class PptFileTool
 {
     public static async Task<string> Open(string path, bool showExcel)
     {
@@ -480,7 +480,7 @@ public class ExcelFileTool
    ~~- **Daemon mode** (default): Forward to daemon~~
    ~~- **Standalone mode** (fallback): Use embedded `SessionManager`~~
 
-**Current Implementation:** Service-only mode. All MCP tools use `ForwardToService()` to send commands to the ExcelMCP Service via named pipe.
+**Current Implementation:** Service-only mode. All MCP tools use `ForwardToService()` to send commands to the PptMcp Service via named pipe.
 
 ### Testing Strategy
 
@@ -492,17 +492,17 @@ public class ExcelFileTool
 
 ```
 src/
-├── ExcelMcp.Daemon.Client/           # NEW: Shared client library
+├── PptMcp.Daemon.Client/           # NEW: Shared client library
 │   ├── DaemonClient.cs
 │   ├── DaemonProtocol.cs
 │   └── DaemonLauncher.cs
-├── ExcelMcp.CLI/
+├── PptMcp.CLI/
 │   ├── Daemon/
 │   │   └── ExcelDaemon.cs            # MODIFIED: Use shared protocol
 │   └── Commands/                      # MODIFIED: Use DaemonClient
-├── ExcelMcp.McpServer/
+├── PptMcp.McpServer/
 │   └── Tools/                         # MODIFIED: Use DaemonClient
-└── ExcelMcp.Core/                     # UNCHANGED
+└── PptMcp.Core/                     # UNCHANGED
 ```
 
 ## Risks and Mitigations
@@ -543,7 +543,7 @@ src/
 - ✅ Remove standalone mode: 1 day
 
 ### Phase 2 (Current)
-- 🔄 Create ExcelMcp.Service project: 1 day
+- 🔄 Create PptMcp.Service project: 1 day
 - ⏳ Move service code from CLI: 1 day
 - ⏳ Bundle service in NuGet packages: 1 day
 - ⏳ Version check and upgrade logic: 1 day

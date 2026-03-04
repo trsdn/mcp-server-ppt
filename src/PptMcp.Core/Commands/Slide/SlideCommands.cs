@@ -257,6 +257,31 @@ public class SlideCommands : ISlideCommands
         });
     }
 
+    public OperationResult SetName(IPptBatch batch, int slideIndex, string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            try
+            {
+                slide.Name = name;
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "set-name",
+                    Message = $"Set name of slide {slideIndex} to '{name}'",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static dynamic? FindLayout(dynamic pres, string layoutName)
     {
         // PowerPoint COM: Presentation.Designs → Design.SlideMaster.CustomLayouts

@@ -33,14 +33,14 @@
 ### Implementation for User Story 1
 
 - [x] T003 [US1] Update SDK version in global.json from `8.0.416` to `10.0.100`
-- [x] T004 [P] [US1] Update TargetFramework to net10.0 in src/ExcelMcp.ComInterop/ExcelMcp.ComInterop.csproj
-- [x] T005 [P] [US1] Update TargetFramework to net10.0 in src/ExcelMcp.Core/ExcelMcp.Core.csproj
-- [x] T006 [P] [US1] Update TargetFramework to net10.0 in src/ExcelMcp.CLI/ExcelMcp.CLI.csproj
-- [x] T007 [P] [US1] Update TargetFramework to net10.0 in src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj
-- [x] T008 [P] [US1] Update TargetFramework to net10.0 in tests/ExcelMcp.ComInterop.Tests/ExcelMcp.ComInterop.Tests.csproj
-- [x] T009 [P] [US1] Update TargetFramework to net10.0 in tests/ExcelMcp.Core.Tests/ExcelMcp.Core.Tests.csproj
-- [x] T010 [P] [US1] Update TargetFramework to net10.0 in tests/ExcelMcp.CLI.Tests/ExcelMcp.CLI.Tests.csproj
-- [x] T011 [P] [US1] Update TargetFramework to net10.0 in tests/ExcelMcp.McpServer.Tests/ExcelMcp.McpServer.Tests.csproj
+- [x] T004 [P] [US1] Update TargetFramework to net10.0 in src/PptMcp.ComInterop/PptMcp.ComInterop.csproj
+- [x] T005 [P] [US1] Update TargetFramework to net10.0 in src/PptMcp.Core/PptMcp.Core.csproj
+- [x] T006 [P] [US1] Update TargetFramework to net10.0 in src/PptMcp.CLI/PptMcp.CLI.csproj
+- [x] T007 [P] [US1] Update TargetFramework to net10.0 in src/PptMcp.McpServer/PptMcp.McpServer.csproj
+- [x] T008 [P] [US1] Update TargetFramework to net10.0 in tests/PptMcp.ComInterop.Tests/PptMcp.ComInterop.Tests.csproj
+- [x] T009 [P] [US1] Update TargetFramework to net10.0 in tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj
+- [x] T010 [P] [US1] Update TargetFramework to net10.0 in tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj
+- [x] T011 [P] [US1] Update TargetFramework to net10.0 in tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
 - [x] T012 [US1] Run `dotnet restore` to verify all NuGet packages resolve correctly
 - [x] T013 [US1] Run `dotnet build --configuration Release` and verify 0 warnings, 0 errors
 - [x] T014 [US1] Run integration tests: `dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA"`
@@ -83,8 +83,8 @@
 
 - [x] T023 [P] [US3] Update .NET version badge from ".NET 8.0" to ".NET 10" in README.md
 - [x] T024 [P] [US3] Update requirements section to state ".NET 10 runtime" in README.md
-- [x] T025 [P] [US3] Update .NET version requirements in src/ExcelMcp.McpServer/README.md
-- [x] T026 [P] [US3] Update .NET version requirements in src/ExcelMcp.CLI/README.md
+- [x] T025 [P] [US3] Update .NET version requirements in src/PptMcp.McpServer/README.md
+- [x] T026 [P] [US3] Update .NET version requirements in src/PptMcp.CLI/README.md
 - [x] T027 [P] [US3] Update .NET 10 requirement in gh-pages/index.md
 - [x] T028 [P] [US3] Update .NET 10 requirement in gh-pages/installation.md
 
@@ -114,7 +114,7 @@
 
 - [x] T032 Run `dotnet build --configuration Release` and confirm 0 warnings, 0 errors
 - [x] T033 Run integration tests: `dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA"`
-- [x] T034 Verify Docker build (optional): `docker build -t excelmcp-test .`
+- [x] T034 Verify Docker build (optional): `docker build -t PptMcp-test .`
 - [x] T035 Review all modified files for accuracy and completeness
 - [ ] T036 Create pull request with comprehensive description
 - [ ] T037 Check and fix any automated PR review comments (Copilot, GitHub Security)

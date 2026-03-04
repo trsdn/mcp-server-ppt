@@ -5,7 +5,7 @@
 
 ## Summary
 
-Upgrade ExcelMcp solution from .NET 8 to .NET 10, updating SDK version, target framework across all 8 projects, CI/CD workflows, Docker images, and documentation. This is a configuration-only upgrade with no code changes required.
+Upgrade PptMcp solution from .NET 8 to .NET 10, updating SDK version, target framework across all 8 projects, CI/CD workflows, Docker images, and documentation. This is a configuration-only upgrade with no code changes required.
 
 ## Technical Context
 
@@ -66,16 +66,16 @@ specs/006-dotnet10-upgrade/
 ```text
 # Existing structure - no changes to layout
 src/
-├── ExcelMcp.ComInterop/    # COM interop patterns
-├── ExcelMcp.Core/          # Business logic
-├── ExcelMcp.CLI/           # CLI tool
-└── ExcelMcp.McpServer/     # MCP server
+├── PptMcp.ComInterop/    # COM interop patterns
+├── PptMcp.Core/          # Business logic
+├── PptMcp.CLI/           # CLI tool
+└── PptMcp.McpServer/     # MCP server
 
 tests/
-├── ExcelMcp.ComInterop.Tests/
-├── ExcelMcp.Core.Tests/
-├── ExcelMcp.CLI.Tests/
-└── ExcelMcp.McpServer.Tests/
+├── PptMcp.ComInterop.Tests/
+├── PptMcp.Core.Tests/
+├── PptMcp.CLI.Tests/
+└── PptMcp.McpServer.Tests/
 ```
 
 **Structure Decision**: No changes to project structure. This is a framework version upgrade only.
@@ -142,14 +142,14 @@ This upgrade involves **configuration changes only**. No new:
 | File | Current | Target | Requirement |
 |------|---------|--------|-------------|
 | `global.json` | `8.0.416` | `10.0.100` | FR-002 |
-| `src/ExcelMcp.ComInterop/ExcelMcp.ComInterop.csproj` | `net8.0` | `net10.0` | FR-001 |
-| `src/ExcelMcp.Core/ExcelMcp.Core.csproj` | `net8.0` | `net10.0` | FR-001 |
-| `src/ExcelMcp.CLI/ExcelMcp.CLI.csproj` | `net8.0` | `net10.0` | FR-001 |
-| `src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj` | `net8.0` | `net10.0` | FR-001 |
-| `tests/ExcelMcp.ComInterop.Tests/ExcelMcp.ComInterop.Tests.csproj` | `net8.0` | `net10.0` | FR-001 |
-| `tests/ExcelMcp.Core.Tests/ExcelMcp.Core.Tests.csproj` | `net8.0` | `net10.0` | FR-001 |
-| `tests/ExcelMcp.CLI.Tests/ExcelMcp.CLI.Tests.csproj` | `net8.0` | `net10.0` | FR-001 |
-| `tests/ExcelMcp.McpServer.Tests/ExcelMcp.McpServer.Tests.csproj` | `net8.0` | `net10.0` | FR-001 |
+| `src/PptMcp.ComInterop/PptMcp.ComInterop.csproj` | `net8.0` | `net10.0` | FR-001 |
+| `src/PptMcp.Core/PptMcp.Core.csproj` | `net8.0` | `net10.0` | FR-001 |
+| `src/PptMcp.CLI/PptMcp.CLI.csproj` | `net8.0` | `net10.0` | FR-001 |
+| `src/PptMcp.McpServer/PptMcp.McpServer.csproj` | `net8.0` | `net10.0` | FR-001 |
+| `tests/PptMcp.ComInterop.Tests/PptMcp.ComInterop.Tests.csproj` | `net8.0` | `net10.0` | FR-001 |
+| `tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj` | `net8.0` | `net10.0` | FR-001 |
+| `tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj` | `net8.0` | `net10.0` | FR-001 |
+| `tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj` | `net8.0` | `net10.0` | FR-001 |
 
 #### Category 2: CI/CD Workflows
 
@@ -173,8 +173,8 @@ This upgrade involves **configuration changes only**. No new:
 |------|--------|-------------|
 | `README.md` | Badge `.NET 8.0` → `.NET 10`, requirements section | FR-005, FR-006 |
 | `docs/INSTALLATION.md` | .NET 10 requirement, winget command | FR-010, FR-011 |
-| `src/ExcelMcp.McpServer/README.md` | .NET 10 requirement | FR-006 |
-| `src/ExcelMcp.CLI/README.md` | .NET 10 requirement | FR-006 |
+| `src/PptMcp.McpServer/README.md` | .NET 10 requirement | FR-006 |
+| `src/PptMcp.CLI/README.md` | .NET 10 requirement | FR-006 |
 | `gh-pages/index.md` | .NET 10 requirement | FR-005, FR-006 |
 | `gh-pages/installation.md` | .NET 10 requirement, winget command | FR-010, FR-011 |
 | `vscode-extension/CHANGELOG.md` | Document .NET 10 requirement change | FR-015 |

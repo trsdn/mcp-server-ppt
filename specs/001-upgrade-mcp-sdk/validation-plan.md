@@ -13,8 +13,8 @@
 | Step | Command | Expected Result | Gate |
 |------|---------|-----------------|------|
 | 1. Build | `dotnet build` | 0 warnings, 0 errors | ✅ PASS |
-| 2. MCP Server Tests | `dotnet test tests/ExcelMcp.McpServer.Tests/` | 66/66 passing | ✅ PASS |
-| 3. CLI Tests | `dotnet test tests/ExcelMcp.CLI.Tests/` | 2/2 passing | ✅ PASS |
+| 2. MCP Server Tests | `dotnet test tests/PptMcp.McpServer.Tests/` | 66/66 passing | ✅ PASS |
+| 3. CLI Tests | `dotnet test tests/PptMcp.CLI.Tests/` | 2/2 passing | ✅ PASS |
 | 4. Core Feature Tests | `dotnet test --filter "Feature=PowerQuery&RunType!=OnDemand"` | 49/49 passing | ✅ PASS |
 | 5. Tables Feature Tests | `dotnet test --filter "Feature=Tables&RunType!=OnDemand"` | 20/20 passing | ✅ PASS |
 
@@ -31,7 +31,7 @@
 
 | Test | Procedure | Expected Result |
 |------|-----------|-----------------|
-| 1. Server Startup | `dotnet run --project src/ExcelMcp.McpServer` | Starts without error |
+| 1. Server Startup | `dotnet run --project src/PptMcp.McpServer` | Starts without error |
 | 2. Claude Desktop | Connect via MCP config | Tools discovered |
 | 3. file | Open test file | Session created |
 | 4. worksheet | List sheets | Sheets returned |
@@ -114,10 +114,10 @@ Edit `Directory.Packages.props`:
 dotnet build
 
 # Verify tests
-dotnet test tests/ExcelMcp.McpServer.Tests/
+dotnet test tests/PptMcp.McpServer.Tests/
 
 # Verify smoke test
-dotnet run --project src/ExcelMcp.McpServer
+dotnet run --project src/PptMcp.McpServer
 ```
 
 #### Step 4: Communication
@@ -156,14 +156,14 @@ dotnet run --project src/ExcelMcp.McpServer
 | `Directory.Packages.props` | Modified | SDK version bump |
 | `tests/.../McpServerIntegrationTests.cs` | Modified | API rename |
 | `tests/.../McpServerSmokeTests.cs` | Modified | Test isolation |
-| `tests/.../ExcelFileToolOperationTrackingTests.cs` | Modified | Test isolation |
+| `tests/.../PptFileToolOperationTrackingTests.cs` | Modified | Test isolation |
 | `tests/.../ProgramTransportTestCollection.cs` | Created | xUnit collection |
-| `src/ExcelMcp.CLI/Commands/Sheet/SheetCommand.cs` | Modified | JSON output for mutations |
-| `src/ExcelMcp.McpServer/Program.cs` | Modified | Exit code handling (0/1) |
-| `src/ExcelMcp.Core/.../PivotTableCommands.Fields.cs` | Modified | stderr for warnings |
-| `src/ExcelMcp.Core/.../PivotTableCommands.Lifecycle.cs` | Modified | stderr for warnings |
-| `src/ExcelMcp.Core/.../RegularPivotTableFieldStrategy.cs` | Modified | stderr for warnings |
-| `src/ExcelMcp.Core/.../OlapPivotTableFieldStrategy.cs` | Modified | stderr for warnings |
+| `src/PptMcp.CLI/Commands/Sheet/SheetCommand.cs` | Modified | JSON output for mutations |
+| `src/PptMcp.McpServer/Program.cs` | Modified | Exit code handling (0/1) |
+| `src/PptMcp.Core/.../PivotTableCommands.Fields.cs` | Modified | stderr for warnings |
+| `src/PptMcp.Core/.../PivotTableCommands.Lifecycle.cs` | Modified | stderr for warnings |
+| `src/PptMcp.Core/.../RegularPivotTableFieldStrategy.cs` | Modified | stderr for warnings |
+| `src/PptMcp.Core/.../OlapPivotTableFieldStrategy.cs` | Modified | stderr for warnings |
 | `specs/001-upgrade-mcp-sdk/impact-report.md` | Created | Impact documentation |
 | `specs/001-upgrade-mcp-sdk/validation-plan.md` | Created | This file |
 | `specs/001-upgrade-mcp-sdk/tasks.md` | Modified | Task tracking |

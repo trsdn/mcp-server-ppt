@@ -26,16 +26,16 @@ This document describes the **code generation system** that ensures consistency 
 │   public interface IPowerQueryCommands                                     │
 │   {                                                                         │
 │       [ServiceAction("list")]                                              │
-│       List<QueryInfo> List(IExcelBatch batch);                             │
+│       List<QueryInfo> List(IPptBatch batch);                             │
 │                                                                             │
 │       [ServiceAction("create")]                                            │
-│       void Create(IExcelBatch batch, string queryName, string mCode, ...); │
+│       void Create(IPptBatch batch, string queryName, string mCode, ...); │
 │   }                                                                         │
 └──────────────────────────────────┬──────────────────────────────────────────┘
                                    │
                     ┌──────────────▼──────────────┐
                     │    SOURCE GENERATOR         │
-                    │    (ExcelMcp.Generators)    │
+                    │    (PptMcp.Generators)    │
                     └──────────────┬──────────────┘
                                    │
          ┌─────────────────────────┼─────────────────────────┐
@@ -58,7 +58,7 @@ This document describes the **code generation system** that ensures consistency 
                     └──────────────┬──────────────┘
                                    │
                     ┌──────────────▼──────────────┐
-                    │    SERVICE (ExcelMcpService)│
+                    │    SERVICE (PptMcpService)│
                     │    Routes to Core Commands  │
                     └─────────────────────────────┘
 ```
@@ -227,20 +227,20 @@ internal sealed class PowerQueryCommand : ServiceCommandBase<ServiceRegistry.Pow
 **Before (manual)**:
 ```csharp
 // Each MCP tool had switch statements calling ForwardToService with string literals
-return ExcelToolsBase.ForwardToService("powerquery.create", sessionId, new { queryName, mCode });
+return PptToolsBase.ForwardToService("powerquery.create", sessionId, new { queryName, mCode });
 ```
 
 **After (generated)**:
 ```csharp
 public static partial string ExcelPowerQuery(PowerQueryAction action, string sessionId, ...)
 {
-    return ExcelToolsBase.ExecuteToolAction(
+    return PptToolsBase.ExecuteToolAction(
         "powerquery",
         ServiceRegistry.PowerQuery.ToActionString(action),
         () => ServiceRegistry.PowerQuery.RouteAction(
             action,
             sessionId,
-            ExcelToolsBase.ForwardToServiceFunc,
+            PptToolsBase.ForwardToServiceFunc,
             queryName: queryName,
             mCode: mCode,
             // ... MCP parameters map 1:1 to generated parameters
@@ -265,7 +265,7 @@ public static partial string ExcelPowerQuery(PowerQueryAction action, string ses
 
 ## What's NOT Generated (By Design)
 
-1. **Service routing logic** - `ExcelMcpService.cs` still has manual switch statements (routes to Core)
+1. **Service routing logic** - `PptMcpService.cs` still has manual switch statements (routes to Core)
 2. **MCP tool class definition** - The `[McpServerTool]` attribute and parameter list are manual
 3. **McpMeta attributes** - Static metadata for MCP clients, not derived from interface
 
@@ -275,9 +275,9 @@ public static partial string ExcelPowerQuery(PowerQueryAction action, string ses
 
 | Project | Purpose |
 |---------|---------|
-| `ExcelMcp.Generators` | Main generator - produces ServiceRegistry files (validation, dispatch, helpers) |
-| `ExcelMcp.Generators.Shared` | Shared models (ServiceInfo, MethodInfo, ParameterInfo) |
-| `ExcelMcp.Generators.Cli` | CLI command generator - produces per-category CLI command classes |
+| `PptMcp.Generators` | Main generator - produces ServiceRegistry files (validation, dispatch, helpers) |
+| `PptMcp.Generators.Shared` | Shared models (ServiceInfo, MethodInfo, ParameterInfo) |
+| `PptMcp.Generators.Cli` | CLI command generator - produces per-category CLI command classes |
 
 **Limitation**: Roslyn source generators can only see the project they're attached to. We attach to Core, so we can only generate into Core (the ServiceRegistry namespace).
 
@@ -285,7 +285,7 @@ public static partial string ExcelPowerQuery(PowerQueryAction action, string ses
 
 ## Service Routing: Fully Generated
 
-The Service (`ExcelMcpService.cs`) uses **generated dispatch** methods to route commands to Core.
+The Service (`PptMcpService.cs`) uses **generated dispatch** methods to route commands to Core.
 The generator produces `ServiceRegistry.{Category}.DispatchToCore()` methods that handle:
 
 - JSON deserialization of arguments into typed args classes

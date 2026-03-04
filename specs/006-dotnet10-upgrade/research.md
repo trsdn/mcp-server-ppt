@@ -4,7 +4,7 @@
 
 ## Overview
 
-This document captures research findings for upgrading ExcelMcp from .NET 8 to .NET 10. Since .NET 10 is a standard Long-Term Support (LTS) release with well-documented migration paths, research requirements are minimal.
+This document captures research findings for upgrading PptMcp from .NET 8 to .NET 10. Since .NET 10 is a standard Long-Term Support (LTS) release with well-documented migration paths, research requirements are minimal.
 
 ---
 
@@ -98,12 +98,12 @@ This document captures research findings for upgrading ExcelMcp from .NET 8 to .
 
 ## R-006: Breaking Changes
 
-**Question**: Are there any .NET 10 breaking changes affecting ExcelMcp?
+**Question**: Are there any .NET 10 breaking changes affecting PptMcp?
 
 **Decision**: No blocking breaking changes identified
 
 **Rationale**:
-- ExcelMcp uses COM interop (unchanged between .NET versions)
+- PptMcp uses COM interop (unchanged between .NET versions)
 - No deprecated APIs used that are removed in .NET 10
 - `TreatWarningsAsErrors=true` will surface any issues during build
 
@@ -122,6 +122,6 @@ This document captures research findings for upgrading ExcelMcp from .NET 8 to .
 | Docker Images | ✅ Complete | Update to `:10.0` tags |
 | GitHub Actions | ✅ Complete | Use `10.0.x` pattern |
 | C# 14 Features | ✅ Complete | Document for future, out of scope |
-| Breaking Changes | ✅ Complete | None affecting ExcelMcp |
+| Breaking Changes | ✅ Complete | None affecting PptMcp |
 
 **All research items resolved. Proceed to implementation.**

@@ -170,4 +170,14 @@ public interface IShapeCommands
     /// <param name="shapeName">Name of the shape to duplicate</param>
     [ServiceAction("duplicate")]
     OperationResult Duplicate(IPptBatch batch, int slideIndex, string shapeName);
+
+    /// <summary>
+    /// Flip a shape horizontally or vertically.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    /// <param name="flipType">0=Horizontal, 1=Vertical</param>
+    [ServiceAction("flip")]
+    OperationResult Flip(IPptBatch batch, int slideIndex, string shapeName, int flipType);
 }

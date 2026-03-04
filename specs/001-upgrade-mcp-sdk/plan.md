@@ -86,19 +86,19 @@ specs/001-upgrade-mcp-sdk/
 ### Source Code (repository root)
 ```text
 src/
-├── ExcelMcp.ComInterop/
-├── ExcelMcp.Core/
-├── ExcelMcp.CLI/
-└── ExcelMcp.McpServer/
+├── PptMcp.ComInterop/
+├── PptMcp.Core/
+├── PptMcp.CLI/
+└── PptMcp.McpServer/
 
 tests/
-├── ExcelMcp.ComInterop.Tests/
-├── ExcelMcp.Core.Tests/
-├── ExcelMcp.CLI.Tests/
-└── ExcelMcp.McpServer.Tests/
+├── PptMcp.ComInterop.Tests/
+├── PptMcp.Core.Tests/
+├── PptMcp.CLI.Tests/
+└── PptMcp.McpServer.Tests/
 ```
 
-**Structure Decision**: Multi-project .NET solution; changes will primarily touch `src/ExcelMcp.McpServer` and any shared code paths affected by MCP SDK API changes.
+**Structure Decision**: Multi-project .NET solution; changes will primarily touch `src/PptMcp.McpServer` and any shared code paths affected by MCP SDK API changes.
 
 ## Complexity Tracking
 

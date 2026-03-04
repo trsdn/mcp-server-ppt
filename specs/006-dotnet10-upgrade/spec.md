@@ -9,7 +9,7 @@
 
 ### User Story 1 - Developer Builds Project with .NET 10 SDK (Priority: P1)
 
-As a developer, I want to build the ExcelMcp solution using .NET 10 SDK so that I can take advantage of the latest runtime improvements, language features, and long-term support.
+As a developer, I want to build the PptMcp solution using .NET 10 SDK so that I can take advantage of the latest runtime improvements, language features, and long-term support.
 
 **Why this priority**: This is the core upgrade - without successful builds, no other stories can be tested or delivered. All downstream functionality depends on the project compiling and running on .NET 10.
 
@@ -50,15 +50,15 @@ As an end user, I want the published MCP Server and CLI to run on .NET 10 runtim
 
 **Acceptance Scenarios**:
 
-1. **Given** user installs `Sbroenne.ExcelMcp.McpServer` NuGet package, **When** they run the server, **Then** it starts successfully and responds to MCP protocol requests
-2. **Given** user installs `Sbroenne.ExcelMcp.CLI` NuGet package, **When** they run `excelcli --help`, **Then** help text displays correctly
+1. **Given** user installs `PptMcp.McpServer` NuGet package, **When** they run the server, **Then** it starts successfully and responds to MCP protocol requests
+2. **Given** user installs `PptMcp.CLI` NuGet package, **When** they run `pptcli --help`, **Then** help text displays correctly
 3. **Given** README and installation docs reference .NET version, **When** user reads documentation, **Then** they see .NET 10 as the required runtime with winget installation command
 
 ---
 
 ### User Story 4 - Users Upgrading from Previous Versions (Priority: P3)
 
-As a user upgrading from a previous version of ExcelMcp, I want clear instructions on how to install .NET 10 runtime so that I can continue using the tools without issues.
+As a user upgrading from a previous version of PptMcp, I want clear instructions on how to install .NET 10 runtime so that I can continue using the tools without issues.
 
 **Why this priority**: Existing users need a smooth upgrade path with clear instructions to avoid confusion.
 
@@ -66,8 +66,8 @@ As a user upgrading from a previous version of ExcelMcp, I want clear instructio
 
 **Acceptance Scenarios**:
 
-1. **Given** user has previous ExcelMcp version with .NET 8, **When** they read the release notes, **Then** they see clear instructions to install .NET 10 runtime via winget
-2. **Given** user runs `winget install Microsoft.DotNet.Runtime.10`, **When** installation completes, **Then** .NET 10 runtime is available and ExcelMcp tools work correctly
+1. **Given** user has previous PptMcp version with .NET 8, **When** they read the release notes, **Then** they see clear instructions to install .NET 10 runtime via winget
+2. **Given** user runs `winget install Microsoft.DotNet.Runtime.10`, **When** installation completes, **Then** .NET 10 runtime is available and PptMcp tools work correctly
 
 ---
 
@@ -105,9 +105,9 @@ As a user upgrading from a previous version of ExcelMcp, I want clear instructio
 | Category | Files |
 |----------|-------|
 | SDK Version | `global.json` |
-| Target Framework | `src/ExcelMcp.ComInterop/ExcelMcp.ComInterop.csproj`, `src/ExcelMcp.Core/ExcelMcp.Core.csproj`, `src/ExcelMcp.CLI/ExcelMcp.CLI.csproj`, `src/ExcelMcp.McpServer/ExcelMcp.McpServer.csproj`, `tests/ExcelMcp.ComInterop.Tests/ExcelMcp.ComInterop.Tests.csproj`, `tests/ExcelMcp.Core.Tests/ExcelMcp.Core.Tests.csproj`, `tests/ExcelMcp.CLI.Tests/ExcelMcp.CLI.Tests.csproj`, `tests/ExcelMcp.McpServer.Tests/ExcelMcp.McpServer.Tests.csproj` |
+| Target Framework | `src/PptMcp.ComInterop/PptMcp.ComInterop.csproj`, `src/PptMcp.Core/PptMcp.Core.csproj`, `src/PptMcp.CLI/PptMcp.CLI.csproj`, `src/PptMcp.McpServer/PptMcp.McpServer.csproj`, `tests/PptMcp.ComInterop.Tests/PptMcp.ComInterop.Tests.csproj`, `tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj`, `tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj`, `tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj` |
 | CI/CD Workflows | `.github/workflows/build-mcp-server.yml`, `.github/workflows/build-cli.yml`, `.github/workflows/release-mcp-server.yml`, `.github/workflows/release-vscode-extension.yml`, `.github/workflows/codeql.yml` |
-| Documentation | `README.md`, `docs/INSTALLATION.md`, `src/ExcelMcp.McpServer/README.md`, `src/ExcelMcp.CLI/README.md`, `gh-pages/index.md`, `gh-pages/installation.md`, `vscode-extension/CHANGELOG.md` (release notes) |
+| Documentation | `README.md`, `docs/INSTALLATION.md`, `src/PptMcp.McpServer/README.md`, `src/PptMcp.CLI/README.md`, `gh-pages/index.md`, `gh-pages/installation.md`, `vscode-extension/CHANGELOG.md` (release notes) |
 | Container | `Dockerfile` |
 | Constitution | `.specify/memory/constitution.md` (already updated to 1.1.0) |
 
@@ -122,7 +122,7 @@ As a user upgrading from a previous version of ExcelMcp, I want clear instructio
 
 ## C# 14 Code Improvement Opportunities *(optional - post-upgrade enhancements)*
 
-The .NET 10 SDK includes C# 14 with several language features that could improve the ExcelMcp codebase. These are **optional enhancements** that can be addressed in follow-up work after the core framework upgrade is complete.
+The .NET 10 SDK includes C# 14 with several language features that could improve the PptMcp codebase. These are **optional enhancements** that can be addressed in follow-up work after the core framework upgrade is complete.
 
 ### High-Value Features
 
@@ -169,7 +169,7 @@ public class ResultBase {
 
 **Impact**: Enforces invariant at compile-time property access, eliminating the class of bugs caught by Rule #1.
 
-**Files affected**: `src/ExcelMcp.Core/Models/ResultTypes.cs` (40+ result classes inherit from `ResultBase`)
+**Files affected**: `src/PptMcp.Core/Models/ResultTypes.cs` (40+ result classes inherit from `ResultBase`)
 
 #### 2. Extension Members for Action Extensions
 
@@ -195,7 +195,7 @@ extension(PowerQueryAction action) {
 
 **Impact**: More idiomatic property access, reduced verbosity, natural member syntax.
 
-**Files affected**: `src/ExcelMcp.McpServer/Models/ActionExtensions.cs`
+**Files affected**: `src/PptMcp.McpServer/Models/ActionExtensions.cs`
 
 ### Lower Priority Features
 

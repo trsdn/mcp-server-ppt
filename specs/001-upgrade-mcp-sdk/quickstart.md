@@ -66,10 +66,10 @@ Repeat build until success with **0 warnings**.
 
 ```powershell
 # MCP Server tests (fast, no Excel)
-dotnet test tests/ExcelMcp.McpServer.Tests/ExcelMcp.McpServer.Tests.csproj
+dotnet test tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
 
 # CLI tests (minimal Excel)
-dotnet test tests/ExcelMcp.CLI.Tests/ExcelMcp.CLI.Tests.csproj
+dotnet test tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj
 
 # Feature filter example (replace with actual feature as needed)
 dotnet test --filter "Feature=PowerQuery&RunType!=OnDemand"
@@ -84,10 +84,10 @@ All tests must pass.
 Run MCP server locally:
 
 ```powershell
-dotnet run --project src/ExcelMcp.McpServer -- --help
+dotnet run --project src/PptMcp.McpServer -- --help
 # or run via stdio transport
 $env:MCP_LOG_LEVEL="Debug"
-dotnet run --project src/ExcelMcp.McpServer
+dotnet run --project src/PptMcp.McpServer
 ```
 
 Confirm:

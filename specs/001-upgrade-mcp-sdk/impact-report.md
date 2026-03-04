@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-The MCP SDK upgrade from 0.4.1-preview.1 to 0.5.0-preview.1 is **fully backwards compatible** for ExcelMcp. Only one breaking change required code modification (API rename), and no behavioral changes were detected.
+The MCP SDK upgrade from 0.4.1-preview.1 to 0.5.0-preview.1 is **fully backwards compatible** for PptMcp. Only one breaking change required code modification (API rename), and no behavioral changes were detected.
 
 | Category | Impact Level | Changes Required |
 |----------|--------------|------------------|
@@ -24,7 +24,7 @@ The MCP SDK upgrade from 0.4.1-preview.1 to 0.5.0-preview.1 is **fully backwards
 **SDK Change**: `IMcpClient.EnumerateToolsAsync()` removed in favor of `ListToolsAsync()`
 
 **Impact**: 
-- **File**: `tests/ExcelMcp.McpServer.Tests/Integration/McpServerIntegrationTests.cs`
+- **File**: `tests/PptMcp.McpServer.Tests/Integration/McpServerIntegrationTests.cs`
 - **Change**: Renamed method call from `EnumerateToolsAsync()` to `ListToolsAsync()`
 
 **Code Migration**:
@@ -41,7 +41,7 @@ foreach (var tool in tools.Tools)
 
 ## APIs Verified Not Used
 
-The following removed/deprecated APIs from 0.5.0-preview.1 changelog were verified as **NOT USED** in ExcelMcp:
+The following removed/deprecated APIs from 0.5.0-preview.1 changelog were verified as **NOT USED** in PptMcp:
 
 | Removed API | Verification | Status |
 |-------------|--------------|--------|
@@ -65,13 +65,13 @@ The following removed/deprecated APIs from 0.5.0-preview.1 changelog were verifi
 **Issue**: MCP Server tests using `Program.ConfigureTestTransport()` share static pipe state, causing intermittent failures when run in parallel.
 
 **Solution**: 
-- Created `tests/ExcelMcp.McpServer.Tests/ProgramTransportTestCollection.cs` with xUnit `[CollectionDefinition]`
+- Created `tests/PptMcp.McpServer.Tests/ProgramTransportTestCollection.cs` with xUnit `[CollectionDefinition]`
 - Added `[Collection("ProgramTransport")]` to affected test classes
 - Added `Program.ResetTestTransport()` call in test cleanup
 
 **Affected Files**:
-- `tests/ExcelMcp.McpServer.Tests/Integration/Tools/McpServerSmokeTests.cs`
-- `tests/ExcelMcp.McpServer.Tests/Integration/Tools/ExcelFileToolOperationTrackingTests.cs`
+- `tests/PptMcp.McpServer.Tests/Integration/Tools/McpServerSmokeTests.cs`
+- `tests/PptMcp.McpServer.Tests/Integration/Tools/PptFileToolOperationTrackingTests.cs`
 
 ### TI-002: SDK 0.5.0 Initialization Timing
 
@@ -115,10 +115,10 @@ The following removed/deprecated APIs from 0.5.0-preview.1 changelog were verifi
 
 | Test Project | Total Tests | Passed | Failed | Notes |
 |--------------|-------------|--------|--------|-------|
-| ExcelMcp.McpServer.Tests | 66 | 66 | 0 | After isolation fixes |
-| ExcelMcp.CLI.Tests | 2 | 2 | 0 | After SheetCommand JSON output fix |
-| ExcelMcp.Core.Tests (PowerQuery) | 49 | 49 | 0 | Feature-scoped sample |
-| ExcelMcp.Core.Tests (Tables) | 20 | 20 | 0 | Feature-scoped sample |
+| PptMcp.McpServer.Tests | 66 | 66 | 0 | After isolation fixes |
+| PptMcp.CLI.Tests | 2 | 2 | 0 | After SheetCommand JSON output fix |
+| PptMcp.Core.Tests (PowerQuery) | 49 | 49 | 0 | Feature-scoped sample |
+| PptMcp.Core.Tests (Tables) | 20 | 20 | 0 | Feature-scoped sample |
 
 ---
 
@@ -130,7 +130,7 @@ The following removed/deprecated APIs from 0.5.0-preview.1 changelog were verifi
 
 **Fix**: Changed all mutation actions in `SheetCommand.cs` to output JSON via `WriteJson(new { success = true/false, message = "..." })` to match PowerQuery, DataModel, and Range command patterns.
 
-**Affected File**: `src/ExcelMcp.CLI/Commands/Sheet/SheetCommand.cs`
+**Affected File**: `src/PptMcp.CLI/Commands/Sheet/SheetCommand.cs`
 
 ---
 
@@ -157,7 +157,7 @@ All 12 MCP Server tools already use `[McpMeta("category", "...")]` attributes fo
 
 ### Exit Code Improvements (T039)
 
-**File**: `src/ExcelMcp.McpServer/Program.cs`
+**File**: `src/PptMcp.McpServer/Program.cs`
 
 **Changes**:
 - Added `OperationCanceledException` handler returning exit code `0` (graceful shutdown)
@@ -169,10 +169,10 @@ All 12 MCP Server tools already use `[McpMeta("category", "...")]` attributes fo
 **Issue**: 8 `Console.WriteLine()` calls in Core layer PivotTable commands would pollute stdout when MCP Server uses stdio transport.
 
 **Fix**: Changed to `Console.Error.WriteLine()` in the following files:
-- `src/ExcelMcp.Core/Commands/PivotTable/PivotTableCommands.Fields.cs` (2 occurrences)
-- `src/ExcelMcp.Core/Commands/PivotTable/PivotTableCommands.Lifecycle.cs` (4 occurrences)
-- `src/ExcelMcp.Core/Commands/PivotTable/RegularPivotTableFieldStrategy.cs` (1 occurrence)
-- `src/ExcelMcp.Core/Commands/PivotTable/OlapPivotTableFieldStrategy.cs` (1 occurrence)
+- `src/PptMcp.Core/Commands/PivotTable/PivotTableCommands.Fields.cs` (2 occurrences)
+- `src/PptMcp.Core/Commands/PivotTable/PivotTableCommands.Lifecycle.cs` (4 occurrences)
+- `src/PptMcp.Core/Commands/PivotTable/RegularPivotTableFieldStrategy.cs` (1 occurrence)
+- `src/PptMcp.Core/Commands/PivotTable/OlapPivotTableFieldStrategy.cs` (1 occurrence)
 
 ---
 
@@ -180,7 +180,7 @@ All 12 MCP Server tools already use `[McpMeta("category", "...")]` attributes fo
 
 The following 0.5.0-preview.1 features are available for future adoption but not required for this upgrade:
 
-| Feature | SDK API | Potential Use in ExcelMcp |
+| Feature | SDK API | Potential Use in PptMcp |
 |---------|---------|---------------------------|
 | `WithMeta` extension | Content with metadata | Add timing/diagnostics to tool responses |
 | `ResourceNotFound` (-32002) | Error code | Structured error for missing sheets/tables |

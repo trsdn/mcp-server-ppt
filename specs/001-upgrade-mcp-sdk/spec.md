@@ -3,7 +3,7 @@
 **Feature Branch**: `001-upgrade-mcp-sdk`  
 **Created**: 2025-12-09  
 **Status**: Draft  
-**Input**: User description: "Upgrade to ModelContextProtocol 0.5.0-preview.1, analyze changelog for new/changed features, and plan impact on ExcelMcp."
+**Input**: User description: "Upgrade to ModelContextProtocol 0.5.0-preview.1, analyze changelog for new/changed features, and plan impact on PptMcp."
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -22,7 +22,7 @@
 
 ### User Story 1 - Verify SDK upgrade compatibility (Priority: P1)
 
-Engineering maintains ExcelMcp so that it builds and runs on ModelContextProtocol 0.5.0-preview.1 without regressions in existing tools or CLI flows.
+Engineering maintains PptMcp so that it builds and runs on ModelContextProtocol 0.5.0-preview.1 without regressions in existing tools or CLI flows.
 
 **Why this priority**: The project must stay compatible with upstream MCP protocol changes; broken builds block all contributors and release pipelines.
 
@@ -37,7 +37,7 @@ Engineering maintains ExcelMcp so that it builds and runs on ModelContextProtoco
 
 ### User Story 2 - Capture changelog-to-impact mapping (Priority: P2)
 
-As a maintainer, I can see a concise mapping of 0.5.0-preview.1 release notes to affected ExcelMcp components (MCP server tools, prompt files, batch/session flows) so I know what to modify or validate.
+As a maintainer, I can see a concise mapping of 0.5.0-preview.1 release notes to affected PptMcp components (MCP server tools, prompt files, batch/session flows) so I know what to modify or validate.
 
 **Why this priority**: Without an explicit impact map, important protocol changes (notifications, capabilities, schema adjustments) could be missed, leading to runtime errors or non-compliant responses.
 
@@ -45,7 +45,7 @@ As a maintainer, I can see a concise mapping of 0.5.0-preview.1 release notes to
 
 **Acceptance Scenarios**:
 
-1. **Given** release notes and API diffs are reviewed, **When** the impact report is produced, **Then** each noted change is tied to specific ExcelMcp areas (tools, prompts, transports, tests).
+1. **Given** release notes and API diffs are reviewed, **When** the impact report is produced, **Then** each noted change is tied to specific PptMcp areas (tools, prompts, transports, tests).
 2. **Given** the impact report exists, **When** a reviewer inspects it, **Then** any missing or ambiguous items are called out with [NEEDS CLARIFICATION] markers or assumptions.
 
 ---
@@ -70,7 +70,7 @@ As release engineering, I have a validation and rollback checklist for the MCP S
 ### Edge Cases
 
 - Protocol version negotiation fails or the client/server advertises older schema; plan must specify fallback or minimum supported version behavior.
-- SDK introduces new notification capabilities (e.g., tool list or roots list changes); verify ExcelMcp either declares or omits them explicitly to avoid misleading clients.
+- SDK introduces new notification capabilities (e.g., tool list or roots list changes); verify PptMcp either declares or omits them explicitly to avoid misleading clients.
 - Structured content or multi-content tool results (e.g., multiple content blocks per result) appear in 0.5.0; ensure serialization/deserialization and MCP error responses remain JSON and not exceptions.
 - New or obsoleted enums/diagnostics in the SDK produce build warnings; confirm suppression policy or code updates are applied instead of ignoring warnings.
 - Preview package introduces experimental APIs; ensure no accidental opt-in without explicit decision.
@@ -85,8 +85,8 @@ As release engineering, I have a validation and rollback checklist for the MCP S
 ### Functional Requirements
 
 - **FR-001**: Dependency version for ModelContextProtocol packages MUST be bumped to 0.5.0-preview.1 and build without new warnings or errors.
-- **FR-002**: A written changelog impact report MUST enumerate new/changed/removed SDK features and map each to affected ExcelMcp components (Core commands, MCP server tools, prompts, CLI, tests).
-- **FR-003**: Compatibility assessment MUST identify any SDK API obsoletions/experimental flags and document whether ExcelMcp uses them; remediation steps MUST be listed for each usage.
+- **FR-002**: A written changelog impact report MUST enumerate new/changed/removed SDK features and map each to affected PptMcp components (Core commands, MCP server tools, prompts, CLI, tests).
+- **FR-003**: Compatibility assessment MUST identify any SDK API obsoletions/experimental flags and document whether PptMcp uses them; remediation steps MUST be listed for each usage.
 - **FR-004**: Validation plan MUST define the minimal test matrix (build + targeted `Feature` filters for MCP server/core) required before merging the upgrade.
 - **FR-005**: Rollback plan MUST specify how to revert to the previous SDK version and how to gate release if blocking regressions are found.
 - **FR-006**: Tool response contract MUST be re-verified for 0.5.0 changes (e.g., structured content, notifications) and deviations MUST be addressed with code or schema updates.
@@ -122,7 +122,7 @@ As release engineering, I have a validation and rollback checklist for the MCP S
 ### Key Entities *(include if feature involves data)*
 
 - **Dependency Set**: ModelContextProtocol package versions and transitive dependencies tracked in Directory.Packages.props.
-- **Impact Report**: Mapping of SDK changes to ExcelMcp areas (Core, MCP Server tools/prompts, CLI, tests) plus remediation actions.
+- **Impact Report**: Mapping of SDK changes to PptMcp areas (Core, MCP Server tools/prompts, CLI, tests) plus remediation actions.
 - **Validation Matrix**: Required build and test filters to declare the upgrade safe (feature-scoped integration tests only, per critical rules).
 - **Rollback Plan**: Steps to revert package versions and branch changes if regressions are detected.
 
@@ -147,10 +147,10 @@ As release engineering, I have a validation and rollback checklist for the MCP S
 
 ### Assumptions
 
-- ExcelMcp does not currently use `McpServerFactory`/`McpClientFactory` (uses attribute-based registration).
-- ExcelMcp does not call `Enumerate*Async` methods.
-- ExcelMcp does not directly call `SetLoggingLevel` or `UnsubscribeFromResourceAsync`.
-- Named arguments for `CancellationToken token` are not used in ExcelMcp call sites.
+- PptMcp does not currently use `McpServerFactory`/`McpClientFactory` (uses attribute-based registration).
+- PptMcp does not call `Enumerate*Async` methods.
+- PptMcp does not directly call `SetLoggingLevel` or `UnsubscribeFromResourceAsync`.
+- Named arguments for `CancellationToken token` are not used in PptMcp call sites.
 - These assumptions must be verified via codebase search before marking upgrade complete.
 
 ## Success Criteria *(mandatory)*

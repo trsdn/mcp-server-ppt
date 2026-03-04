@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-This specification proposes a **breaking redesign** of ExcelMcp's session API to use intuitive **Open/Save/Close** semantics exclusively. The goal is to eliminate the "batch" concept entirely and remove all cognitive load from LLMs - every operation works through sessions, always. No backwards compatibility, no dual patterns, no decisions about when to batch.
+This specification proposes a **breaking redesign** of PptMcp's session API to use intuitive **Open/Save/Close** semantics exclusively. The goal is to eliminate the "batch" concept entirely and remove all cognitive load from LLMs - every operation works through sessions, always. No backwards compatibility, no dual patterns, no decisions about when to batch.
 
 ## ⚠️ CRITICAL: Excel COM Threading & Concurrency Limitations
 
@@ -15,7 +15,7 @@ This specification proposes a **breaking redesign** of ExcelMcp's session API to
 
 ### Operations Within a Session are ALWAYS SERIAL
 
-- Each session (`IExcelBatch`/`IExcelSession`) runs on **ONE dedicated STA thread** with **ONE Excel instance**
+- Each session (`IPptBatch`/`IPptSession`) runs on **ONE dedicated STA thread** with **ONE Excel instance**
 - Operations are **queued** and executed **sequentially** via `Channel<Func<Task>>`
 - Multiple `session.Execute()` calls are processed **one at a time** (never in parallel)
 - This is a **COM interop requirement**, not an implementation choice
@@ -67,17 +67,17 @@ var task4 = GetSession(session1).Execute(...);  // Queued after task3
 ```csharp
 // ✅ This is now SAFE - internal lock serializes calls automatically
 var tasks = Enumerable.Range(1, 10).Select(i =>
-    ExcelSession.CreateNew($"file{i}.xlsx", false, ...));
+    PptSession.CreateNew($"file{i}.xlsx", false, ...));
 await Task.WhenAll(tasks);  // Executes sequentially despite Task.WhenAll!
 
 // ✅ This is also safe and more explicit
 for (int i = 1; i <= 10; i++)
 {
-    await ExcelSession.CreateNew($"file{i}.xlsx", false, ...);
+    await PptSession.CreateNew($"file{i}.xlsx", false, ...);
 }
 ```
 
-**How it works:** `ExcelSession` uses a static `SemaphoreSlim(1, 1)` to serialize all `CreateNew()` and `CreateNewAsync()` calls. Even if called in parallel, they queue and execute one at a time.
+**How it works:** `PptSession` uses a static `SemaphoreSlim(1, 1)` to serialize all `CreateNew()` and `CreateNewAsync()` calls. Even if called in parallel, they queue and execute one at a time.
 
 **Why enforced:** Each `CreateNew()` temporarily creates an Excel instance, saves the file, then closes it. Without serialization, parallel creation would spawn many Excel processes simultaneously, causing memory exhaustion.
 
@@ -196,7 +196,7 @@ REQUIRED WORKFLOW:
 4. close - Closes workbook and session (NEVER saves - use explicit save action)
 
 Sessions are mandatory - there are no standalone operations.")]
-public static async Task<string> ExcelFile(
+public static async Task<string> PptFile(
     [Required]
     [Description("Action to perform")]
     FileAction action,
@@ -269,19 +269,19 @@ public static async Task<string> ExcelPowerQuery(
 #### Step 1: Remove Old Infrastructure (1-2 days)
 
 1. **Delete `excel_batch` tool entirely**
-   - Remove `src/ExcelMcp.McpServer/Tools/BatchSessionTool.cs`
-   - Remove `src/ExcelMcp.CLI/Commands/BatchCommands.cs`
-   - Remove `src/ExcelMcp.McpServer/Prompts/Content/excel_batch.md`
+   - Remove `src/PptMcp.McpServer/Tools/BatchSessionTool.cs`
+   - Remove `src/PptMcp.CLI/Commands/BatchCommands.cs`
+   - Remove `src/PptMcp.McpServer/Prompts/Content/excel_batch.md`
 
-2. **Remove dual-path logic in ExcelToolsBase**
+2. **Remove dual-path logic in PptToolsBase**
    - Delete `WithBatchAsync()` method entirely
    - Remove "batch-of-one" pattern
    - Remove all `if (sessionId != null) { ... } else { ... }` conditionals
 
 3. **Rename internal classes**
    - `_activeBatches` → `_activeSessions`
-   - `IExcelBatch` → `IExcelSession` (interface rename)
-   - `ExcelBatch` → `ExcelSession` (implementation rename)
+   - `IPptBatch` → `IPptSession` (interface rename)
+   - `PptBatch` → `PptSession` (implementation rename)
    - `BeginBatchAsync` → `OpenSessionAsync`
 
 #### Step 2: Add Session Lifecycle to file (2-3 days)
@@ -322,7 +322,7 @@ string? batchId = null
 
 - `ExcelConnectionTool.cs`
 - `ExcelDataModelTool.cs`
-- `ExcelFileTool.cs` (add open/save/close actions)
+- `PptFileTool.cs` (add open/save/close actions)
 - `ExcelNamedRangeTool.cs`
 - `ExcelPivotTableTool.cs`
 - `ExcelPowerQueryTool.cs`
@@ -337,7 +337,7 @@ string? batchId = null
 
 ```csharp
 // OLD - Complex dual-path logic
-var result = await ExcelToolsBase.WithBatchAsync(
+var result = await PptToolsBase.WithBatchAsync(
     batchId, filePath, save: true,
     async (batch) => await commands.SomeAsync(batch, args));
 
@@ -457,7 +457,7 @@ await Task.WhenAll(
 ```csharp
 // ✅ This pattern works correctly - internal lock serializes calls
 var tasks = Enumerable.Range(1, 10).Select(i =>
-    ExcelSession.CreateNew($"report{i}.xlsx", false,
+    PptSession.CreateNew($"report{i}.xlsx", false,
         (ctx, ct) => {
             ctx.Book.Worksheets[1].Name = $"Report {i}";
             return 0;
@@ -467,13 +467,13 @@ await Task.WhenAll(tasks);  // Executes sequentially despite Task.WhenAll!
 // ✅ This explicit sequential pattern also works
 for (int i = 1; i <= 10; i++)
 {
-    await ExcelSession.CreateNew($"report{i}.xlsx", false, ...);
+    await PptSession.CreateNew($"report{i}.xlsx", false, ...);
 }
 
 // Result: Files created one at a time - peak memory = 1 temporary Excel instance
 ```
 
-**How it works:** `ExcelSession` uses a static `SemaphoreSlim(1, 1)` to serialize all `CreateNew()` and `CreateNewAsync()` calls. Even if called via `Task.WhenAll`, they queue and execute one at a time.
+**How it works:** `PptSession` uses a static `SemaphoreSlim(1, 1)` to serialize all `CreateNew()` and `CreateNewAsync()` calls. Even if called via `Task.WhenAll`, they queue and execute one at a time.
 
 **Why enforced:** Each `CreateNew()` temporarily spawns an Excel process. Without serialization, parallel calls would create N Excel processes simultaneously, causing memory exhaustion. The lock prevents this automatically.
 
@@ -486,7 +486,7 @@ public static async Task<T> WithBatchAsync<T>(
     string? batchId,
     string filePath,
     bool save,
-    Func<IExcelBatch, Task<T>> action)
+    Func<IPptBatch, Task<T>> action)
 {
     if (!string.IsNullOrEmpty(batchId))
     {
@@ -499,7 +499,7 @@ public static async Task<T> WithBatchAsync<T>(
     else
     {
         // Path 2: Create temporary "batch-of-one"
-        await using var batch = await ExcelSession.BeginBatchAsync(filePath);
+        await using var batch = await PptSession.BeginBatchAsync(filePath);
         var result = await action(batch);
         if (save) await batch.Save();
         return result;
@@ -628,13 +628,13 @@ New System (Mandatory Sessions):
 - [ ] **DELETE** `BatchSessionTool.cs` entirely
 - [ ] **DELETE** `BatchCommands.cs` (CLI) entirely
 - [ ] **DELETE** `excel_batch.md` prompt file
-- [ ] **DELETE** `WithBatchAsync()` method in ExcelToolsBase
-- [ ] **RENAME** `IExcelBatch` → `IExcelSession` (interface)
-- [ ] **RENAME** `ExcelBatch` → `ExcelSession` (implementation)
+- [ ] **DELETE** `WithBatchAsync()` method in PptToolsBase
+- [ ] **RENAME** `IPptBatch` → `IPptSession` (interface)
+- [ ] **RENAME** `PptBatch` → `PptSession` (implementation)
 - [ ] **RENAME** `_activeBatches` → `_activeSessions` in SessionManager
-- [ ] **RENAME** `BeginBatchAsync` → `OpenSessionAsync` in ExcelSession
+- [ ] **RENAME** `BeginBatchAsync` → `OpenSessionAsync` in PptSession
 - [ ] **ADD** `FileAction.Open`, `FileAction.Save`, `FileAction.Close` enum values
-- [ ] **IMPLEMENT** `OpenWorkbookAsync()`, `SaveWorkbookAsync()`, `CloseWorkbookAsync()` in ExcelFileTool
+- [ ] **IMPLEMENT** `OpenWorkbookAsync()`, `SaveWorkbookAsync()`, `CloseWorkbookAsync()` in PptFileTool
 - [ ] **CHANGE** all 12 tools: `batchId` (optional) → `sessionId` (required)
 - [ ] **REMOVE** `excelPath` parameter from all 11 tools (except file open/create)
 - [ ] **REMOVE** `save` parameter from close action in file tool
@@ -1115,4 +1115,4 @@ These are **not implementation deficiencies** - they are inherent Excel COM API 
 
 **Recommendation:** ✅ **Approve for implementation in Version 2.0.0 (breaking release)**
 
-This is not just a rename - it's a fundamental simplification that makes ExcelMcp significantly easier for LLMs to use correctly while eliminating an entire class of file locking bugs.
+This is not just a rename - it's a fundamental simplification that makes PptMcp significantly easier for LLMs to use correctly while eliminating an entire class of file locking bugs.

@@ -657,6 +657,36 @@ public class ShapeCommands : IShapeCommands
             }
         });
     }
+
+    public OperationResult Flip(IPptBatch batch, int slideIndex, string shapeName, int flipType)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(shapeName);
+
+        return batch.Execute((ctx, ct) =>
+        {
+            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic shape = slide.Shapes.Item(shapeName);
+            try
+            {
+                // msoFlipHorizontal=0, msoFlipVertical=1
+                shape.Flip(flipType);
+                string dir = flipType == 0 ? "horizontally" : "vertically";
+                return new OperationResult
+                {
+                    Success = true,
+                    Action = "flip",
+                    Message = $"Flipped shape '{shapeName}' {dir} on slide {slideIndex}",
+                    FilePath = ctx.PresentationPath
+                };
+            }
+            finally
+            {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref slide!);
+            }
+        });
+    }
+
     private static int HexToOleColor(string hex)
     {
         hex = hex.TrimStart('#');

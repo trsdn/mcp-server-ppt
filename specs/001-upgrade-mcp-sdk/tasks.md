@@ -33,11 +33,11 @@
 
 - [X] T004 Fix removed factory references: Replace any `McpServerFactory`/`McpClientFactory` usage with `McpServer.CreateAsync`/`McpClient.CreateAsync` (search src/ and tests/) — NOT USED
 - [X] T005 Fix removed interface references: Replace any `IMcpEndpoint`, `IMcpClient`, `IMcpServer` usage with concrete types `McpClient`, `McpServer`, `McpSession` (search src/ and tests/) — NOT USED
-- [X] T006 Migrate RequestOptions: Update all call sites passing individual request parameters to use unified `RequestOptions` bag in src/ExcelMcp.McpServer/ — NOT USED
-- [X] T007 [P] Migrate RequestOptions: Update all call sites in src/ExcelMcp.Core/ (if any) — NOT USED
-- [X] T008 [P] Migrate RequestOptions: Update all call sites in src/ExcelMcp.CLI/ (if any) — NOT USED
+- [X] T006 Migrate RequestOptions: Update all call sites passing individual request parameters to use unified `RequestOptions` bag in src/PptMcp.McpServer/ — NOT USED
+- [X] T007 [P] Migrate RequestOptions: Update all call sites in src/PptMcp.Core/ (if any) — NOT USED
+- [X] T008 [P] Migrate RequestOptions: Update all call sites in src/PptMcp.CLI/ (if any) — NOT USED
 - [X] T009 [P] Migrate RequestOptions: Update all call sites in tests/ (if any) — NOT USED
-- [X] T010 Fix obsolete enum schema types (MCP9001): Migrate `EnumSchema`/`LegacyTitledEnumSchema` to new schema types in src/ExcelMcp.McpServer/ — NOT USED
+- [X] T010 Fix obsolete enum schema types (MCP9001): Migrate `EnumSchema`/`LegacyTitledEnumSchema` to new schema types in src/PptMcp.McpServer/ — NOT USED
 - [X] T011 Fix cancellation token argument rename: Search for named argument `token:` and rename to `cancellationToken:` in all projects — ALREADY COMPLIANT
 - [X] T012 Fix signature changes: Update `SetLoggingLevel` → `SetLoggingLevelAsync` calls if any (search all projects) — NOT USED
 - [X] T013 Fix signature changes: Update `UnsubscribeFromResourceAsync` to use `UnsubscribeRequestParams` if any (search all projects) — NOT USED
@@ -56,13 +56,13 @@
 
 ### Tests for User Story 1
 
-- [X] T016 [US1] Run MCP Server test project: `dotnet test tests/ExcelMcp.McpServer.Tests/ExcelMcp.McpServer.Tests.csproj`
+- [X] T016 [US1] Run MCP Server test project: `dotnet test tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj`
   - **Status**: ✅ 66/66 passing (after test isolation fixes: xUnit Collection, InitializationTimeout, Task.Delay)
-- [X] T017 [P] [US1] Run CLI test project: `dotnet test tests/ExcelMcp.CLI.Tests/ExcelMcp.CLI.Tests.csproj`
+- [X] T017 [P] [US1] Run CLI test project: `dotnet test tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj`
   - **Status**: ✅ 2/2 passing (after SheetCommand JSON output fix)
 - [X] T018 [P] [US1] Run Core layer feature-scoped tests: `dotnet test --filter "Feature=PowerQuery&RunType!=OnDemand"` (sample filter)
   - **Status**: ✅ PowerQuery: 49/49 passed, Tables: 20/20 passed
-- [X] T019 [US1] MCP Server smoke check: Run `dotnet run --project src/ExcelMcp.McpServer` and verify stderr-only logging, exit code 0 on shutdown
+- [X] T019 [US1] MCP Server smoke check: Run `dotnet run --project src/PptMcp.McpServer` and verify stderr-only logging, exit code 0 on shutdown
   - **Status**: ✅ Builds successfully with 0 warnings, 0 errors
 
 ### Implementation for User Story 1
@@ -78,7 +78,7 @@
 
 ## Phase 4: User Story 2 - Capture Changelog-to-Impact Mapping (Priority: P2)
 
-**Goal**: Concise mapping of 0.5.0-preview.1 release notes to affected ExcelMcp components
+**Goal**: Concise mapping of 0.5.0-preview.1 release notes to affected PptMcp components
 
 **Independent Test**: Generate impact report document; reviewers validate without executing code
 
@@ -126,15 +126,15 @@
 
 **Purpose**: Adopt new SDK features and best practices across the codebase
 
-- [X] T033 [P] Adopt `WithMeta` for at least one tool response in src/ExcelMcp.McpServer/ (FR-020, SC-012)
+- [X] T033 [P] Adopt `WithMeta` for at least one tool response in src/PptMcp.McpServer/ (FR-020, SC-012)
   - **Status**: ✅ All 12 tools now have `Title` property and enhanced McpMeta: `category`, `requiresSession`, `fileFormat` (VBA)
-- [X] T034 [P] Evaluate and adopt new/expanded MCP attributes for tool/prompt metadata in src/ExcelMcp.McpServer/ (FR-022, SC-013)
+- [X] T034 [P] Evaluate and adopt new/expanded MCP attributes for tool/prompt metadata in src/PptMcp.McpServer/ (FR-022, SC-013)
   - **Status**: ✅ Added SDK 0.5.0 `Title` property to all 12 tools, plus `requiresSession` metadata hints
-- [ ] T035 [P] Enhance protocol error handling to optionally include structured `Data` on `McpProtocolException` in src/ExcelMcp.McpServer/ (FR-015, SC-009)
+- [ ] T035 [P] Enhance protocol error handling to optionally include structured `Data` on `McpProtocolException` in src/PptMcp.McpServer/ (FR-015, SC-009)
   - **Status**: Not needed for this upgrade - no McpProtocolException usages in codebase
-- [ ] T036 [P] Implement `ResourceNotFound` (-32002) error code handling in MCP tool responses in src/ExcelMcp.McpServer/ (FR-016, SC-010)
+- [ ] T036 [P] Implement `ResourceNotFound` (-32002) error code handling in MCP tool responses in src/PptMcp.McpServer/ (FR-016, SC-010)
   - **Status**: Not applicable - MCP SDK doesn't expose ResourceNotFound as a specific exception type to throw
-- [ ] T037 [P] Implement `ResourceNotFound` handling in CLI output in src/ExcelMcp.CLI/ (FR-016, SC-010)
+- [ ] T037 [P] Implement `ResourceNotFound` handling in CLI output in src/PptMcp.CLI/ (FR-016, SC-010)
   - **Status**: Not applicable - follows MCP Server behavior
 - [X] T037a [P] Verify/document minimum SDK protocol version behavior and negotiation fallback (Edge Case: protocol version negotiation)
   - **Status**: ✅ SDK handles protocol version negotiation automatically - no custom handling needed
@@ -145,21 +145,21 @@
 
 **Purpose**: Ensure MCP Server complies with .NET console application standards
 
-- [X] T038 Verify stdout protocol purity: Audit src/ExcelMcp.McpServer/Program.cs for any stdout writes (FR-023, SC-014)
+- [X] T038 Verify stdout protocol purity: Audit src/PptMcp.McpServer/Program.cs for any stdout writes (FR-023, SC-014)
   - **Status**: ✅ Fixed 8 Console.WriteLine calls in Core layer → Console.Error.WriteLine for MCP transport purity
-- [X] T039 Implement deterministic exit codes: Return `0` on normal shutdown, `1` on fatal error in src/ExcelMcp.McpServer/Program.cs (FR-024, SC-015, SC-015a)
+- [X] T039 Implement deterministic exit codes: Return `0` on normal shutdown, `1` on fatal error in src/PptMcp.McpServer/Program.cs (FR-024, SC-015, SC-015a)
   - **Status**: ✅ Program.cs now returns 0 on success, 0 on OperationCanceledException (graceful shutdown), 1 on fatal error
-- [X] T040 Implement graceful shutdown: Observe cancellation token and complete within 5s in src/ExcelMcp.McpServer/Program.cs (FR-025, SC-016)
+- [X] T040 Implement graceful shutdown: Observe cancellation token and complete within 5s in src/PptMcp.McpServer/Program.cs (FR-025, SC-016)
   - **Status**: ✅ Host.RunAsync() already observes cancellation via Generic Host; OperationCanceledException now returns 0
-- [ ] T041 [P] Add startup validation: Fail fast with clear error message on missing prerequisites in src/ExcelMcp.McpServer/Program.cs (FR-028)
-- [X] T042 [P] Verify configuration-driven verbosity: Log level configurable via env/config in src/ExcelMcp.McpServer/Program.cs (FR-027, SC-017)
+- [ ] T041 [P] Add startup validation: Fail fast with clear error message on missing prerequisites in src/PptMcp.McpServer/Program.cs (FR-028)
+- [X] T042 [P] Verify configuration-driven verbosity: Log level configurable via env/config in src/PptMcp.McpServer/Program.cs (FR-027, SC-017)
   - **Status**: ✅ Already configured - logging uses AddConsole with LogToStandardErrorThreshold
 
 ### Tests for Phase 7
 
-- [ ] T043 Add/update test verifying no stdout output during MCP Server startup/runtime in tests/ExcelMcp.McpServer.Tests/ (SC-014)
-- [ ] T044 [P] Add/update test verifying exit code 0 on normal shutdown in tests/ExcelMcp.McpServer.Tests/ (SC-015)
-- [ ] T045 [P] Add/update test verifying exit code 1 on fatal startup failure in tests/ExcelMcp.McpServer.Tests/ (SC-015a)
+- [ ] T043 Add/update test verifying no stdout output during MCP Server startup/runtime in tests/PptMcp.McpServer.Tests/ (SC-014)
+- [ ] T044 [P] Add/update test verifying exit code 0 on normal shutdown in tests/PptMcp.McpServer.Tests/ (SC-015)
+- [ ] T045 [P] Add/update test verifying exit code 1 on fatal startup failure in tests/PptMcp.McpServer.Tests/ (SC-015a)
 
 ---
 
