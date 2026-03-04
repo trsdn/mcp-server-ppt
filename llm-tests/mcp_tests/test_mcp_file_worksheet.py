@@ -12,12 +12,12 @@ pytestmark = [pytest.mark.aitest, pytest.mark.mcp]
 
 
 @pytest.mark.asyncio
-async def test_mcp_file_and_worksheet_workflow(aitest_run, excel_mcp_server, excel_mcp_skill):
+async def test_mcp_file_and_worksheet_workflow(aitest_run, ppt_mcp_server, ppt_mcp_skill):
     agent = Agent(
         name="mcp-file-worksheet",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        mcp_servers=[excel_mcp_server],
-        skill=excel_mcp_skill,
+        mcp_servers=[ppt_mcp_server],
+        skill=ppt_mcp_skill,
         max_turns=25,
         retries=DEFAULT_RETRIES,
     )

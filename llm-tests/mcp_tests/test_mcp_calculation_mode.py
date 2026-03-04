@@ -28,7 +28,7 @@ pytestmark = [pytest.mark.aitest, pytest.mark.mcp]
 
 @pytest.mark.asyncio
 @pytest.mark.xfail(reason="LLM may not autonomously use calculation_mode for small batches", strict=False)
-async def test_mcp_calculation_mode_batch_with_skill(aitest_run, excel_mcp_server, excel_mcp_skill):
+async def test_mcp_calculation_mode_batch_with_skill(aitest_run, ppt_mcp_server, ppt_mcp_skill):
     """Test that LLM uses manual calculation mode for batch writes (with skill).
 
     The skill provides guidance on when to use calculation mode.
@@ -36,8 +36,8 @@ async def test_mcp_calculation_mode_batch_with_skill(aitest_run, excel_mcp_serve
     agent = Agent(
         name="mcp-calc-batch-skill",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        mcp_servers=[excel_mcp_server],
-        skill=excel_mcp_skill,
+        mcp_servers=[ppt_mcp_server],
+        skill=ppt_mcp_skill,
         allowed_tools=[
             "calculation_mode",
             "file",
@@ -80,7 +80,7 @@ Report the calculated grand total in D6.
 
 @pytest.mark.asyncio
 @pytest.mark.xfail(reason="LLM may not autonomously use calculation_mode for small batches", strict=False)
-async def test_mcp_calculation_mode_batch_no_skill(aitest_run, excel_mcp_server):
+async def test_mcp_calculation_mode_batch_no_skill(aitest_run, ppt_mcp_server):
     """Test that LLM uses manual calculation mode for batch writes (no skill).
 
     Without the skill, the LLM must discover the calculation mode tool
@@ -89,7 +89,7 @@ async def test_mcp_calculation_mode_batch_no_skill(aitest_run, excel_mcp_server)
     agent = Agent(
         name="mcp-calc-batch-noskill",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        mcp_servers=[excel_mcp_server],
+        mcp_servers=[ppt_mcp_server],
         # No skill - relying on tool descriptions only
         allowed_tools=[
             "calculation_mode",

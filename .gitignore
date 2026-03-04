@@ -209,7 +209,7 @@ FodyWeavers.xsd
 .idea/
 *.sln.iml
 
-# ExcelCLI specific ignores - test files
+# PptCLI specific ignores - test files
 *.xlsx
 *.xls
 *.pq
@@ -218,13 +218,13 @@ temp/
 sample_files/
 
 # Exception: Allow Data Model template (required for tests)
-!tests/ExcelMcp.Core.Tests/TestAssets/DataModelTemplate.xlsx
+!tests/PptMcp.Core.Tests/TestAssets/DataModelTemplate.xlsx
 
 # Exception: Allow ComInterop static test file (required for batch tests)
-!tests/ExcelMcp.ComInterop.Tests/Integration/Session/TestFiles/batch-test-static.xlsx
+!tests/PptMcp.ComInterop.Tests/Integration/Session/TestFiles/batch-test-static.pptx
 
 # LOCAL-ONLY diagnostic tests (reference external workbooks with confidential data)
-tests/ExcelMcp.Core.Tests/Integration/Commands/PowerQuery/PowerQueryCommandsTests.ExternalWorkbook.cs
+tests/PptMcp.Core.Tests/Integration/Commands/PowerQuery/PowerQueryCommandsTests.ExternalWorkbook.cs
 
 codeql-db/*
 infrastructure/azure/appinsights.secrets.local

@@ -2,10 +2,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 /**
- * ExcelMcp VS Code Extension
+ * PptMcp VS Code Extension
  *
- * This extension provides MCP server definitions for the ExcelMcp MCP server,
- * enabling AI assistants like GitHub Copilot to interact with Microsoft Excel
+ * This extension provides MCP server definitions for the PptMcp MCP server,
+ * enabling AI assistants like GitHub Copilot to interact with Microsoft PowerPoint
  * through native COM automation.
  *
  * The extension bundles self-contained executables for both the MCP server and CLI -
@@ -15,19 +15,19 @@ import * as path from 'path';
  */
 
 export async function activate(context: vscode.ExtensionContext) {
-	console.log('ExcelMcp extension is now active');
+	console.log('PptMcp extension is now active');
 
 	// Register MCP server definition provider
 	context.subscriptions.push(
-		vscode.lm.registerMcpServerDefinitionProvider('excel-mcp', {
+		vscode.lm.registerMcpServerDefinitionProvider('ppt-mcp', {
 			provideMcpServerDefinitions: async () => {
-				// Return the MCP server definition for ExcelMcp
+				// Return the MCP server definition for PptMcp
 				const extensionPath = context.extensionPath;
-				const mcpServerPath = path.join(extensionPath, 'bin', 'Sbroenne.ExcelMcp.McpServer.exe');
+				const mcpServerPath = path.join(extensionPath, 'bin', 'PptMcp.McpServer.exe');
 
 				return [
 					new vscode.McpStdioServerDefinition(
-						'excel-mcp',
+						'ppt-mcp',
 						mcpServerPath,
 						[],
 						{
@@ -40,24 +40,24 @@ export async function activate(context: vscode.ExtensionContext) {
 	);
 
 	// Show welcome message on first activation
-	const hasShownWelcome = context.globalState.get<boolean>('excelmcp.hasShownWelcome', false);
+	const hasShownWelcome = context.globalState.get<boolean>('pptmcp.hasShownWelcome', false);
 	if (!hasShownWelcome) {
 		showWelcomeMessage();
-		context.globalState.update('excelmcp.hasShownWelcome', true);
+		context.globalState.update('pptmcp.hasShownWelcome', true);
 	}
 }
 
 function showWelcomeMessage() {
-	const message = 'ExcelMcp extension activated! The Excel MCP server is now available for AI assistants.';
+	const message = 'PptMcp extension activated! The PowerPoint MCP server is now available for AI assistants.';
 	const learnMore = 'Learn More';
 
 	vscode.window.showInformationMessage(message, learnMore).then(selection => {
 		if (selection === learnMore) {
-			vscode.env.openExternal(vscode.Uri.parse('https://github.com/sbroenne/mcp-server-excel'));
+			vscode.env.openExternal(vscode.Uri.parse('https://github.com/sbroenne/mcp-server-ppt'));
 		}
 	});
 }
 
 export function deactivate() {
-	console.log('ExcelMcp extension is now deactivated');
+	console.log('PptMcp extension is now deactivated');
 }

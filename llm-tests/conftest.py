@@ -148,7 +148,7 @@ def _resolve_cli_command() -> str:
 
 
 @pytest.fixture(scope="session")
-def excel_mcp_server() -> MCPServer:
+def ppt_mcp_server() -> MCPServer:
     return MCPServer(
         command=_resolve_mcp_command(),
         wait=Wait.ready(timeout_ms=30000),
@@ -156,13 +156,13 @@ def excel_mcp_server() -> MCPServer:
 
 
 @pytest.fixture(scope="session")
-def excel_cli_server() -> CLIServer:
+def ppt_cli_server() -> CLIServer:
     command = _resolve_cli_command()
     temp_dir = Path(os.environ.get("TEMP", tempfile.gettempdir()))
     return CLIServer(
-        name="excel-cli",
+        name="ppt-cli",
         command=command,
-        tool_prefix="excel",
+        tool_prefix="ppt",
         shell="none",
         cwd=str(temp_dir),
         discover_help=False,  # Skill Rule 0 requires LLM to run --help first
@@ -172,13 +172,13 @@ def excel_cli_server() -> CLIServer:
 
 
 @pytest.fixture(scope="session")
-def excel_mcp_skill() -> Skill:
-    return Skill.from_path(REPO_ROOT / "skills/excel-mcp")
+def ppt_mcp_skill() -> Skill:
+    return Skill.from_path(REPO_ROOT / "skills/ppt-mcp")
 
 
 @pytest.fixture(scope="session")
-def excel_cli_skill() -> Skill:
-    return Skill.from_path(REPO_ROOT / "skills/excel-cli")
+def ppt_cli_skill() -> Skill:
+    return Skill.from_path(REPO_ROOT / "skills/ppt-cli")
 
 
 @pytest.fixture(scope="session")

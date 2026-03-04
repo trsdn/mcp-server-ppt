@@ -12,12 +12,12 @@ pytestmark = [pytest.mark.aitest, pytest.mark.mcp]
 
 
 @pytest.mark.asyncio
-async def test_mcp_table_create_query(aitest_run, excel_mcp_server, excel_mcp_skill):
+async def test_mcp_table_create_query(aitest_run, ppt_mcp_server, ppt_mcp_skill):
     agent = Agent(
         name="mcp-table-create",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        mcp_servers=[excel_mcp_server],
-        skill=excel_mcp_skill,
+        mcp_servers=[ppt_mcp_server],
+        skill=ppt_mcp_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
@@ -40,12 +40,12 @@ async def test_mcp_table_create_query(aitest_run, excel_mcp_server, excel_mcp_sk
 
 
 @pytest.mark.asyncio
-async def test_mcp_table_lifecycle(aitest_run, excel_mcp_server, excel_mcp_skill):
+async def test_mcp_table_lifecycle(aitest_run, ppt_mcp_server, ppt_mcp_skill):
     agent = Agent(
         name="mcp-table-lifecycle",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        mcp_servers=[excel_mcp_server],
-        skill=excel_mcp_skill,
+        mcp_servers=[ppt_mcp_server],
+        skill=ppt_mcp_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )

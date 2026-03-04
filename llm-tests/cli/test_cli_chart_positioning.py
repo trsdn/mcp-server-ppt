@@ -13,18 +13,18 @@ pytestmark = [pytest.mark.aitest, pytest.mark.cli]
 
 @pytest.mark.xfail(reason="LLM intermittently omits required action parameter on complex workflows", strict=False)
 @pytest.mark.asyncio
-async def test_cli_chart_position_below_data(aitest_run, excel_cli_server, excel_cli_skill):
+async def test_cli_chart_position_below_data(aitest_run, ppt_cli_server, ppt_cli_skill):
     agent = Agent(
         name="cli-chart-below",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        cli_servers=[excel_cli_server],
-        skill=excel_cli_skill,
+        cli_servers=[ppt_cli_server],
+        skill=ppt_cli_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
 
     prompt = f"""
-1. Create a new empty Excel file at {unique_path('llm-test-chart-pos-cli')} and open it
+1. Create a new empty Excel file at {unique_path('llm-test-chart-pos-cli')}and open it
 2. Put sales data in A1:C6 on Sheet1:
    Row 1: Month, Revenue, Expenses
    Row 2: January, 50000, 35000
@@ -44,18 +44,18 @@ async def test_cli_chart_position_below_data(aitest_run, excel_cli_server, excel
 
 
 @pytest.mark.asyncio
-async def test_cli_chart_position_right_of_table(aitest_run, excel_cli_server, excel_cli_skill):
+async def test_cli_chart_position_right_of_table(aitest_run, ppt_cli_server, ppt_cli_skill):
     agent = Agent(
         name="cli-chart-right",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        cli_servers=[excel_cli_server],
-        skill=excel_cli_skill,
+        cli_servers=[ppt_cli_server],
+        skill=ppt_cli_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
 
     prompt = f"""
-1. Create a new empty Excel file at {unique_path('llm-test-chart-table-cli')} and open it
+1. Create a new empty Excel file at {unique_path('llm-test-chart-table-cli')}and open it
 2. Put product data in A1:D5 on Sheet1:
    Row 1: Product, Q1, Q2, Q3
    Row 2: Widget, 100, 150, 120

@@ -25,12 +25,12 @@ pytestmark = [pytest.mark.aitest, pytest.mark.mcp]
 
 
 @pytest.mark.asyncio
-async def test_mcp_auto_position_no_skill(aitest_run, excel_mcp_server):
+async def test_mcp_auto_position_no_skill(aitest_run, ppt_mcp_server):
     """Auto-positioning should place charts below data without skill guidance."""
     agent = Agent(
         name="auto-position-no-skill",
         provider=Provider(model="azure/gpt-4.1"),
-        mcp_servers=[excel_mcp_server],
+        mcp_servers=[ppt_mcp_server],
         # NO skill — only tool descriptions guide the LLM
         allowed_tools=["file", "range", "chart", "screenshot"],
         max_turns=20,
@@ -59,12 +59,12 @@ async def test_mcp_auto_position_no_skill(aitest_run, excel_mcp_server):
 
 
 @pytest.mark.asyncio
-async def test_mcp_targetrange_no_skill(aitest_run, excel_mcp_server):
+async def test_mcp_targetrange_no_skill(aitest_run, ppt_mcp_server):
     """targetRange parameter should work without skill guidance."""
     agent = Agent(
         name="targetrange-no-skill",
         provider=Provider(model="azure/gpt-4.1"),
-        mcp_servers=[excel_mcp_server],
+        mcp_servers=[ppt_mcp_server],
         # NO skill
         allowed_tools=["file", "range", "chart", "screenshot"],
         max_turns=20,
@@ -72,7 +72,7 @@ async def test_mcp_targetrange_no_skill(aitest_run, excel_mcp_server):
     )
 
     prompt = f"""
-1. Create a new Excel file at {unique_path('targetrange-no-skill')} and open it
+1. Create a new Excel file at {unique_path('targetrange-no-skill')}and open it
 2. Put quarterly revenue data in Sheet1 A1:D4:
    Region, Q1, Q2, Q3
    North, 1000, 1200, 1100
@@ -93,13 +93,13 @@ async def test_mcp_targetrange_no_skill(aitest_run, excel_mcp_server):
 
 @pytest.mark.asyncio
 async def test_mcp_multi_chart_collision_no_skill(
-    aitest_run, excel_mcp_server,
+    aitest_run, ppt_mcp_server,
 ):
     """Multi-chart dashboard should avoid overlaps using built-in collision detection, no skill."""
     agent = Agent(
         name="multi-chart-collision-no-skill",
         provider=Provider(model="azure/gpt-4.1"),
-        mcp_servers=[excel_mcp_server],
+        mcp_servers=[ppt_mcp_server],
         # NO skill — relies on tool descriptions + collision warnings
         # Minimal tool set to reduce schema size and token usage
         allowed_tools=["file", "range", "chart", "screenshot"],
@@ -130,12 +130,12 @@ async def test_mcp_multi_chart_collision_no_skill(
 
 
 @pytest.mark.asyncio
-async def test_mcp_collision_warning_reaction_no_skill(aitest_run, excel_mcp_server):
+async def test_mcp_collision_warning_reaction_no_skill(aitest_run, ppt_mcp_server):
     """LLM should react to OVERLAP WARNING by repositioning, without skill guidance."""
     agent = Agent(
         name="collision-reaction-no-skill",
         provider=Provider(model="azure/gpt-4.1"),
-        mcp_servers=[excel_mcp_server],
+        mcp_servers=[ppt_mcp_server],
         # NO skill
         allowed_tools=["file", "range", "chart", "screenshot"],
         max_turns=25,

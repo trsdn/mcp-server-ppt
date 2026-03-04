@@ -55,14 +55,14 @@ AGENTS = [
 @pytest.mark.xfail(reason="Complex dashboard workflow - LLM may hit turn/retry limits", strict=False)
 @pytest.mark.parametrize("agent", AGENTS, ids=lambda a: a.name)
 async def test_mcp_dashboard_layout(
-    aitest_run, excel_mcp_server, excel_mcp_skill, agent, llm_assert_image
+    aitest_run, ppt_mcp_server, ppt_mcp_skill, agent, llm_assert_image
 ):
     # Attach server and skill (not set at module level since they're fixtures)
     agent = Agent(
         name=agent.name,
         provider=agent.provider,
-        mcp_servers=[excel_mcp_server],
-        skill=excel_mcp_skill,
+        mcp_servers=[ppt_mcp_server],
+        skill=ppt_mcp_skill,
         allowed_tools=agent.allowed_tools,
         max_turns=agent.max_turns,
         retries=agent.retries,

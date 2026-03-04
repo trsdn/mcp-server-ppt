@@ -13,18 +13,18 @@ pytestmark = [pytest.mark.aitest, pytest.mark.cli]
 
 @pytest.mark.asyncio
 @pytest.mark.xfail(reason="LLM intermittently omits required action parameter on complex workflows", strict=False)
-async def test_cli_range_updates(aitest_run, excel_cli_server, excel_cli_skill):
+async def test_cli_range_updates(aitest_run, ppt_cli_server, ppt_cli_skill):
     agent = Agent(
         name="cli-range-updates",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        cli_servers=[excel_cli_server],
-        skill=excel_cli_skill,
+        cli_servers=[ppt_cli_server],
+        skill=ppt_cli_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
 
     prompt = f"""
-1. Create a new empty Excel file at {unique_path('llm-test-range-cli')} and open it
+1. Create a new empty Excel file at {unique_path('llm-test-range-cli')}and open it
 2. Set up a budget in A1:C4 on Sheet1:
    Row 1: Category, Budget, Actual
    Row 2: Rent, 1000, 1000
@@ -48,18 +48,18 @@ async def test_cli_range_updates(aitest_run, excel_cli_server, excel_cli_skill):
 
 
 @pytest.mark.asyncio
-async def test_cli_table_updates(aitest_run, excel_cli_server, excel_cli_skill):
+async def test_cli_table_updates(aitest_run, ppt_cli_server, ppt_cli_skill):
     agent = Agent(
         name="cli-table-updates",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        cli_servers=[excel_cli_server],
-        skill=excel_cli_skill,
+        cli_servers=[ppt_cli_server],
+        skill=ppt_cli_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
 
     prompt = f"""
-1. Create a new empty Excel file at {unique_path('llm-test-table-cli')} and open it
+1. Create a new empty Excel file at {unique_path('llm-test-table-cli')}and open it
 2. Put sales data in A1:C4 on Sheet1:
    Row 1: Product, Price, Quantity
    Row 2: Widget, 25, 3
@@ -77,18 +77,18 @@ async def test_cli_table_updates(aitest_run, excel_cli_server, excel_cli_skill):
 
 
 @pytest.mark.asyncio
-async def test_cli_chart_updates(aitest_run, excel_cli_server, excel_cli_skill):
+async def test_cli_chart_updates(aitest_run, ppt_cli_server, ppt_cli_skill):
     agent = Agent(
         name="cli-chart-updates",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        cli_servers=[excel_cli_server],
-        skill=excel_cli_skill,
+        cli_servers=[ppt_cli_server],
+        skill=ppt_cli_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
 
     prompt = f"""
-1. Create a new empty Excel file at {unique_path('llm-test-chart-cli')} and open it
+1. Create a new empty Excel file at {unique_path('llm-test-chart-cli')}and open it
 2. Put chart data in A1:B4 on Sheet1:
    Row 1: Month, Sales
    Row 2: Jan, 100
@@ -107,18 +107,18 @@ async def test_cli_chart_updates(aitest_run, excel_cli_server, excel_cli_skill):
 
 @pytest.mark.xfail(reason="LLM intermittently omits required action parameter on complex workflows", strict=False)
 @pytest.mark.asyncio
-async def test_cli_sheet_structural_changes(aitest_run, excel_cli_server, excel_cli_skill):
+async def test_cli_sheet_structural_changes(aitest_run, ppt_cli_server, ppt_cli_skill):
     agent = Agent(
         name="cli-sheet-struct",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        cli_servers=[excel_cli_server],
-        skill=excel_cli_skill,
+        cli_servers=[ppt_cli_server],
+        skill=ppt_cli_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
 
     prompt = f"""
-1. Create a new empty Excel file at {unique_path('llm-test-struct-cli')} and open it
+1. Create a new empty Excel file at {unique_path('llm-test-struct-cli')}and open it
 2. Put employee data in A1:C5 on Sheet1:
    Row 1: Name, Department, ID
    Row 2: Alice, Engineering, =ROW()*100 (formula shows 200)

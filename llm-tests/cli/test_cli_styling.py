@@ -12,13 +12,13 @@ pytestmark = [pytest.mark.aitest, pytest.mark.cli]
 
 
 @pytest.mark.asyncio
-async def test_cli_styling_table_style(aitest_run, excel_cli_server, excel_cli_skill):
+async def test_cli_styling_table_style(aitest_run, ppt_cli_server, ppt_cli_skill):
     """LLM should use table(set-style) for table visual styling, not range_format on header."""
     agent = Agent(
         name="cli-styling-table",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        cli_servers=[excel_cli_server],
-        skill=excel_cli_skill,
+        cli_servers=[ppt_cli_server],
+        skill=ppt_cli_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
@@ -26,7 +26,7 @@ async def test_cli_styling_table_style(aitest_run, excel_cli_server, excel_cli_s
     prompt = f"""
 Create a new Excel file at {unique_path('llm-test-styling-table')}
 
-Enter this quarterly sales data on Sheet1:
+Enter this quarterly sales dataon Sheet1:
 Region, Q1, Q2, Q3, Q4
 North, 120000, 135000, 118000, 142000
 South, 98000, 102000, 115000, 128000
@@ -44,13 +44,13 @@ Close the file without saving.
 
 
 @pytest.mark.asyncio
-async def test_cli_styling_semantic_status(aitest_run, excel_cli_server, excel_cli_skill):
+async def test_cli_styling_semantic_status(aitest_run, ppt_cli_server, ppt_cli_skill):
     """LLM should use range_format(set-style) with Good/Bad/Neutral for status cells."""
     agent = Agent(
         name="cli-styling-status",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        cli_servers=[excel_cli_server],
-        skill=excel_cli_skill,
+        cli_servers=[ppt_cli_server],
+        skill=ppt_cli_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
@@ -78,13 +78,13 @@ Close the file without saving.
 
 
 @pytest.mark.asyncio
-async def test_cli_styling_header_fill(aitest_run, excel_cli_server, excel_cli_skill):
+async def test_cli_styling_header_fill(aitest_run, ppt_cli_server, ppt_cli_skill):
     """LLM should use format-range (not set-style) for a header row with a fill colour."""
     agent = Agent(
         name="cli-styling-header",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        cli_servers=[excel_cli_server],
-        skill=excel_cli_skill,
+        cli_servers=[ppt_cli_server],
+        skill=ppt_cli_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )

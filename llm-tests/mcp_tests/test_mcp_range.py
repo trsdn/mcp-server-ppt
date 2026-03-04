@@ -12,16 +12,16 @@ pytestmark = [pytest.mark.aitest, pytest.mark.mcp]
 
 
 @pytest.mark.asyncio
-async def test_mcp_range_set_get(aitest_run, excel_mcp_server, excel_mcp_skill, fixtures_dir):
+async def test_mcp_range_set_get(aitest_run, ppt_mcp_server, ppt_mcp_skill, fixtures_dir):
     agent = Agent(
         name="mcp-range",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        mcp_servers=[excel_mcp_server],
-        skill=excel_mcp_skill,
+        mcp_servers=[ppt_mcp_server],
+        skill=ppt_mcp_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
-    values_file = (fixtures_dir / "range-test-data.json").as_posix()
+    values_file= (fixtures_dir / "range-test-data.json").as_posix()
 
     prompt = f"""
 1. Create a new empty Excel file at {unique_path('llm-test-range')}
@@ -38,12 +38,12 @@ async def test_mcp_range_set_get(aitest_run, excel_mcp_server, excel_mcp_skill, 
 
 
 @pytest.mark.asyncio
-async def test_mcp_range_error_handling(aitest_run, excel_mcp_server, excel_mcp_skill):
+async def test_mcp_range_error_handling(aitest_run, ppt_mcp_server, ppt_mcp_skill):
     agent = Agent(
         name="mcp-range-error",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
-        mcp_servers=[excel_mcp_server],
-        skill=excel_mcp_skill,
+        mcp_servers=[ppt_mcp_server],
+        skill=ppt_mcp_skill,
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
