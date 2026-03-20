@@ -1,0 +1,84 @@
+{
+  "topLevels": [
+    {
+      "archetypeId": "framework",
+      "subtypes": [
+        {
+          "subArchetypeId": "matrix-grid",
+          "description": "Grid or matrix frameworks with labeled dimensions.",
+          "heuristicPhrases": [
+            "matrix",
+            "grid",
+            "quadrant"
+          ],
+          "count": 2,
+          "exampleSlides": [
+            "fixture-framework-001.png",
+            "fixture-framework-002.png"
+          ]
+        },
+        {
+          "subArchetypeId": "pillars-model",
+          "description": "Column or pillar models with vertical segmentation.",
+          "heuristicPhrases": [
+            "pillar",
+            "column",
+            "stacked themes"
+          ],
+          "count": 1,
+          "exampleSlides": [
+            "fixture-framework-003.png"
+          ]
+        }
+      ]
+    },
+    {
+      "archetypeId": "simple-table",
+      "subtypes": [
+        {
+          "subArchetypeId": "scored-criteria-table",
+          "description": "Tables with weighted or scored evaluation criteria.",
+          "heuristicPhrases": [
+            "score",
+            "criteria",
+            "weighted"
+          ],
+          "count": 2,
+          "exampleSlides": [
+            "fixture-table-001.png",
+            "fixture-table-002.png"
+          ]
+        }
+      ]
+    },
+    {
+      "archetypeId": "org-chart",
+      "subtypes": [
+        {
+          "subArchetypeId": "hierarchy-tree",
+          "description": "Hierarchical reporting structures and organization charts.",
+          "heuristicPhrases": [
+            "hierarchy",
+            "org chart",
+            "reporting lines"
+          ],
+          "count": 1,
+          "exampleSlides": [
+            "fixture-org-001.png"
+          ]
+        }
+      ]
+    }
+  ],
+  "misbucketedSamples": [
+    {
+      "sourceName": "fixture-framework-002.png",
+      "currentArchetypeId": "framework",
+      "suggestedArchetypeId": "comparison",
+      "reason": "The slide reads more like a two-column contrast than a true matrix framework."
+    }
+  ],
+  "unsplitArchetypes": [],
+  "annotatedEntries": 6,
+  "distinctSubArchetypes": 4
+}

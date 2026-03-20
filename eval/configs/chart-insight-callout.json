@@ -1,0 +1,71 @@
+{
+  "name": "chart-insight-callout",
+  "mode": "tuning",
+  "description": "Evaluate and improve chart plus insight callout slides — chart on left, so-what callout on right",
+  "goal": "Achieve consistent 12+/14 with chart evidence tightly linked to a concise right-side insight panel",
+  "archetype": "chart-insight-callout",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "callout-revenue-mix",
+      "text": "Build a chart plus insight slide showing revenue mix shifting from services to software over four quarters, with a right-side callout summarizing why margin improved"
+    },
+    {
+      "id": "callout-incident-trend",
+      "text": "Build a chart plus insight slide showing monthly incident volume declining from 22 to 6 over six months with a right-side explanation of the top two fixes"
+    },
+    {
+      "id": "callout-churn",
+      "text": "Build a chart plus insight slide showing churn falling from 11% to 8.5% after rollout and a callout explaining the driver"
+    },
+    {
+      "id": "callout-csat",
+      "text": "Build a chart plus insight slide showing customer satisfaction by region with a right-side insight about Europe lagging despite service recovery investment"
+    },
+    {
+      "id": "callout-opex",
+      "text": "Build a chart plus insight slide showing opex by function and a right-side callout highlighting the two cost pools to attack first"
+    },
+    {
+      "id": "callout-pipeline",
+      "text": "Build a chart plus insight slide showing pipeline by quarter and a right-side conclusion about Q4 concentration risk"
+    },
+    {
+      "id": "callout-safety",
+      "text": "Build a chart plus insight slide showing safety incidents by site and a right-side callout on which site drives the majority of risk"
+    },
+    {
+      "id": "callout-forecast",
+      "text": "Build a chart plus insight slide showing three scenario revenue outcomes with a callout summarizing base-case planning implications"
+    },
+    {
+      "id": "callout-returns",
+      "text": "Build a chart plus insight slide showing returns rate by product family and a callout on the worst driver"
+    },
+    {
+      "id": "callout-usage",
+      "text": "Build a chart plus insight slide showing weekly active user growth and a callout on monetization implications"
+    }
+  ],
+  "outputDir": "output/chart-insight-callout",
+  "resultsDir": "results/chart-insight-callout"
+}

@@ -8,7 +8,11 @@ namespace PptMcp.Core.Commands.Notes;
 /// Speaker notes: get, set, clear.
 /// </summary>
 [ServiceCategory("notes")]
-[McpTool("notes", Title = "Speaker Notes", Destructive = true, Category = "notes")]
+[McpTool("notes", Title = "Speaker Notes", Destructive = true, Category = "notes",
+    Description = "Get, set, clear, or append speaker notes per slide. "
+    + "Use 'read-all' to get notes from every slide at once. "
+    + "'append' adds text with a newline separator to existing notes. "
+    + "Useful for building presenter scripts alongside slide creation.")]
 public interface INotesCommands
 {
     /// <summary>Get speaker notes for a slide.</summary>

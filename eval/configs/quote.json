@@ -1,0 +1,71 @@
+{
+  "name": "quote",
+  "mode": "tuning",
+  "description": "Evaluate and improve quote/testimonial slides — dramatic outcome, authority voice, proof context",
+  "goal": "Achieve consistent 12+/14 with quote slides that elevate the result above the quote and ground the testimony in context",
+  "archetype": "quote",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "quote-customer-roi",
+      "text": "Build a customer quote slide where the CIO says the platform delivered 300% ROI in 9 months"
+    },
+    {
+      "id": "quote-ops",
+      "text": "Build an operator quote slide where a plant manager says defects fell 42% after the transformation"
+    },
+    {
+      "id": "quote-security",
+      "text": "Build a security testimonial slide where the CISO says incident response time dropped from 6 hours to 45 minutes"
+    },
+    {
+      "id": "quote-hr",
+      "text": "Build an employee quote slide where a hiring leader says time-to-hire fell from 45 days to 18 days"
+    },
+    {
+      "id": "quote-nps",
+      "text": "Build a customer quote slide where a client says NPS improved from 36 to 72 after launch"
+    },
+    {
+      "id": "quote-board",
+      "text": "Build a board-level quote slide where the CFO says the cost program created $50M run-rate savings"
+    },
+    {
+      "id": "quote-healthcare",
+      "text": "Build a healthcare customer quote slide where the COO says wait times dropped 28% and satisfaction improved"
+    },
+    {
+      "id": "quote-saas",
+      "text": "Build a SaaS founder quote slide where churn fell by 3 points after adopting the analytics workflow"
+    },
+    {
+      "id": "quote-merger",
+      "text": "Build an integration quote slide where the integration lead says synergy capture accelerated by six months"
+    },
+    {
+      "id": "quote-esg",
+      "text": "Build an ESG quote slide where the sustainability chief says emissions dropped 40% without hurting growth"
+    }
+  ],
+  "outputDir": "output/quote",
+  "resultsDir": "results/quote"
+}

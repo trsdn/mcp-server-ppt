@@ -9,7 +9,12 @@ namespace PptMcp.Core.Commands.Vba;
 /// Requires VBA trust settings enabled in PowerPoint.
 /// </summary>
 [ServiceCategory("vba")]
-[McpTool("vba", Title = "VBA Operations", Destructive = true, Category = "vba")]
+[McpTool("vba", Title = "VBA Operations", Destructive = true, Category = "vba",
+    Description = "Manage VBA macros: list modules, view/import/delete code, run macros. "
+    + "REQUIRES: VBA trust enabled in PowerPoint (File → Options → Trust Center → Macro Settings). "
+    + "REQUIRES: .pptm file (not .pptx). module_type: 1=Standard, 2=ClassModule. "
+    + "macro_name for 'run': fully qualified (e.g. 'Module1.MyMacro'). "
+    + "Use 'import' with code parameter containing the VBA source text.")]
 public interface IVbaCommands
 {
     /// <summary>

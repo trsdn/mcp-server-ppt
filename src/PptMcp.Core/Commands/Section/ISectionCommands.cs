@@ -9,7 +9,10 @@ namespace PptMcp.Core.Commands.Section;
 /// Sections group slides for easier navigation and organization.
 /// </summary>
 [ServiceCategory("section")]
-[McpTool("section", Title = "Section Operations", Destructive = true, Category = "structure")]
+[McpTool("section", Title = "Section Operations", Destructive = true, Category = "structure",
+    Description = "Organize slides into named sections for navigation and structure. "
+    + "Use 'list' to see all sections with slide ranges. 'add' creates a section starting at a slide. "
+    + "'delete' removes the section marker (slides are kept). section_index: 1-based.")]
 public interface ISectionCommands
 {
     /// <summary>

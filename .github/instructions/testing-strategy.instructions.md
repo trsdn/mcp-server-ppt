@@ -139,7 +139,7 @@ Assert.DoesNotContain(file1Content, viewResult.Content);  // ✅ file1 content g
 
 ## LLM Integration Tests
 
-**Location**: `tests/PptMcp.LLM.Tests/`
+**Location**: `llm-tests/`
 
 **Purpose**: Validate that LLMs correctly use PowerPoint MCP Server and CLI tools using [pytest-aitest](https://github.com/sbroenne/pytest-aitest).
 
@@ -152,10 +152,11 @@ Assert.DoesNotContain(file1Content, viewResult.Content);  // ✅ file1 content g
 ### Running LLM Tests
 
 ```powershell
-# Navigate to the LLM tests directory first
-cd d:\source\mcp-server-ppt\tests\PptMcp.LLM.Tests
+# From repo root, run the canonical manual gate
+.\scripts\Test-LlmRegressionGate.ps1
 
-# Install deps (local pytest-aitest path is configured via tool.uv.sources)
+# Or run the full suite from llm-tests/
+cd llm-tests
 uv sync
 
 # Run MCP tests only
@@ -174,6 +175,19 @@ uv run pytest -m aitest -v
 - Windows desktop with PowerPoint installed
 - MCP Server built (Release) and CLI available on PATH
 
+### Canonical Gate
+
+The standard manual gate is `.\scripts\Test-LlmRegressionGate.ps1`.
+
+It runs these six scenarios:
+
+- `cli/test_cli_table.py::test_cli_table_create_query`
+- `cli/test_cli_chart.py::test_cli_chart_workflows`
+- `cli/test_cli_styling.py::test_cli_styling_header_fill`
+- `mcp_tests/test_mcp_table.py::test_mcp_table_create_query`
+- `mcp_tests/test_mcp_chart.py::test_mcp_chart_workflows`
+- `mcp_tests/test_mcp_styling.py::test_mcp_styling_header_fill`
+
 ### Configuration Overrides
 
 - `ppt_mcp_SERVER_COMMAND` to override MCP server command
@@ -185,4 +199,4 @@ Reports are generated in `tests/PptMcp.LLM.Tests/TestResults/`:
 - `report.html` - Visual HTML report
 - `report.json` - Machine-readable JSON
 
-See `tests/PptMcp.LLM.Tests/README.md` for complete documentation.
+See `llm-tests/README.md` for complete documentation.

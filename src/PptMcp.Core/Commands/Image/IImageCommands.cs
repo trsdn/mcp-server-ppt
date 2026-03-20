@@ -8,7 +8,10 @@ namespace PptMcp.Core.Commands.Image;
 /// Image operations: insert pictures into slides.
 /// </summary>
 [ServiceCategory("image")]
-[McpTool("image", Title = "Image Operations", Destructive = true, Category = "media")]
+[McpTool("image", Title = "Image Operations", Destructive = true, Category = "media",
+    Description = "Insert and adjust images on slides. Supports PNG, JPG, BMP, GIF, SVG, TIFF. "
+    + "Positions in points (72pt = 1 inch). width/height: 0 = keep original size. "
+    + "crop values in points from each edge. brightness/contrast: 0.0-1.0 (0.5 = normal).")]
 public interface IImageCommands
 {
     /// <summary>Insert a picture from a file path onto a slide.</summary>

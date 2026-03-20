@@ -8,7 +8,10 @@ namespace PptMcp.Core.Commands.CustomShow;
 /// Custom slide show management: list, create, delete, run.
 /// </summary>
 [ServiceCategory("customshow")]
-[McpTool("customshow", Title = "Custom Shows", Destructive = true, Category = "customshow")]
+[McpTool("customshow", Title = "Custom Shows", Destructive = true, Category = "customshow",
+    Description = "Create, list, delete custom slide shows (curated subsets of slides). "
+    + "slide_indices: comma-separated 1-based slide numbers (e.g. '1,3,5,8'). "
+    + "Use slideshow(start) to play a custom show.")]
 public interface ICustomShowCommands
 {
     /// <summary>List all custom shows in the presentation.</summary>

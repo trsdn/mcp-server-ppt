@@ -22,6 +22,8 @@ Relates to #[issue number]
 - [ ] Verified PowerPoint process cleanup (no powerpnt.exe remains after 5 seconds)
 - [ ] Tested error conditions (missing files, invalid arguments, etc.)
 - [ ] All existing commands still work
+- [ ] If PowerPoint CI runner was inactive, ran the required PowerPoint integration tests locally
+- [ ] If LLM-facing help/docs changed, ran `scripts\Test-LlmRegressionGate.ps1` or explained why not
 - [ ] VBA script execution tested (if applicable)
 - [ ] PPTM file format validation tested (if applicable)
 - [ ] VBA trust setup tested (if applicable)

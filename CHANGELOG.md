@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Official source-side Copilot SDK agent client under `src\PptMcp.Agent`, including local planner tests and documentation for the agent architecture
+- Dedicated documentation for the evaluation framework and the archetype/reference pipeline
 - **33 PowerPoint MCP tools with 204 operations** for comprehensive PowerPoint automation via COM interop
 - **Slide management** (7 ops) — list, read, create, duplicate, move, delete, apply-layout
 - **Shape operations** (17 ops) — add, move, resize, fill, line, shadow, rotation, z-order, grouping, copy between slides, connectors, merge shapes (union/combine/fragment/intersect/subtract)

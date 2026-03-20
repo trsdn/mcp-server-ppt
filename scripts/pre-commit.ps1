@@ -237,7 +237,7 @@ Write-Host "Running MCP Server smoke test..." -ForegroundColor Cyan
 
 try {
     # Run the smoke test - validates all MCP tools work correctly
-    $smokeTestFilter = "FullyQualifiedName~McpServerSmokeTests.SmokeTest_AllTools_E2EWorkflow"
+    $smokeTestFilter = "FullyQualifiedName~McpServerIntegrationTests.SmokeTest_AllTools_E2EWorkflow"
 
     Write-Host "   dotnet test --filter `"$smokeTestFilter`"" -ForegroundColor Gray
 
@@ -252,7 +252,7 @@ try {
         Write-Host "CRITICAL: No smoke tests passed! Filter may have matched zero tests." -ForegroundColor Red
         Write-Host "   Filter: $smokeTestFilter" -ForegroundColor Yellow
         Write-Host "   This likely means the test was renamed or deleted." -ForegroundColor Yellow
-        Write-Host "   Verify the test exists: McpServerSmokeTests.SmokeTest_AllTools_E2EWorkflow" -ForegroundColor Yellow
+        Write-Host "   Verify the test exists: McpServerIntegrationTests.SmokeTest_AllTools_E2EWorkflow" -ForegroundColor Yellow
         Write-Host ""
         Write-Host $testOutput -ForegroundColor Gray
         exit 1

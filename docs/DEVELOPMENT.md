@@ -231,6 +231,23 @@ dotnet build -c Release
 - ✅ Update documentation
 - ✅ No unit tests needed (see ADR-001-NO-UNIT-TESTS.md)
 
+### **Source Agent Client (`src\PptMcp.Agent`)**
+
+The repository also contains an official Node-based source component for multi-phase orchestration on top of the MCP server.
+
+Use this workflow when changing `src\PptMcp.Agent\**`:
+
+```powershell
+dotnet build src\PptMcp.McpServer\PptMcp.McpServer.csproj -c Release
+
+Set-Location src\PptMcp.Agent
+npm install
+npm run check
+npm test
+```
+
+If the change affects end-to-end orchestration behavior, also run a real smoke scenario with `node .\src\cli.mjs run --task ...` on a Windows desktop with PowerPoint installed.
+
 ## 🔧 **CLI Command Code Generation**
 
 ### **Architecture Overview**

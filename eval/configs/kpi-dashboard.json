@@ -1,0 +1,71 @@
+{
+  "name": "kpi-dashboard",
+  "mode": "tuning",
+  "description": "Evaluate and improve KPI dashboard slides — cards with metrics, labels, trends, status indicators",
+  "goal": "Achieve consistent 12+/14 judge score on KPI card structure: readable labels, 5-layer model, semantic colors, evidence context",
+  "archetype": "kpi-dashboard",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "kpi-3card-finance",
+      "text": "Build a 3-card KPI dashboard: Revenue $45M up 12%, Costs $32M on budget, Margin 29% up 3pp"
+    },
+    {
+      "id": "kpi-4card-ops",
+      "text": "Build a 4-card operations dashboard: Uptime 99.7%, Incidents down 23%, MTTR improved 40%, CSAT 4.6/5"
+    },
+    {
+      "id": "kpi-6card-exec",
+      "text": "Build a 6-card executive dashboard with traffic light RAG status across finance, customers, operations"
+    },
+    {
+      "id": "kpi-5card-board",
+      "text": "Build a 5-card board KPI dashboard showing Revenue, EBITDA, Cash Conversion, ARR Growth, and Net Retention with plan deltas"
+    },
+    {
+      "id": "kpi-sales-funnel",
+      "text": "Build a sales dashboard with 5 KPIs: Pipeline $82M, Win Rate 31%, Avg Deal Size $210K, Sales Cycle 74 days, New Logos 18"
+    },
+    {
+      "id": "kpi-customer-success",
+      "text": "Build a customer success dashboard with 4 KPIs: Gross Retention 94%, NPS 72, Escalations down 35%, Time to Value 21 days"
+    },
+    {
+      "id": "kpi-supply-chain",
+      "text": "Build a supply chain dashboard with 5 KPIs: OTIF 96%, Inventory Turns 8.4x, Forecast Accuracy 87%, Expedite Cost down 18%, Supplier Defects 0.7%"
+    },
+    {
+      "id": "kpi-people",
+      "text": "Build a people dashboard with 4 KPIs: Attrition 11%, Time to Hire 18 days, Engagement 81%, Critical Roles Filled 92%"
+    },
+    {
+      "id": "kpi-product",
+      "text": "Build a product performance dashboard with 5 KPIs: Monthly Active Users 1.8M, Release Velocity +22%, Sev-1 Bugs 2, Adoption of AI Feature 37%, Crash Rate 0.09%"
+    },
+    {
+      "id": "kpi-transformation",
+      "text": "Build a transformation dashboard with 6 KPIs across savings delivered, milestones hit, automation rate, cycle time, risk status, and adoption"
+    }
+  ],
+  "outputDir": "output/kpi-dashboard",
+  "resultsDir": "results/kpi-dashboard",
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  }
+}

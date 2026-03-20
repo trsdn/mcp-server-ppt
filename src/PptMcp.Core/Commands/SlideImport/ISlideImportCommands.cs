@@ -8,7 +8,10 @@ namespace PptMcp.Core.Commands.SlideImport;
 /// Import slides from another presentation file.
 /// </summary>
 [ServiceCategory("slideimport")]
-[McpTool("slideimport", Title = "Slide Import", Destructive = true, Category = "slideimport")]
+[McpTool("slideimport", Title = "Slide Import", Destructive = true, Category = "slideimport",
+    Description = "Import slides from another .pptx/.pptm file into the current presentation. "
+    + "slide_indices: comma-separated 1-based (e.g. '1,3,5'). Empty = import all slides. "
+    + "insert_at: 0 = append at end. Source file must not be open in another session.")]
 public interface ISlideImportCommands
 {
     /// <summary>

@@ -58,6 +58,25 @@ uv run pytest -m cli -v
 uv run pytest -m aitest -v
 ```
 
+### Canonical regression gate
+
+Run the standard manual gate with the helper script from the repository root:
+
+```powershell
+.\scripts\Test-LlmRegressionGate.ps1
+```
+
+This runs the canonical six scenarios:
+
+- `cli/test_cli_table.py::test_cli_table_create_query`
+- `cli/test_cli_chart.py::test_cli_chart_workflows`
+- `cli/test_cli_styling.py::test_cli_styling_header_fill`
+- `mcp_tests/test_mcp_table.py::test_mcp_table_create_query`
+- `mcp_tests/test_mcp_chart.py::test_mcp_chart_workflows`
+- `mcp_tests/test_mcp_styling.py::test_mcp_styling_header_fill`
+
+Use this gate after changing skill content, MCP tool descriptions, CLI help text, or other LLM-facing workflow guidance.
+
 ## Configuration Overrides
 
 - `ppt_mcp_SERVER_COMMAND` — override MCP server command (full command line)
@@ -66,8 +85,8 @@ uv run pytest -m aitest -v
 Example:
 
 ```powershell
-$env:ppt_mcp_SERVER_COMMAND = "d:\\source\\mcp-server-ppt\\src\\PptMcp.McpServer\\bin\\Release\\net10.0\\PptMcp.McpServer.exe"
-$env:PPT_CLI_COMMAND = "pptcli"
+$env:ppt_mcp_SERVER_COMMAND = "d:\\source\\mcp-server-ppt\\src\\PptMcp.McpServer\\bin\\Release\\net9.0-windows\\PptMcp.McpServer.exe"
+$env:PPT_CLI_COMMAND = "d:\\source\\mcp-server-ppt\\src\\PptMcp.CLI\\bin\\Release\\net9.0-windows\\pptcli.exe"
 ```
 
 ## Test Structure

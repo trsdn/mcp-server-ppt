@@ -1,0 +1,70 @@
+{
+  "name": "slidecraft-design-eval-5",
+  "mode": "baseline",
+  "description": "Fifth wave: Evidence support focus. Every prompt demands visual proof (benchmark, before/after, driver breakdown, trend). Tests whether enriched executive patterns guidance improves the weakest dimension.",
+  "goal": "Raise evidence support score from 1.39 to 1.7+ by demanding explicit visual evidence in every prompt",
+  "archetype": "mixed",
+  "loops": 10,
+  "builder": {
+    "model": "claude-opus-4.6",
+    "reasoningEffort": "high",
+    "transport": "mcp",
+    "reuseSessionContext": true,
+    "skillFiles": [
+      "generation-pipeline.md",
+      "slide-design-principles.md",
+      "slide-design-review.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp-design.md",
+    "timeoutMs": 600000
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "evidence-roi-proof",
+      "text": "Build a slide proving 250% ROI from our automation platform. Show the MATH visually: Investment $2.0M. Savings breakdown: labor automation $2.8M (from 40 FTE manual processes to 8 FTE), error reduction $1.4M (defect rate from 12% to 2%), speed improvement $0.8M (cycle time from 14 days to 3 days). Total value: $5.0M. ROI formula: ($5.0M - $2.0M) / $2.0M = 150% Year 1, 250% cumulative Year 2. Use a waterfall or bridge chart — not bullet points. Audience: CFO and board, pre-read, D3 density. Source: Finance operations team, 18-month pilot data, verified by external advisory review."
+    },
+    {
+      "id": "evidence-benchmark-comparison",
+      "text": "Build a slide showing our customer satisfaction versus 3 industry benchmarks. Our CSAT: 4.6/5.0. Benchmark 1: Industry average 3.8/5.0. Benchmark 2: Top-quartile peers 4.2/5.0. Benchmark 3: Best-in-class peer 4.5/5.0. Show this as a horizontal bar chart with our bar in accent color and benchmarks in grey. Include delta annotations: +0.8 vs industry, +0.4 vs top-quartile, +0.1 vs best-in-class. Also show the 12-month trend: we improved from 3.9 to 4.6 while industry remained flat. Dual evidence: benchmark bars + trend line. Source: CSAT survey Q4 2025 (n=15,000); industry NPS/CSAT benchmark database 2025."
+    },
+    {
+      "id": "evidence-before-after-process",
+      "text": "Build a comparison slide showing before/after for our supply chain digitization. BEFORE (left column): Order-to-delivery 21 days, Forecast accuracy 62%, Inventory turns 4.2x, Manual touchpoints 18, Annual logistics cost $45M. AFTER (right column): Order-to-delivery 7 days (-67%), Forecast accuracy 89% (+27pp), Inventory turns 8.1x (+93%), Manual touchpoints 3 (-83%), Annual logistics cost $28M (-38%). Use metric-first formatting: big numbers as hero elements, with trend arrows and percentage changes. Include a bottom summary bar: 'Net annual savings: $17M on $8M investment = 2.1x payback in Year 1.' Source: supply chain planning platform + WMS data, FY2025 actuals vs FY2023 baseline, verified by supply chain controller."
+    },
+    {
+      "id": "evidence-market-share-trend",
+      "text": "Build a slide showing 5-year market share evolution for 4 players. Time periods: 2021, 2022, 2023, 2024, 2025. Our company: 18%, 21%, 24%, 27%, 31% (accent color, bold, emphasized). Competitor A: 35%, 33%, 30%, 28%, 26% (grey). Competitor B: 22%, 22%, 23%, 22%, 21% (grey). Others: 25%, 24%, 23%, 23%, 22% (grey). Use a multi-line chart with our line emphasized and competitors muted. Annotate the crossover point where we overtook Competitor B in 2023. Add a comments sidebar with 3 insights: 1) We gained 13pp in 5 years, 2) Competitor A lost 9pp — market leadership is within reach, 3) Organic growth — no acquisitions in this period. Source: market tracker Q4 2025; company filings."
+    },
+    {
+      "id": "evidence-cost-driver-tree",
+      "text": "Build a driver tree slide decomposing total operating cost of $180M. Level 1: People $95M (53%), Technology $42M (23%), Real Estate $25M (14%), Other $18M (10%). Level 2 under People: Permanent staff $72M, Contractors $15M, Benefits $8M. Level 2 under Technology: Cloud infrastructure $22M, Licenses $12M, Development $8M. Highlight that People→Contractors ($15M) and Technology→Cloud ($22M) are the two largest cost reduction opportunities (combined $37M, 21% of total). Use a tree diagram with size-proportional boxes and accent color on the opportunity branches. Source: Finance cost allocation model, FY2025 actuals, controller-verified."
+    },
+    {
+      "id": "evidence-cohort-retention",
+      "text": "Build a slide showing customer retention by cohort for a SaaS business. Cohort 2022: Month 1 100%, Month 3 82%, Month 6 71%, Month 12 58%, Month 24 48%. Cohort 2023: Month 1 100%, Month 3 88%, Month 6 79%, Month 12 72%, Month 24 65%. Cohort 2024: Month 1 100%, Month 3 92%, Month 6 86%, Month 12 81% (24-month data pending). Show this as a multi-line chart with improving cohort curves. The key insight is that each cohort retains 10-15pp more than the previous one, validating product improvements. Add a comments sidebar highlighting that the 2024 cohort is on track for 75%+ at 24 months. Source: product analytics cohort analysis, all paid customers, January 2025 snapshot."
+    },
+    {
+      "id": "evidence-financial-bridge-detailed",
+      "text": "Build a slide for a PE fund investment committee showing the value creation bridge for a portfolio company over 3 years. Entry EV: EUR 200M. Revenue growth: +EUR 80M (organic +EUR 50M, M&A +EUR 30M). Margin expansion: +EUR 35M (operational efficiency +EUR 20M, pricing +EUR 15M). Multiple expansion: +EUR 45M (sector re-rating +EUR 25M, quality premium +EUR 20M). Debt paydown: +EUR 30M. Management equity: -EUR 10M. Exit EV: EUR 380M. Net return to fund: EUR 180M, 2.9x MOIC, 28% gross IRR. Use a waterfall chart with green bars for value creation, red for management equity, and blue for entry/exit. Source: Fund controller, exit analysis March 2026 (confidential)."
+    },
+    {
+      "id": "evidence-nps-decomposition",
+      "text": "Build a slide decomposing NPS score changes for a steering committee. Overall NPS improved from 42 to 68 (+26 points). Driver decomposition: Product quality improvement +12 points (new features launched Q2-Q3), Customer support response time +8 points (avg response 24hrs to 4hrs), Pricing satisfaction +3 points (loyalty discounts introduced), Onboarding experience +5 points (guided setup wizard), Billing issues -2 points (migration to new system caused friction). Show this as a waterfall building from 42 to 68, with each driver as a bar. Highlight that Product quality and Support together account for 77% of the improvement. Source: NPS survey platform, n=8,500, Q4 2025 vs Q4 2024."
+    },
+    {
+      "id": "evidence-scenario-sensitivity",
+      "text": "Build a slide for an investment committee showing scenario analysis with sensitivity table. Base case: Revenue $120M, EBITDA $24M (20% margin), FCF $16M. Bull case (+20% volume): Revenue $144M, EBITDA $33M (23% margin), FCF $24M. Bear case (-15% volume, -2pp margin): Revenue $102M, EBITDA $16M (16% margin), FCF $9M. Show as a 3-column comparison table with clear differentiation. Below the table, add a sensitivity bar showing that every 5% volume swing impacts EBITDA by EUR 4M. Key message: investment is profitable in all scenarios; bear case still delivers 12% IRR. Source: Financial model v3.2, March 2026, assumptions validated by IC."
+    },
+    {
+      "id": "evidence-talent-pipeline-funnel",
+      "text": "Build a slide for the CHRO showing the leadership talent pipeline as a funnel with conversion rates. Pool: 2,400 individual contributors. Ready for promotion: 480 identified (20% of pool). In development program: 180 (38% conversion — 300 declined or not selected). Completed program: 120 (67% completion rate). Promoted to manager: 85 (71% promotion rate). Retained after 1 year: 72 (85% retention). Show this as a vertical funnel with stage sizes proportional to numbers. Annotate the biggest drop-off: Pool→Ready (80% filtered out by assessment). Include a benchmark sidebar: industry promotion pipeline is 12% end-to-end vs our 3%. Recommendation: expand assessment criteria to increase Ready pool by 50%. Source: succession planning module + HRIS data, March 2026."
+    }
+  ],
+  "outputDir": "output/slidecraft-design-eval-5",
+  "resultsDir": "results/slidecraft-design-eval-5"
+}

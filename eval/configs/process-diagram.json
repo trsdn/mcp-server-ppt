@@ -1,0 +1,71 @@
+{
+  "name": "process-diagram",
+  "mode": "tuning",
+  "description": "Evaluate and improve process diagram slides — workflow steps, handoffs, and transformation flows",
+  "goal": "Achieve consistent 12+/14 with end-to-end process clarity, constrained step count, and explicit handoff logic",
+  "archetype": "process-diagram",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "process-order-to-cash",
+      "text": "Build a process diagram slide for order-to-cash with order entry, fulfillment, invoicing, collections, and cash application"
+    },
+    {
+      "id": "process-incident-response",
+      "text": "Build a process diagram for incident response from detection through triage, containment, remediation, recovery, and review"
+    },
+    {
+      "id": "process-hiring",
+      "text": "Build a hiring workflow slide from sourcing to screen, interview, offer, and onboarding"
+    },
+    {
+      "id": "process-procurement",
+      "text": "Build a procurement process diagram from request through approval, sourcing, PO, delivery, and payment"
+    },
+    {
+      "id": "process-release",
+      "text": "Build a software release process slide with build, test, approve, deploy, monitor, and rollback steps"
+    },
+    {
+      "id": "process-customer-escalation",
+      "text": "Build a customer escalation process slide from issue intake to resolution and postmortem"
+    },
+    {
+      "id": "process-data-pipeline",
+      "text": "Build a data pipeline process slide from source ingestion to transform, quality check, publish, and dashboard consumption"
+    },
+    {
+      "id": "process-merger",
+      "text": "Build an integration decision process slide from synergy hypothesis through validation, decision, execution, and tracking"
+    },
+    {
+      "id": "process-claims",
+      "text": "Build an insurance claims process diagram from first notice of loss through review, assessment, payment, and closure"
+    },
+    {
+      "id": "process-product-feedback",
+      "text": "Build a product feedback loop process slide from signal capture through prioritization, build, release, and measure"
+    }
+  ],
+  "outputDir": "output/process-diagram",
+  "resultsDir": "results/process-diagram"
+}

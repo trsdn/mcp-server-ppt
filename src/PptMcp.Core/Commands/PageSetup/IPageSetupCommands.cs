@@ -8,7 +8,10 @@ namespace PptMcp.Core.Commands.PageSetup;
 /// Slide size and page setup operations.
 /// </summary>
 [ServiceCategory("pagesetup")]
-[McpTool("pagesetup", Title = "Page Setup", Destructive = true, Category = "pagesetup")]
+[McpTool("pagesetup", Title = "Page Setup", Destructive = true, Category = "pagesetup",
+    Description = "Get and set slide dimensions and orientation. Sizes in points (72pt = 1 inch). "
+    + "Standard 16:9 = 960×540pt (13.33×7.5in). Standard 4:3 = 720×540pt. "
+    + "set-first-number changes the starting slide number for the presentation.")]
 public interface IPageSetupCommands
 {
     /// <summary>Get the current slide size and orientation.</summary>

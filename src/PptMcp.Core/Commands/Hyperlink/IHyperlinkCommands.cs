@@ -8,7 +8,10 @@ namespace PptMcp.Core.Commands.Hyperlink;
 /// Hyperlink management: add, remove, and get hyperlinks on shapes and text.
 /// </summary>
 [ServiceCategory("hyperlink")]
-[McpTool("hyperlink", Title = "Hyperlink Operations", Destructive = true, Category = "content")]
+[McpTool("hyperlink", Title = "Hyperlink Operations", Destructive = true, Category = "content",
+    Description = "Add, read, remove hyperlinks on shapes. For URL links: set address='https://...'. "
+    + "For internal slide links: set address='' and sub_address='3' (slide number). "
+    + "Use 'list' for all hyperlinks in presentation. Use 'validate' to find broken links.")]
 public interface IHyperlinkCommands
 {
     /// <summary>

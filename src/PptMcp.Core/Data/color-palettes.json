@@ -1,0 +1,138 @@
+[
+  {
+    "id": "corporate-blue",
+    "name": "Corporate Blue",
+    "bestFor": "Consulting, corporate, financial presentations",
+    "colors": {
+      "Primary": "#0B3D91",
+      "Secondary": "#4A90D9",
+      "Accent": "#FF6B35",
+      "Positive": "#2E8B57",
+      "Negative": "#C62828",
+      "Neutral": "#E8ECF1",
+      "TextDark": "#1A1A2E",
+      "TextMedium": "#4A5568",
+      "TextLight": "#A0AEC0",
+      "TextInverse": "#FFFFFF"
+    }
+  },
+  {
+    "id": "slate-professional",
+    "name": "Slate Professional",
+    "bestFor": "Board meetings, executive reports, legal",
+    "colors": {
+      "Primary": "#2D3748",
+      "Secondary": "#4A5568",
+      "Accent": "#3182CE",
+      "Positive": "#38A169",
+      "Negative": "#E53E3E",
+      "Neutral": "#EDF2F7",
+      "TextDark": "#1A202C",
+      "TextMedium": "#718096",
+      "TextLight": "#A0AEC0",
+      "TextInverse": "#FFFFFF"
+    }
+  },
+  {
+    "id": "modern-tech",
+    "name": "Modern Tech",
+    "bestFor": "Startup pitch decks, technology, product launches",
+    "colors": {
+      "Primary": "#6C5CE7",
+      "Secondary": "#00B894",
+      "Accent": "#FDCB6E",
+      "Positive": "#00B894",
+      "Negative": "#FF7675",
+      "Neutral": "#F0F0F5",
+      "TextDark": "#2D3436",
+      "TextMedium": "#636E72",
+      "TextLight": "#B2BEC3",
+      "TextInverse": "#FFFFFF"
+    }
+  },
+  {
+    "id": "confident-bold",
+    "name": "Confident Bold",
+    "bestFor": "Sales presentations, marketing, keynotes",
+    "colors": {
+      "Primary": "#E74C3C",
+      "Secondary": "#2C3E50",
+      "Accent": "#F39C12",
+      "Positive": "#27AE60",
+      "Negative": "#E74C3C",
+      "Neutral": "#ECF0F1",
+      "TextDark": "#2C3E50",
+      "TextMedium": "#7F8C8D",
+      "TextLight": "#BDC3C7",
+      "TextInverse": "#FFFFFF"
+    }
+  },
+  {
+    "id": "warm-coral",
+    "name": "Warm Coral",
+    "bestFor": "Creative agencies, design, lifestyle brands",
+    "colors": {
+      "Primary": "#FF6B6B",
+      "Secondary": "#4ECDC4",
+      "Accent": "#FFE66D",
+      "Positive": "#4ECDC4",
+      "Negative": "#FF6B6B",
+      "Neutral": "#F7F7F7",
+      "TextDark": "#2C3E50",
+      "TextMedium": "#95A5A6",
+      "TextLight": "#BDC3C7",
+      "TextInverse": "#FFFFFF"
+    }
+  },
+  {
+    "id": "academic-neutral",
+    "name": "Academic Neutral",
+    "bestFor": "Research presentations, university, white papers",
+    "colors": {
+      "Primary": "#34495E",
+      "Secondary": "#7F8C8D",
+      "Accent": "#2980B9",
+      "Positive": "#27AE60",
+      "Negative": "#C0392B",
+      "Neutral": "#F5F5F5",
+      "TextDark": "#2C3E50",
+      "TextMedium": "#7F8C8D",
+      "TextLight": "#BDC3C7",
+      "TextInverse": "#FFFFFF"
+    }
+  },
+  {
+    "id": "nature-calm",
+    "name": "Nature Calm",
+    "bestFor": "Sustainability, healthcare, wellness, ESG reports",
+    "colors": {
+      "Primary": "#2D6A4F",
+      "Secondary": "#74C69D",
+      "Accent": "#40916C",
+      "Positive": "#2D6A4F",
+      "Negative": "#D62828",
+      "Neutral": "#F0F4F0",
+      "TextDark": "#1B4332",
+      "TextMedium": "#52796F",
+      "TextLight": "#95D5B2",
+      "TextInverse": "#FFFFFF"
+    }
+  },
+  {
+    "id": "electric-minimal",
+    "name": "Electric Minimal",
+    "bestFor": "SaaS demos, developer tools, API products",
+    "colors": {
+      "Primary": "#0066FF",
+      "Secondary": "#00D4AA",
+      "Accent": "#FF3366",
+      "Positive": "#00D4AA",
+      "Negative": "#FF3366",
+      "Neutral": "#F8F9FA",
+      "TextDark": "#212529",
+      "TextMedium": "#6C757D",
+      "TextLight": "#ADB5BD",
+      "TextInverse": "#FFFFFF"
+    }
+  }
+]

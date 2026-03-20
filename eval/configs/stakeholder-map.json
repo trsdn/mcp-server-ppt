@@ -1,0 +1,34 @@
+{
+  "name": "stakeholder-map",
+  "mode": "baseline",
+  "description": "Evaluate stakeholder map slides — influence-interest segmentation with readable labels and concrete engagement logic",
+  "goal": "Achieve consistent 12+/14 with a clean 2x2 stakeholder map, clear label placement, and explicit prioritization zones",
+  "archetype": "stakeholder-map",
+  "loops": 2,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "stakeholder-erp",
+      "text": "Build a stakeholder map for a global ERP rollout showing executives, country CFOs, plant managers, finance users, IT security, and works councils by influence and support"
+    },
+    {
+      "id": "stakeholder-regulatory",
+      "text": "Build a stakeholder map for a bank remediation program covering regulator, board risk committee, operations leadership, compliance, audit, and engineering teams"
+    }
+  ],
+  "outputDir": "output/stakeholder-map",
+  "resultsDir": "results/stakeholder-map"
+}

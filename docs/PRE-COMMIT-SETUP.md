@@ -129,11 +129,13 @@ These same checks run in CI/CD pipelines:
 - `audit-core-coverage.ps1` runs **after every build** in:
   - `build-mcp-server.yml` - MCP Server builds
   - `build-cli.yml` - CLI builds  
-  - `integration-tests.yml` - Integration test runs
+  - `integration-tests.yml` - PowerPoint integration runs when `ENABLE_POWERPOINT_INTEGRATION_CI=true`
 
 **Pipeline enforcement ensures:**
 - Pre-commit hook provides **instant local feedback**
 - CI/CD provides **safety net** if hook bypassed with `--no-verify`
 - **Double protection** against coverage regression
+
+`integration-tests.yml` is intentionally gated behind a self-hosted PowerPoint runner. See `docs/AZURE_SELFHOSTED_RUNNER_SETUP.md` for activation steps.
 
 The pre-commit hook gives you **instant feedback** before pushing to remote.

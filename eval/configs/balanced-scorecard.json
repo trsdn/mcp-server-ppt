@@ -1,0 +1,34 @@
+{
+  "name": "balanced-scorecard",
+  "mode": "baseline",
+  "description": "Evaluate balanced scorecard slides — four peer performance dimensions with KPI evidence and management implications",
+  "goal": "Achieve consistent 12+/14 with four balanced quadrants, disciplined KPI evidence, and strong executive readability",
+  "archetype": "balanced-scorecard",
+  "loops": 2,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "scorecard-industrial",
+      "text": "Build a balanced scorecard slide for an industrial company with four dimensions: Financial, Customer, Operations, and People, each with two KPIs and a short implication"
+    },
+    {
+      "id": "scorecard-saas",
+      "text": "Build a balanced scorecard for a SaaS scale-up using Revenue, Customer Success, Product Delivery, and Talent dimensions with plan deltas and RAG status"
+    }
+  ],
+  "outputDir": "output/balanced-scorecard",
+  "resultsDir": "results/balanced-scorecard"
+}

@@ -8,7 +8,12 @@ namespace PptMcp.Core.Commands.Transition;
 /// Slide transition effects: get, set, remove.
 /// </summary>
 [ServiceCategory("transition")]
-[McpTool("transition", Title = "Slide Transitions", Destructive = true, Category = "animation")]
+[McpTool("transition", Title = "Slide Transitions", Destructive = true, Category = "animation",
+    Description = "Set slide transition effects (between slides, not shape animations). "
+    + "transition_type (PpEntryEffect): 3844=Fade, 3849=Push, 3851=Wipe, 3850=Cover, 3855=Split, "
+    + "3856=Random, 3847=Dissolve, 3852=Wheel. duration: seconds (e.g. 0.5-2.0). "
+    + "advance_on_click: bool. advance_after_time: seconds (0=disabled, for kiosk mode). "
+    + "'copy-to-all' applies one slide's transition to every slide.")]
 public interface ITransitionCommands
 {
     /// <summary>Get the transition settings for a slide.</summary>

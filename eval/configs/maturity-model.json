@@ -1,0 +1,34 @@
+{
+  "name": "maturity-model",
+  "mode": "baseline",
+  "description": "Evaluate maturity model slides — capability-by-level grids with current and target state clarity",
+  "goal": "Achieve consistent 12+/14 with a disciplined maturity grid, restrained text density, and explicit current-to-target movement",
+  "archetype": "maturity-model",
+  "loops": 2,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "maturity-cyber",
+      "text": "Build a cyber maturity model slide across identity, detection, response, resilience, and governance with five maturity levels, current-state markers, and target-state markers"
+    },
+    {
+      "id": "maturity-data",
+      "text": "Build a data platform maturity model slide across data quality, self-service analytics, governance, operating model, and tooling"
+    }
+  ],
+  "outputDir": "output/maturity-model",
+  "resultsDir": "results/maturity-model"
+}

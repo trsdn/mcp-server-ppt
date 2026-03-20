@@ -178,15 +178,8 @@ public class McpServerIntegrationTests(ITestOutputHelper output) : IAsyncLifetim
     }
 
     /// <summary>
-    /// Tests that all 21 expected tools are discoverable via the MCP protocol.
-    /// After token optimization (issue #341):
-    /// - Original 12 tools split into focused tools for better token efficiency
-    /// - range → range, range_edit, range_format, range_link
-    /// - table → table, table_column
-    /// - pivottable → pivottable, pivottable_field, pivottable_calc
-    /// - datamodel → datamodel, datamodel_relationship
-    /// - chart → chart, chart_config
-    /// - worksheet → worksheet, worksheet_style
+    /// Canonical MCP smoke test used by pre-commit.
+    /// Verifies that all expected tools are discoverable through the real MCP protocol surface.
     /// This is THE definitive test - it uses client.ListToolsAsync() which exercises:
     /// - DI pipeline
     /// - WithToolsFromAssembly() discovery
@@ -194,7 +187,7 @@ public class McpServerIntegrationTests(ITestOutputHelper output) : IAsyncLifetim
     /// - Tool schema generation
     /// </summary>
     [Fact]
-    public async Task ListTools_ReturnsAllExpectedTools()
+    public async Task SmokeTest_AllTools_E2EWorkflow()
     {
         output.WriteLine("=== TOOL DISCOVERY VIA MCP PROTOCOL ===\n");
 

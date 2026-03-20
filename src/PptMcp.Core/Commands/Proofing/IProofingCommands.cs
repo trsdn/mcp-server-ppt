@@ -8,7 +8,12 @@ namespace PptMcp.Core.Commands.Proofing;
 /// Proofing and language operations: check spelling, get/set language for text.
 /// </summary>
 [ServiceCategory("proofing")]
-[McpTool("proofing", Title = "Proofing & Language", Destructive = true, Category = "proofing")]
+[McpTool("proofing", Title = "Proofing & Language", Destructive = true, Category = "proofing",
+    Description = "Spelling check and language settings for presentation text. "
+    + "'check-spelling' extracts all unique words for review. "
+    + "'set-language' sets proofing language: slide_index=0 for all slides, shape_name='' for all shapes. "
+    + "language_id (MsoLanguageID): 1033=English US, 2057=English UK, 1031=German, 1036=French, 1034=Spanish, "
+    + "1040=Italian, 1041=Japanese, 2052=Chinese Simplified.")]
 public interface IProofingCommands
 {
     /// <summary>

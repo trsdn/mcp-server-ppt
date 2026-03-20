@@ -164,7 +164,7 @@ Accessibility audit: check alt text, title placeholders, reading order.
 
 Animation effect operations: list, add, remove, reorder effects on slides.
 
-**Actions:** `list`, `add`, `remove`, `clear`, `set-timing`
+**Actions:** `list`, `add`, `remove`, `clear`, `set-timing`, `reorder`
 
 | Parameter | Description |
 |-----------|-------------|
@@ -172,9 +172,10 @@ Animation effect operations: list, add, remove, reorder effects on slides.
 | `--shape-name` | Name of the target shape (required for: add) |
 | `--effect-type` | MsoAnimEffect integer (e.g., 1=Appear, 2=Fly, 10=Fade, 16=Wipe) (required for: add) |
 | `--trigger-type` | 1=OnClick (default), 2=WithPrevious, 3=AfterPrevious (required for: add, set-timing) |
-| `--effect-index` | (required for: remove, set-timing) |
+| `--effect-index` | (required for: remove, set-timing, reorder) |
 | `--duration` | Duration in seconds (required for: set-timing) |
 | `--delay` | Delay before start in seconds (required for: set-timing) |
+| `--new-index` | 1-based target position in the sequence (required for: reorder) |
 
 
 
@@ -199,7 +200,7 @@ Slide background: get, set solid color, set image, reset to master.
 
 Embedded chart operations: create, get info, set title, set type, delete.
 
-**Actions:** `create`, `get-info`, `set-title`, `set-type`, `delete`, `set-data`, `set-legend`
+**Actions:** `create`, `get-info`, `set-title`, `set-type`, `delete`, `set-data`, `set-legend`, `read-data`, `set-axis-title`, `toggle-data-table`
 
 | Parameter | Description |
 |-----------|-------------|
@@ -209,11 +210,12 @@ Embedded chart operations: create, get info, set title, set type, delete.
 | `--top` | Position from top in points (required for: create) |
 | `--width` | Width in points (required for: create) |
 | `--height` | Height in points (required for: create) |
-| `--shape-name` | (required for: get-info, set-title, set-type, delete, set-data, set-legend) |
-| `--title` | (required for: set-title) |
+| `--shape-name` | (required for: get-info, set-title, set-type, delete, set-data, set-legend, read-data, set-axis-title, toggle-data-table) |
+| `--title` | (required for: set-title, set-axis-title) |
 | `--values` | 2D array of values (rows × columns) (required for: set-data) |
-| `--visible` | Whether the legend is visible (required for: set-legend) |
+| `--visible` | Whether the legend is visible (required for: set-legend, toggle-data-table) |
 | `--position` | Legend position: -4107=Bottom, -4131=Left, -4152=Right, -4160=Top, -4161=TopRight (required for: set-legend) |
+| `--axis-type` | Axis type: 1=Category(X), 2=Value(Y) (required for: set-axis-title) |
 
 
 
@@ -249,14 +251,20 @@ Custom slide show management: list, create, delete, run.
 
 ### design
 
-Theme and design operations: list designs, apply themes, get theme colors.
+Design operations: themes, colors, fonts, and design knowledge catalog. THEME OPERATIONS (require open presentation): - list, apply-theme, get-colors, list-color-schemes, get-fonts DESIGN KNOWLEDGE CATALOG (query on demand): - list-archetypes / get-archetype: primary unified archetype surface with curated rules plus learned subtype/example coverage when local reference data is available - list-palettes / get-palette: 8 color palettes with hex values - list-style-profiles / get-style-profile: consulting/sales/startup configurations - list-layout-grids / get-layout-grid: exact x/y/w/h positioning coordinates - list-density-profiles / get-density-profile: D1-D5 content density rules - get-context-model: meeting type → audience → density mapping - get-deck-sequence: canonical slide sequences (decision, pitch, review) - get-slide-patterns: advanced consulting layout patterns - get-icon-shapes: native shape icon catalog
 
-**Actions:** `list`, `apply-theme`, `get-colors`, `list-color-schemes`
+**Actions:** `list`, `apply-theme`, `get-colors`, `list-color-schemes`, `get-fonts`, `list-archetypes`, `get-archetype`, `list-palettes`, `get-palette`, `list-style-profiles`, `get-style-profile`, `list-layout-grids`, `get-layout-grid`, `list-density-profiles`, `get-density-profile`, `get-context-model`, `get-deck-sequence`, `get-slide-patterns`, `get-icon-shapes`
 
 | Parameter | Description |
 |-----------|-------------|
 | `--theme-path` | Full path to .thmx theme file (required for: apply-theme) |
-| `--design-index` | 1-based design index (0 = first design) (required for: get-colors) |
+| `--design-index` | 1-based design index (0 = first design) (required for: get-colors, get-fonts) |
+| `--archetype-id` | Archetype id: big-number, kpi-card-dashboard, operational-kpi, column-bar-chart, chart-insight-callout, framework, simple-table, waterfall-chart, comparison, timeline-roadmap, process-diagram, executive-summary, recommendations, quote, map, appendix, annotated-diagram, chart-and-commentary, org-chart, title-slide (required for: get-archetype) |
+| `--palette-id` | Palette id: corporate-blue, slate-professional, modern-tech, confident-bold, warm-coral, academic-neutral, nature-calm, electric-minimal (required for: get-palette) |
+| `--profile-id` | Profile id: consulting, corporate, sales, startup, keynote, educational, academic, creative (required for: get-style-profile) |
+| `--grid-id` | Grid id: single-column, two-column-equal, two-column-60-40, three-column, four-column, grid-2x2, grid-3x2, big-number, kpi-3-cards, kpi-4-cards, kpi-5-cards, chart-full, chart-callout, timeline, process-3-step, section-divider, title-dark-hero (required for: get-layout-grid) |
+| `--density-id` | Density id: D1, D2, D3, D4, D5 (required for: get-density-profile) |
+| `--sequence-id` | Sequence id: S1 (Decision), S2 (Performance Review), S3 (Pitch/Proposal), S4 (Transformation), S5 (Regulatory) (required for: get-deck-sequence) |
 
 
 
@@ -284,11 +292,11 @@ Document property management: read and write presentation metadata like title, a
 
 Export presentations to PDF, images, or other formats.
 
-**Actions:** `to-pdf`, `slide-to-image`, `to-video`, `print`, `save-as`, `all-slides-to-images`, `extract-text`, `extract-images`
+**Actions:** `to-pdf`, `slide-to-image`, `to-video`, `print`, `save-as`, `all-slides-to-images`, `extract-text`, `extract-images`, `save-copy`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--destination-path` | Output PDF file path (required for: to-pdf, slide-to-image, to-video, save-as, extract-text) |
+| `--destination-path` | Output PDF file path (required for: to-pdf, slide-to-image, to-video, save-as, extract-text, save-copy) |
 | `--slide-index` | 1-based slide index (required for: slide-to-image) |
 | `--width` | Image width in pixels (default: 1920) (required for: slide-to-image, all-slides-to-images) |
 | `--height` | Image height in pixels (default: 1080) (required for: slide-to-image, all-slides-to-images) |
@@ -349,7 +357,7 @@ Hyperlink management: add, remove, and get hyperlinks on shapes and text.
 
 Image operations: insert pictures into slides.
 
-**Actions:** `insert`, `crop`
+**Actions:** `insert`, `crop`, `set-brightness-contrast`, `set-transparent-color`
 
 | Parameter | Description |
 |-----------|-------------|
@@ -359,11 +367,14 @@ Image operations: insert pictures into slides.
 | `--top` | Position from top in points (required for: insert) |
 | `--width` | Width in points (0 = original) (required for: insert) |
 | `--height` | Height in points (0 = original) (required for: insert) |
-| `--shape-name` | Name of the picture shape (required for: crop) |
+| `--shape-name` | Name of the picture shape (required for: crop, set-brightness-contrast, set-transparent-color) |
 | `--crop-left` | Crop from left in points (0 = no crop) (required for: crop) |
 | `--crop-right` | Crop from right in points (0 = no crop) (required for: crop) |
 | `--crop-top` | Crop from top in points (0 = no crop) (required for: crop) |
 | `--crop-bottom` | Crop from bottom in points (0 = no crop) (required for: crop) |
+| `--brightness` | Brightness value (0.0 to 1.0) (required for: set-brightness-contrast) |
+| `--contrast` | Contrast value (0.0 to 1.0) (required for: set-brightness-contrast) |
+| `--color-hex` | Hex color string (#RRGGBB) to make transparent (required for: set-transparent-color) |
 
 
 
@@ -371,11 +382,11 @@ Image operations: insert pictures into slides.
 
 Slide master and layout operations: list masters, list layouts, get placeholders.
 
-**Actions:** `list`, `list-shapes`, `edit-shape-text`
+**Actions:** `list`, `list-shapes`, `edit-shape-text`, `list-layouts`, `delete-unused`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--master-index` | 1-based slide master index (required for: list-shapes, edit-shape-text) |
+| `--master-index` | 1-based slide master index (required for: list-shapes, edit-shape-text, list-layouts) |
 | `--shape-name` | Name of the shape to edit (required for: edit-shape-text) |
 | `--text` | New text content (required for: edit-shape-text) |
 
@@ -385,7 +396,7 @@ Slide master and layout operations: list masters, list layouts, get placeholders
 
 Media management: insert audio and video files into slides. Supports linking or embedding media files.
 
-**Actions:** `insert-audio`, `insert-video`, `get-info`
+**Actions:** `insert-audio`, `insert-video`, `get-info`, `set-playback`
 
 | Parameter | Description |
 |-----------|-------------|
@@ -397,7 +408,11 @@ Media management: insert audio and video files into slides. Supports linking or 
 | `--save-with-document` | If true, save media with document when linking (required for: insert-audio) |
 | `--width` | Width in points (0 = use video native width) (required for: insert-video) |
 | `--height` | Height in points (0 = use video native height) (required for: insert-video) |
-| `--shape-name` | (required for: get-info) |
+| `--shape-name` | (required for: get-info, set-playback) |
+| `--volume` | Volume level (0.0 to 1.0), null to leave unchanged |
+| `--muted` | Mute state, null to leave unchanged |
+| `--fade-in-seconds` | Fade-in duration in seconds, null to leave unchanged |
+| `--fade-out-seconds` | Fade-out duration in seconds, null to leave unchanged |
 
 
 
@@ -418,12 +433,13 @@ Speaker notes: get, set, clear.
 
 Slide size and page setup operations.
 
-**Actions:** `get`, `set-size`
+**Actions:** `get`, `set-size`, `set-first-number`
 
 | Parameter | Description |
 |-----------|-------------|
 | `--slide-width` | Slide width in points (1 inch = 72 points). 0 = don't change. (required for: set-size) |
 | `--slide-height` | Slide height in points. 0 = don't change. (required for: set-size) |
+| `--first-slide-number` | The number to assign to the first slide (required for: set-first-number) |
 
 
 
@@ -439,6 +455,22 @@ Slide placeholder operations: list available placeholders, fill text.
 | `--placeholder-index` | 1-based placeholder index (required for: set-text, set-image) |
 | `--text` | Text to set (required for: set-text) |
 | `--image-path` | Absolute path to the image file (required for: set-image) |
+
+
+
+### printoptions
+
+Manage print options: output type, color mode, framing, fit-to-page, hidden slides.
+
+**Actions:** `get`, `set`
+
+| Parameter | Description |
+|-----------|-------------|
+| `--output-type` | 1=Slides, 2=TwoSlideHandouts, 3=ThreeSlideHandouts, 4=SixSlideHandouts, 5=NotesPages, 6=Outline |
+| `--color-type` | 1=Color, 2=Grayscale, 3=BlackWhite |
+| `--frame-slides` | Whether to frame slides when printing |
+| `--fit-to-page` | Whether to fit slides to page |
+| `--print-hidden-slides` | Whether to include hidden slides |
 
 
 
@@ -475,17 +507,17 @@ Presentation section management: list, add, rename, delete, and move sections. S
 
 Shape management: list, read, create, move, resize, delete, z-order.
 
-**Actions:** `list`, `read`, `add-textbox`, `add-shape`, `move-resize`, `delete`, `z-order`, `set-fill`, `set-line`, `set-rotation`, `group`, `ungroup`, `set-alt-text`, `copy-to-slide`, `set-shadow`, `add-connector`, `merge`, `duplicate`, `flip`, `set-text-frame`, `set-gradient-fill`, `set-glow`, `set-reflection`, `set-opacity`, `read-fill`, `read-line`, `find-by-type`, `copy-formatting`
+**Actions:** `list`, `read`, `add-textbox`, `add-shape`, `move-resize`, `delete`, `z-order`, `set-fill`, `set-line`, `set-rotation`, `group`, `ungroup`, `set-alt-text`, `copy-to-slide`, `set-shadow`, `add-connector`, `merge`, `duplicate`, `flip`, `set-text-frame`, `set-gradient-fill`, `set-glow`, `set-reflection`, `set-opacity`, `read-fill`, `read-line`, `find-by-type`, `copy-formatting`, `set-action-settings`, `scale`, `lock-aspect-ratio`, `set-soft-edge`, `read-shadow`, `add-text-effect`, `set-3d`
 
 | Parameter | Description |
 |-----------|-------------|
 | `--slide-index` | (required) |
-| `--shape-name` | (required for: read, move-resize, delete, z-order, set-fill, set-line, set-rotation, ungroup, set-alt-text, copy-to-slide, set-shadow, duplicate, flip, set-text-frame, set-gradient-fill, set-glow, set-reflection, set-opacity, read-fill, read-line) |
-| `--left` | Position from left in points (required for: add-textbox, add-shape) |
-| `--top` | Position from top in points (required for: add-textbox, add-shape) |
+| `--shape-name` | (required for: read, move-resize, delete, z-order, set-fill, set-line, set-rotation, ungroup, set-alt-text, copy-to-slide, set-shadow, duplicate, flip, set-text-frame, set-gradient-fill, set-glow, set-reflection, set-opacity, read-fill, read-line, set-action-settings, scale, lock-aspect-ratio, set-soft-edge, read-shadow, set-3d) |
+| `--left` | Position from left in points (required for: add-textbox, add-shape, add-text-effect) |
+| `--top` | Position from top in points (required for: add-textbox, add-shape, add-text-effect) |
 | `--width` | Width in points (required for: add-textbox, add-shape) |
 | `--height` | Height in points (required for: add-textbox, add-shape) |
-| `--text` | Initial text content (required for: add-textbox) |
+| `--text` | Initial text content (required for: add-textbox, add-text-effect) |
 | `--auto-shape-type` | MsoAutoShapeType integer (1=Rectangle, 9=Oval, etc.) (required for: add-shape) |
 | `--z-order-cmd` | 1=BringToFront, 2=SendToBack, 3=BringForward, 4=SendBackward (required for: z-order) |
 | `--color-hex` | Hex color string like #FF0000 for red, or 'none' for no fill (required for: set-fill, set-line, set-glow) |
@@ -511,12 +543,25 @@ Shape management: list, read, create, move, resize, delete, z-order.
 | `--color1` | First gradient color as hex (#RRGGBB) (required for: set-gradient-fill) |
 | `--color2` | Second gradient color as hex (#RRGGBB) (required for: set-gradient-fill) |
 | `--gradient-style` | 1=Horizontal, 2=Vertical, 3=DiagonalUp, 4=DiagonalDown, 5=FromCorner, 6=FromCenter (required for: set-gradient-fill) |
-| `--radius` | Glow radius in points (0 = remove glow) (required for: set-glow) |
+| `--radius` | Glow radius in points (0 = remove glow) (required for: set-glow, set-soft-edge) |
 | `--reflection-type` | 0=None, 1-9=msoReflectionType1 through msoReflectionType9 (required for: set-reflection) |
 | `--opacity` | Opacity value from 0.0 (fully transparent) to 1.0 (fully opaque) (required for: set-opacity) |
 | `--shape-type` | MsoShapeType integer (1=AutoShape, 6=Group, 13=Picture, 14=Placeholder, 17=TextBox, etc.) (required for: find-by-type) |
 | `--source-shape-name` | Name of the shape to copy formatting from (required for: copy-formatting) |
 | `--target-shape-name` | Name of the shape to apply formatting to (required for: copy-formatting) |
+| `--action-type` | 0=None, 1=NextSlide, 2=PreviousSlide, 3=FirstSlide, 4=LastSlide, 7=Hyperlink (required for: set-action-settings) |
+| `--hyperlink-address` | URL for actionType=7 (Hyperlink), ignored for other types |
+| `--scale-x` | Width scale factor (e.g. 1.5 = 150%) (required for: scale) |
+| `--scale-y` | Height scale factor (e.g. 1.5 = 150%) (required for: scale) |
+| `--locked` | True to lock aspect ratio, false to unlock (required for: lock-aspect-ratio) |
+| `--preset-effect` | MsoPresetTextEffect integer (0-based preset index) (required for: add-text-effect) |
+| `--font-name` | Font name (e.g. "Arial") (required for: add-text-effect) |
+| `--font-size` | Font size in points (required for: add-text-effect) |
+| `--rotation-x` | X-axis rotation in degrees (null = don't change) |
+| `--rotation-y` | Y-axis rotation in degrees (null = don't change) |
+| `--rotation-z` | Z-axis rotation in degrees (null = don't change) |
+| `--bevel-type` | Bevel top type: 0=None, 1=Circle, 2=RelaxedInset, 3=Cross, 4=Angle, etc. (null = don't change) |
+| `--bevel-depth` | Bevel top depth in points (null = don't change) |
 
 
 
@@ -539,11 +584,11 @@ Shape alignment and distribution operations.
 
 Slide lifecycle commands: list, read, create, duplicate, move, delete.
 
-**Actions:** `list`, `read`, `create`, `duplicate`, `move`, `delete`, `apply-layout`, `set-name`, `clone-with-replace`, `hide`, `unhide`, `get-thumbnail`, `summary`
+**Actions:** `list`, `read`, `create`, `duplicate`, `move`, `delete`, `apply-layout`, `set-name`, `clone-with-replace`, `hide`, `unhide`, `get-thumbnail`, `summary`, `set-display-master`, `copy`
 
 | Parameter | Description |
 |-----------|-------------|
-| `--slide-index` | 1-based slide index (required for: read, duplicate, move, delete, apply-layout, set-name, clone-with-replace, hide, unhide, get-thumbnail) |
+| `--slide-index` | 1-based slide index (required for: read, duplicate, move, delete, apply-layout, set-name, clone-with-replace, hide, unhide, get-thumbnail, set-display-master, copy) |
 | `--position` | 1-based insert position (0 = at end) (required for: create) |
 | `--layout-name` | Layout name from the slide master (e.g. "Title Slide", "Blank") (required for: create, apply-layout) |
 | `--new-position` | 1-based target position (required for: move) |
@@ -552,6 +597,7 @@ Slide lifecycle commands: list, read, create, duplicate, move, delete.
 | `--search-text` | Text to search for in each clone (required for: clone-with-replace) |
 | `--replace-text` | Text to replace with in each clone (required for: clone-with-replace) |
 | `--destination-path` | Full path for the output PNG file (required for: get-thumbnail) |
+| `--display` | Whether to display master shapes (required for: set-display-master) |
 
 
 
@@ -573,12 +619,16 @@ Import slides from another presentation file.
 
 Slideshow presentation mode: start, stop, navigate, get status.
 
-**Actions:** `start`, `stop`, `goto-slide`, `get-status`
+**Actions:** `start`, `stop`, `goto-slide`, `get-status`, `configure`
 
 | Parameter | Description |
 |-----------|-------------|
 | `--start-slide` | 1-based slide to start from (0 = beginning) (required for: start) |
 | `--slide-index` | 1-based target slide index (required for: goto-slide) |
+| `--show-type` | 1=Speaker (full screen), 2=Browsed by individual (window), 3=Browsed at kiosk (loop) (required for: configure) |
+| `--loop-until-stopped` | Whether to loop the slideshow continuously (required for: configure) |
+| `--show-with-animation` | Whether to show animations during the slideshow (required for: configure) |
+| `--show-with-narration` | Whether to play narrations during the slideshow (required for: configure) |
 
 
 
@@ -619,13 +669,17 @@ Table shape operations: create, read, write cells, add/delete rows and columns, 
 
 SmartArt diagram operations: create, add/remove nodes, change layout.
 
-**Actions:** `get-info`, `add-node`
+**Actions:** `get-info`, `add-node`, `set-layout`, `set-style`, `delete-node`, `change-level`
 
 | Parameter | Description |
 |-----------|-------------|
 | `--slide-index` | 1-based slide index (required) |
 | `--shape-name` | Name of the SmartArt shape (required) |
 | `--text` | Text for the new node (required for: add-node) |
+| `--layout-index` | 1-based index into Application.SmartArtLayouts (required for: set-layout) |
+| `--style-index` | 1-based index into Application.SmartArtQuickStyles (required for: set-style) |
+| `--node-index` | 1-based index of the node to delete (required for: delete-node, change-level) |
+| `--promote` | True to promote (decrease level), false to demote (increase level) (required for: change-level) |
 
 
 
@@ -648,16 +702,16 @@ Custom tags/metadata on slides and shapes.
 
 Text operations within shapes: get, set, format, find, replace.
 
-**Actions:** `get`, `set`, `find`, `replace`, `format`, `format-advanced`, `word-count`, `alt-text-audit`, `empty-placeholder-audit`, `set-spacing`, `set-bullets`, `insert-link`
+**Actions:** `get`, `set`, `find`, `replace`, `format`, `format-advanced`, `word-count`, `alt-text-audit`, `empty-placeholder-audit`, `set-spacing`, `set-bullets`, `insert-link`, `change-case`, `read-spacing`, `read-bullets`, `insert-symbol`, `insert-datetime`, `insert-slide-number`
 
 | Parameter | Description |
 |-----------|-------------|
 | `--slide-index` | (required) |
-| `--shape-name` | (required for: get, set, format, format-advanced, set-spacing, set-bullets, insert-link) |
+| `--shape-name` | (required for: get, set, format, format-advanced, set-spacing, set-bullets, insert-link, change-case, read-spacing, read-bullets, insert-symbol, insert-datetime, insert-slide-number) |
 | `--text` | (required for: set) |
 | `--search-text` | Text to find (required for: find, replace) |
 | `--replace-text` | Replacement text (required for: replace) |
-| `--font-name` |  |
+| `--font-name` | (required for: insert-symbol) |
 | `--font-size` |  |
 | `--bold` |  |
 | `--italic` |  |
@@ -677,6 +731,9 @@ Text operations within shapes: get, set, format, find, replace.
 | `--indent-level` | Indent level 0-4 (required for: set-bullets) |
 | `--link-text` | Text to find and make into a hyperlink (required for: insert-link) |
 | `--url` | URL for the hyperlink (required for: insert-link) |
+| `--case-type` | 1=Sentence, 2=Lower, 3=Upper, 4=Title, 5=Toggle (required for: change-case) |
+| `--char-number` | Unicode/character code of the symbol (required for: insert-symbol) |
+| `--date-time-format` | PpDateTimeFormat value (1-13) (required for: insert-datetime) |
 
 
 
@@ -764,12 +821,17 @@ Parameters that accept lists require JSON array format:
 ## Reference Documentation
 
 - [Core execution rules and LLM guidelines](./references/behavioral-rules.md)
-- [Common mistakes to avoid](./references/anti-patterns.md)
-- [Presentation workflows and patterns](./references/workflows.md)
-- [Charts, positioning, and formatting](./references/chart.md)
-- [CLI commands reference](./references/cli-commands.md)
-- [Presentation design best practices](./references/dashboard.md)
-- [Screenshot and visual verification](./references/screenshot.md)
-- [Table operations](./references/table.md)
-- [Window management](./references/window.md)
+- [Slide design principles](./references/slide-design-principles.md)
+- [Slide design review checklist](./references/slide-design-review.md)
+- [Generation pipeline](./references/generation-pipeline.md)
 - [Agent mode patterns](./references/ppt_agent_mode.md)
+
+For design catalog data (archetypes, palettes, grids, styles, density), use the `design` CLI command:
+- `pptcli design list-archetypes` / `pptcli design get-archetype --archetype-id ...` — primary unified archetype surface; includes learned subtypes and concrete sanitized example details when local reference data is available
+- `pptcli design list-palettes` / `pptcli design get-palette --palette-id ...`
+- `pptcli design list-layout-grids` / `pptcli design get-layout-grid --grid-id ...`
+- `pptcli design list-style-profiles` / `pptcli design get-style-profile --profile-id ...`
+- `pptcli design get-context-model` — Meeting type → density mapping
+- `pptcli design get-deck-sequence --sequence-id ...` — Canonical slide sequences
+
+Reference examples are exposed only as sanitized ids/details embedded in `get-archetype`. Raw filenames and provenance metadata remain in local gitignored reference catalog data and are not part of the public CLI surface.

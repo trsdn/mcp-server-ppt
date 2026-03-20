@@ -8,7 +8,12 @@ namespace PptMcp.Core.Commands.SmartArt;
 /// SmartArt diagram operations: create, add/remove nodes, change layout.
 /// </summary>
 [ServiceCategory("smartart")]
-[McpTool("smartart", Title = "SmartArt Diagrams", Destructive = true, Category = "smartart")]
+[McpTool("smartart", Title = "SmartArt Diagrams", Destructive = true, Category = "smartart",
+    Description = "Create and modify SmartArt diagrams (org charts, process flows, lists). "
+    + "Use 'get-info' to inspect an existing SmartArt shape. 'add-node' appends text nodes. "
+    + "'set-layout' changes diagram type (layout_index: 1-based from Application.SmartArtLayouts). "
+    + "'set-style' changes visual style. 'change-level' promotes/demotes nodes in hierarchy. "
+    + "node_index: 1-based.")]
 public interface ISmartArtCommands
 {
     /// <summary>Get SmartArt info from a shape.</summary>

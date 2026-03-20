@@ -1,0 +1,71 @@
+{
+  "name": "strategic-pillars",
+  "mode": "tuning",
+  "description": "Evaluate and improve strategic pillar slides — vision bar, 3-column framework, numbered badges",
+  "goal": "Achieve consistent 12+/14 with tight bullet counts (2-3 per pillar), summary metrics, and varied layout",
+  "archetype": "strategic-pillars",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "pillars-growth",
+      "text": "Build a 3-pillar strategy slide: Revenue Growth (expand enterprise +15%), Product Innovation (ship AI platform), Operational Excellence (reduce costs 15%)"
+    },
+    {
+      "id": "pillars-transformation",
+      "text": "Build a 3-pillar digital transformation slide: Customer Experience, Data & Analytics, Cloud Infrastructure"
+    },
+    {
+      "id": "pillars-market-entry",
+      "text": "Build a 3-pillar market entry strategy for Germany: channel build, localized product, regulatory readiness"
+    },
+    {
+      "id": "pillars-turnaround",
+      "text": "Build a 3-pillar turnaround plan: simplify portfolio, reset cost base, rebuild commercial engine"
+    },
+    {
+      "id": "pillars-ai",
+      "text": "Build a 3-pillar AI strategy: copilots for employees, AI features for customers, AI-enabled operations"
+    },
+    {
+      "id": "pillars-sustainability",
+      "text": "Build a 3-pillar sustainability strategy: decarbonize operations, green suppliers, circular product design"
+    },
+    {
+      "id": "pillars-merger",
+      "text": "Build a 3-pillar post-merger value creation slide: revenue synergies, cost synergies, operating model integration"
+    },
+    {
+      "id": "pillars-sales",
+      "text": "Build a 3-pillar commercial acceleration slide: pricing, channel expansion, sales productivity"
+    },
+    {
+      "id": "pillars-product",
+      "text": "Build a 3-pillar product strategy: core platform hardening, adjacent workflow expansion, ecosystem partnerships"
+    },
+    {
+      "id": "pillars-talent",
+      "text": "Build a 3-pillar talent strategy: leadership bench, critical skill hiring, productivity culture"
+    }
+  ],
+  "outputDir": "output/strategic-pillars",
+  "resultsDir": "results/strategic-pillars",
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  }
+}

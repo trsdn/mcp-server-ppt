@@ -1,0 +1,70 @@
+{
+  "name": "slidecraft-design-eval-6",
+  "mode": "baseline",
+  "description": "Sixth wave: New pattern types from masterpack analysis. Tests 10 newly added patterns: assessment matrices, timelines, dashboards, governance diagrams, current-vs-future, KPI grids, quadrant matrices, swim lanes, stratified pillars, hero+grid layouts.",
+  "goal": "Validate that the 10 new patterns from masterpack analysis produce high-quality slides. Target: avg 12.5+ across all 7 dimensions.",
+  "archetype": "mixed",
+  "loops": 10,
+  "builder": {
+    "model": "claude-opus-4.6",
+    "reasoningEffort": "high",
+    "transport": "mcp",
+    "reuseSessionContext": true,
+    "skillFiles": [
+      "generation-pipeline.md",
+      "slide-design-principles.md",
+      "slide-design-review.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp-design.md",
+    "timeoutMs": 600000
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "pattern-assessment-matrix",
+      "text": "Build a capability maturity assessment slide for our digital transformation program. Assess 6 capability areas (Data & Analytics, Cloud Infrastructure, Cybersecurity, DevOps, AI/ML, Customer Experience) across 4 maturity dimensions (People, Process, Technology, Governance). Use a color-coded matrix: green = Level 4-5 (Advanced/Optimized), amber = Level 2-3 (Developing/Defined), red = Level 1 (Initial). Our strongest area: Cloud Infrastructure (all green). Weakest: AI/ML (mostly red, one amber in Technology). Include a summary column showing overall maturity level per capability. Action title: 'Cloud infrastructure leads at Level 4; AI/ML maturity gap requires targeted investment in people and governance.' D3 density, steering committee audience. Source: Digital maturity assessment, March 2026, based on CMMI framework."
+    },
+    {
+      "id": "pattern-milestone-timeline",
+      "text": "Build a project roadmap slide for our ERP migration showing 5 phases over 18 months. Phase 1 (Q1 2026): Discovery & Planning — scope definition, vendor selection, data audit, team onboarding (4 key deliverables). Phase 2 (Q2 2026): Design & Prototype — process mapping, integration architecture, UAT environment setup (3 deliverables). Phase 3 (Q3-Q4 2026): Build & Configure — module development, data migration scripts, integration testing (5 deliverables). Phase 4 (Q1 2027): Testing & Training — parallel run, user training, cutover rehearsal (4 deliverables). Phase 5 (Q2 2027): Go-Live & Stabilization — production cutover, hypercare support, benefits tracking (3 deliverables). Show phases on a horizontal timeline with colored blocks. Highlight that Phase 3 is the longest (6 months) and highest risk. D3 density, project steering committee. Source: PMO project plan v2.1."
+    },
+    {
+      "id": "pattern-kpi-dashboard",
+      "text": "Build an executive KPI dashboard slide showing 6 metrics for our Q4 2025 business review. Row 1: Revenue $142M (+8% YoY, green up-arrow), EBITDA Margin 22.4% (+1.8pp, green), Customer Count 12,400 (+15%, green). Row 2: Employee NPS 62 (-5 pts, amber down-arrow), Cash Conversion 87% (-3pp, amber), Churn Rate 4.2% (+0.8pp, red up-arrow since higher is bad). Each metric should be a tile with: large hero number, trend arrow with color, metric label, and comparison period. Group Row 1 as 'Financial & Growth' and Row 2 as 'Operational Health'. Action title: 'Financial metrics exceed targets; employee engagement and churn require attention in Q1.' D3 density, board pre-read. Source: Finance dashboard + HR analytics, December 2025."
+    },
+    {
+      "id": "pattern-current-vs-future",
+      "text": "Build a current-vs-future state comparison slide for our customer service operating model. LEFT PANEL (Today - muted colors): Average handle time 12 minutes, First-contact resolution 68%, Channel mix: 70% phone / 20% email / 10% chat, Cost per contact $8.50, Agent headcount 450, Customer satisfaction 3.6/5.0. RIGHT PANEL (Target 2027 - accent colors): Average handle time 4 minutes, First-contact resolution 92%, Channel mix: 15% phone / 5% email / 50% chat / 30% self-service, Cost per contact $2.80, Agent headcount 280, Customer satisfaction 4.5/5.0. CENTER bridge element: 'AI-powered transformation' connecting the two states. Show percentage improvements between each matching row. D3 density, CTO steering deck. Source: Service operations analytics + transformation business case."
+    },
+    {
+      "id": "pattern-risk-quadrant",
+      "text": "Build a risk assessment quadrant slide for our product portfolio. Axes: X = Market Growth Potential (Low to High), Y = Competitive Position (Weak to Strong). Plot 8 products: Quadrant 1 (High Growth + Strong Position = 'Invest'): Product A (circle size = $40M revenue), Product B ($25M). Quadrant 2 (High Growth + Weak Position = 'Build or Exit'): Product C ($15M), Product D ($8M). Quadrant 3 (Low Growth + Strong Position = 'Harvest'): Product E ($55M), Product F ($30M). Quadrant 4 (Low Growth + Weak Position = 'Divest'): Product G ($12M), Product H ($5M). Circle sizes proportional to revenue. Color quadrants: green (Invest), amber (Build/Harvest), red (Divest). Total portfolio: $190M. Action title: 'Portfolio is heavy in Harvest quadrant ($85M, 45%); shift investment toward high-growth Products A and B.' D3, strategy offsite. Source: Strategic planning, portfolio review Q1 2026."
+    },
+    {
+      "id": "pattern-swim-lane-process",
+      "text": "Build a swim lane process flow slide for our order-to-cash cycle with 4 lanes. Lane 1 (Customer): Submit order → Receive confirmation → Receive invoice → Make payment. Lane 2 (Sales Team): Validate order → Approve pricing → Generate contract. Lane 3 (Operations): Check inventory → Fulfill order → Ship → Confirm delivery. Lane 4 (Finance): Credit check → Generate invoice → Record payment → Close order. Show the handoff points between lanes with dashed arrows. Highlight the bottleneck: Credit check (Finance) takes 3 days on average and blocks fulfillment. Total process: 14 days end-to-end. Include a decision diamond at Credit check: Pass → continue, Fail → escalation path. D3 density, process improvement workshop. Source: Process mining analysis, Celonis Q4 2025."
+    },
+    {
+      "id": "pattern-stratified-pillar-grid",
+      "text": "Build a strategic pillar slide showing our 3-year transformation plan with 4 pillars. Pillar 1 (Customer Centricity): Strategy = 'Shift from product-push to customer-pull model'. Initiatives: CRM upgrade ($2M), Journey mapping ($500K), Voice of customer program ($300K). Ambition: NPS from 42 to 70. Pillar 2 (Operational Excellence): Strategy = 'Automate and standardize core processes'. Initiatives: RPA deployment ($1.5M), Six Sigma program ($400K), Supply chain digitization ($3M). Ambition: Cost reduction 15%. Pillar 3 (Digital Innovation): Strategy = 'Build data-driven competitive advantage'. Initiatives: AI/ML platform ($4M), Data lake ($2M), Digital products ($1.5M). Ambition: 20% revenue from digital. Pillar 4 (People & Culture): Strategy = 'Develop future-ready workforce'. Initiatives: Upskilling academy ($800K), Talent acquisition ($600K), Culture program ($200K). Ambition: Top-quartile employer brand. Use a 4-row grid with columns: Pillar | Strategy | Initiatives | Ambition. Color-code initiatives by investment size. D3 density, board strategy review. Source: Strategy office, transformation plan v3."
+    },
+    {
+      "id": "pattern-governance-model",
+      "text": "Build a governance framework slide for our transformation program with 3 tiers. TIER 1 (Strategic - Board/ExCo): Quarterly strategy review, investment decisions >$5M, risk escalations. Members: CEO, CFO, CTO, CHRO. TIER 2 (Tactical - Program Management): Monthly progress review, cross-workstream dependencies, resource allocation. Members: Program Director, 4 Workstream Leads, PMO Head. TIER 3 (Operational - Delivery Teams): Weekly sprint reviews, issue resolution, delivery tracking. Members: 12 Agile teams across 4 workstreams. Show as a 3-tier hierarchical diagram with boxes for each tier. Solid lines = reporting (upward), dashed lines = coordination (horizontal between workstream leads). Include meeting cadence and key decisions per tier. Color-code by function: blue = leadership, green = program management, orange = delivery. D3 density, program kickoff. Source: PMO governance charter v1.2."
+    },
+    {
+      "id": "pattern-hero-pillar-grid",
+      "text": "Build a vision slide for our sustainability strategy with a hero visual and 3-column pillar grid. HERO SECTION (top 40%): Large circular icon representing sustainability (leaf or globe concept), bold action title: 'Net-zero by 2030: Three pillars driving our 65% emissions reduction.' PILLAR GRID (bottom 60%): Column 1 (Green Operations): icon = factory, 'Reduce Scope 1 & 2 emissions by 80% through renewable energy transition, facility upgrades, and fleet electrification. Investment: $45M over 5 years.' Column 2 (Sustainable Supply Chain): icon = chain link, 'Engage top 100 suppliers on science-based targets. Achieve 50% Scope 3 reduction through material substitution and logistics optimization. Investment: $20M.' Column 3 (Circular Products): icon = recycling, 'Redesign product portfolio for 90% recyclability. Launch take-back program targeting 60% recovery rate. Revenue opportunity: $15M from circular services.' D2 density, annual shareholder meeting. Source: Sustainability team, ESG roadmap 2026-2030."
+    },
+    {
+      "id": "pattern-data-dashboard-complex",
+      "text": "Build a comprehensive data dashboard slide for our monthly operations review. TOP ROW (3 KPI cards): Production Volume 18,400 units (+6% vs plan, green), Quality Rate 99.2% (-0.3pp vs target, amber), On-Time Delivery 94.8% (+2.1pp vs last month, green). MIDDLE ROW (2 charts): Left chart = Daily production volume trend (bar chart, 30 days, with target line at 600/day). Right chart = Quality defect Pareto (horizontal bars: Assembly 42%, Welding 28%, Paint 18%, Other 12%). BOTTOM ROW: Summary table with 5 production lines showing Volume, Quality, OTD, and Overall Status (green/amber/red) per line. Line 3 is amber overall (quality issues). Line 5 is red (both quality and OTD below target). Action title: 'Production exceeds plan; Lines 3 and 5 require quality intervention — root cause analysis initiated.' D4 density, plant manager weekly review. Source: MES + ERP production planning, auto-generated dashboard, week ending March 21, 2026."
+    }
+  ],
+  "outputDir": "output/slidecraft-design-eval-6",
+  "resultsDir": "results/slidecraft-design-eval-6"
+}

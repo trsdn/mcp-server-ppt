@@ -4,7 +4,7 @@ using PptMcp.Core.Models;
 
 namespace PptMcp.Core.Commands.Design;
 
-public class DesignCommands : IDesignCommands
+public partial class DesignCommands : IDesignCommands
 {
     public DesignListResult List(IPptBatch batch)
     {

@@ -64,14 +64,15 @@ Quick reference:
 **Automated on Pull Requests:**
 - `build-mcp-server.yml` - Builds MCP Server on code changes
 - `build-cli.yml` - Builds CLI on code changes
+- `integration-tests.yml` - Real PowerPoint COM integration workflow; activates only when repository variable `ENABLE_POWERPOINT_INTEGRATION_CI=true` and a self-hosted runner labeled `powerpoint` is available
 - `codeql.yml` - Security analysis
 - `dependency-review.yml` - Dependency security scanning
 
-**Disabled Workflows:**
-- `integration-tests.yml.disabled` - PowerPoint COM integration tests (Azure runner undeployed)
-- `deploy-azure-runner.yml.disabled` - Azure runner deployment (infrastructure removed)
+**Manual/on-demand gates:**
+- `scripts\Test-LlmRegressionGate.ps1` - Canonical LLM regression gate
+- `integration-tests.yml` `workflow_dispatch` inputs can opt into `RunType=OnDemand` and the LLM gate when the PowerPoint runner is available
 
-**Note:** Integration tests are currently disabled. The Azure self-hosted runner has been undeployed. To re-enable, see `docs/AZURE_SELFHOSTED_RUNNER_SETUP.md`.
+**Note:** The workflow file is active, but the PowerPoint job intentionally no-ops unless `ENABLE_POWERPOINT_INTEGRATION_CI=true`. See `docs/AZURE_SELFHOSTED_RUNNER_SETUP.md`.
 
 ## Workflow Config Updates
 

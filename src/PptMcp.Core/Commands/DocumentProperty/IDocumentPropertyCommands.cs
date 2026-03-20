@@ -8,7 +8,10 @@ namespace PptMcp.Core.Commands.DocumentProperty;
 /// Document property management: read and write presentation metadata like title, author, subject, keywords.
 /// </summary>
 [ServiceCategory("docproperty")]
-[McpTool("docproperty", Title = "Document Property Operations", Destructive = false, Category = "metadata")]
+[McpTool("docproperty", Title = "Document Properties", Destructive = false, Category = "metadata",
+    Description = "Read and write presentation metadata: title, author, subject, keywords, comments, company, category. "
+    + "Use 'get' for all built-in properties. Use 'set' (pass null to leave unchanged). "
+    + "'get-custom'/'set-custom' for arbitrary key-value metadata via property_name/property_value.")]
 public interface IDocumentPropertyCommands
 {
     /// <summary>

@@ -8,7 +8,11 @@ namespace PptMcp.Core.Commands.Window;
 /// PowerPoint window management: get info, minimize, restore, maximize.
 /// </summary>
 [ServiceCategory("window")]
-[McpTool("window", Title = "Window Operations", Destructive = false, Category = "window")]
+[McpTool("window", Title = "Window Operations", Destructive = false, Category = "window",
+    Description = "Control PowerPoint window: visibility, position, zoom, view mode. "
+    + "Use for 'Agent Mode' (user watches AI work): window(get-info) to check state, then minimize/restore/maximize. "
+    + "set-zoom: zoom_percent (e.g. 100 for 100%). "
+    + "set-view view_type: 1=Normal, 2=Outline, 3=SlideSorter, 4=NotesPage, 5=SlideMaster.")]
 public interface IWindowCommands
 {
     /// <summary>

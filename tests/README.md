@@ -94,7 +94,7 @@ dotnet test --filter "Feature=Connections&RunType!=OnDemand"
 | **Before commit** | `dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA"` |
 | **Modified session/batch code** | `dotnet test --filter "RunType=OnDemand"` (see [Rule 3](../.github/instructions/critical-rules.instructions.md#rule-3-session-cleanup-tests)) |
 | **VBA development** | `dotnet test --filter "(Feature=VBA\|Feature=VBATrust)&RunType!=OnDemand"` |
-| **LLM behavior validation** | See [LLM Tests](#llm-tests) section below |
+| **LLM behavior validation** | `.\scripts\Test-LlmRegressionGate.ps1` |
 
 ## LLM Tests
 
@@ -113,6 +113,16 @@ The `llm-tests/` project validates that LLMs correctly use PowerPoint MCP Server
 uv sync
 uv run pytest -m aitest -v
 ```
+
+### Canonical regression gate
+
+Use the repository-level helper when you want the standard manual gate instead of the full suite:
+
+```powershell
+.\scripts\Test-LlmRegressionGate.ps1
+```
+
+The canonical gate runs three CLI scenarios plus the matching three MCP scenarios and is the recommended check after changing tool descriptions, skill guidance, or CLI help output.
 
 ### Prerequisites
 

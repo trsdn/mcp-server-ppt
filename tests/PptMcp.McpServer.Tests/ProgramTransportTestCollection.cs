@@ -12,8 +12,8 @@ namespace PptMcp.McpServer.Tests;
 /// </summary>
 /// <remarks>
 /// Tests in this collection:
-/// - McpServerSmokeTests
 /// - PptFileToolOperationTrackingTests
+/// - PptDesignToolTests
 /// 
 /// Both use Program.ConfigureTestTransport() which sets static pipe fields.
 /// Running them in parallel causes "writer already completed" errors.

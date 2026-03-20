@@ -13,7 +13,7 @@ Complete installation instructions for the PptMcp MCP Server and CLI tool.
 - **Microsoft Analysis Services OLE DB Provider (MSOLAP)** - Required for DAX query execution (`evaluate`, `execute-dmv` actions)
   - Easiest: Install [Power BI Desktop](https://powerbi.microsoft.com/desktop) (includes MSOLAP)
   - Alternative: [Microsoft OLE DB Driver for Analysis Services](https://learn.microsoft.com/analysis-services/client-libraries)
-- **Node.js** - Only required for `npx` commands (`add-mcp` auto-configuration, agent skills). Install with `winget install OpenJS.NodeJS.LTS` or from [nodejs.org](https://nodejs.org/)
+- **Node.js** - Required for `npx` commands (`add-mcp` auto-configuration, agent skills) and the official source-side agent client in `src\PptMcp.Agent`. Install with `winget install OpenJS.NodeJS.LTS` or from [nodejs.org](https://nodejs.org/)
 
 ### Recommended
 - Windows 11 for best performance
@@ -253,6 +253,40 @@ If it works, you're all set! 🎉
 Show me PowerPoint while you work on test.pptx
 ```
 This opens PowerPoint visibly so you can see every change in real-time - great for debugging and demos!
+
+---
+
+## Optional: Official Agent Client (From Source)
+
+**Best for:** Multi-phase deck generation and repair loops driven from one natural-language task
+
+`src\PptMcp.Agent` is an official source component that plans a deck, executes it through standard MCP calls, verifies the result, and performs a repair pass when artifact validation fails.
+
+### Build and Run
+
+```powershell
+dotnet build src\PptMcp.McpServer\PptMcp.McpServer.csproj -c Release
+
+Set-Location src\PptMcp.Agent
+npm install
+npm run check
+npm test
+
+node .\src\cli.mjs run `
+  --task "Build a 5-slide executive deck on Q4 revenue performance and next actions." `
+  --output "C:\Users\you\Documents\q4-revenue-deck.pptx"
+```
+
+### Notes
+
+- The agent is source-based today; it is not a separate released desktop product.
+- By default it looks for the MCP server at `src\PptMcp.McpServer\bin\Release\net9.0-windows\PptMcp.McpServer.exe`.
+- Override the server path with `--mcp-server`, `PPT_MCP_AGENT_MCP_SERVER`, `PPT_MCP_SERVER_COMMAND`, or `ppt_mcp_SERVER_COMMAND`.
+
+More detail:
+
+- [Agent Client README](../src/PptMcp.Agent/README.md)
+- [Agent Client Architecture](AGENT-CLIENT.md)
 
 ---
 

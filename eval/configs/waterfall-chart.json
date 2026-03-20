@@ -1,0 +1,71 @@
+{
+  "name": "waterfall-chart",
+  "mode": "tuning",
+  "description": "Evaluate and improve waterfall chart slides — start, drivers, and total with clear gain/loss logic",
+  "goal": "Achieve consistent 12+/14 with complete driver sequencing, crisp start-to-finish logic, and CFO-grade proof",
+  "archetype": "waterfall-chart",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "waterfall-ebitda",
+      "text": "Build a waterfall slide showing how EBITDA moved from $42M to $57M via price +8M, volume +5M, mix +4M, inflation -2M"
+    },
+    {
+      "id": "waterfall-cost-savings",
+      "text": "Build a waterfall slide showing how a cost program delivered $18M savings from procurement 7M, automation 5M, footprint 4M, overhead 2M"
+    },
+    {
+      "id": "waterfall-revenue-bridge",
+      "text": "Build a waterfall slide bridging revenue from plan $120M to actual $128M via price, volume, churn, and upsell"
+    },
+    {
+      "id": "waterfall-cash",
+      "text": "Build a waterfall slide showing cash bridge from EBITDA to free cash flow with tax, capex, working capital, and restructuring items"
+    },
+    {
+      "id": "waterfall-headcount",
+      "text": "Build a waterfall slide showing headcount change from 380 to 450 with hiring, attrition, acquisition, and reorg effects"
+    },
+    {
+      "id": "waterfall-carbon",
+      "text": "Build a waterfall slide showing carbon reduction from 100 to 60 units via efficiency, renewables, and offsets"
+    },
+    {
+      "id": "waterfall-margin",
+      "text": "Build a waterfall slide showing gross margin expansion from 42% to 49% with pricing, mix, productivity, and input cost effects"
+    },
+    {
+      "id": "waterfall-incidents",
+      "text": "Build a waterfall slide showing incident reduction from 120 to 48 via observability, automation, patching, and training"
+    },
+    {
+      "id": "waterfall-synergy",
+      "text": "Build a waterfall slide showing merger synergy build-up from baseline to $65M run-rate synergy target"
+    },
+    {
+      "id": "waterfall-roi",
+      "text": "Build a waterfall slide showing ROI bridge from investment to value captured across revenue, savings, and productivity drivers"
+    }
+  ],
+  "outputDir": "output/waterfall-chart",
+  "resultsDir": "results/waterfall-chart"
+}

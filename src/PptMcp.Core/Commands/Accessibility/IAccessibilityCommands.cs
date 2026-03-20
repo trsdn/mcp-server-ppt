@@ -8,7 +8,10 @@ namespace PptMcp.Core.Commands.Accessibility;
 /// Accessibility audit: check alt text, title placeholders, reading order.
 /// </summary>
 [ServiceCategory("accessibility")]
-[McpTool("accessibility", Title = "Accessibility Audit", Destructive = false, Category = "accessibility")]
+[McpTool("accessibility", Title = "Accessibility Audit", Destructive = false, Category = "accessibility",
+    Description = "Audit presentation accessibility: missing alt text, empty title placeholders, reading order issues. "
+    + "Use 'audit' for full-presentation scan. Use 'get-reading-order'/'set-reading-order' to fix tab order per slide. "
+    + "shape_names for set-reading-order: comma-separated names in desired order.")]
 public interface IAccessibilityCommands
 {
     /// <summary>

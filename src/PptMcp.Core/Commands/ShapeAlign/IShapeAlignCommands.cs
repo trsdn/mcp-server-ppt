@@ -8,7 +8,11 @@ namespace PptMcp.Core.Commands.ShapeAlign;
 /// Shape alignment and distribution operations.
 /// </summary>
 [ServiceCategory("shapealign")]
-[McpTool("shapealign", Title = "Shape Alignment", Destructive = true, Category = "shapealign")]
+[McpTool("shapealign", Title = "Shape Alignment", Destructive = true, Category = "shapealign",
+    Description = "Align and distribute multiple shapes on a slide. "
+    + "shape_names: comma-separated shape names (e.g. 'Title 1,TextBox 3,Rectangle 2'). "
+    + "align_type: 0=AlignLeft, 1=AlignCenter, 2=AlignRight, 3=AlignTop, 4=AlignMiddle, 5=AlignBottom. "
+    + "distribute_type: 0=Horizontally, 1=Vertically. Requires 3+ shapes for distribute.")]
 public interface IShapeAlignCommands
 {
     /// <summary>

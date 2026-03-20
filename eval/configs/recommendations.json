@@ -1,0 +1,71 @@
+{
+  "name": "recommendations",
+  "mode": "tuning",
+  "description": "Evaluate and improve recommendation/next-steps slides — structured rows with owner, timeline, impact",
+  "goal": "Achieve consistent 12+/14 with table-style accountability layout, not paragraph prose or generic cards",
+  "archetype": "recommendations",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "actions-incident",
+      "text": "Build a next-steps slide with 3 post-incident prevention measures, each with owner, timeline, and expected impact"
+    },
+    {
+      "id": "actions-strategy",
+      "text": "Build a recommendations slide with 3 strategic initiatives for Q1, each with budget, owner, and success metric"
+    },
+    {
+      "id": "actions-board",
+      "text": "Build a board recommendation slide with 4 capital allocation moves, each with rationale, investment size, and ROI"
+    },
+    {
+      "id": "actions-product",
+      "text": "Build a product next-steps slide with 3 launches, each with PM owner, release quarter, and target KPI"
+    },
+    {
+      "id": "actions-sales",
+      "text": "Build a sales action plan slide with 4 actions to improve win rate, each with accountable leader and 90-day milestone"
+    },
+    {
+      "id": "actions-hr",
+      "text": "Build a people recommendations slide with 3 retention initiatives, each with sponsor, rollout timing, and success measure"
+    },
+    {
+      "id": "actions-finance",
+      "text": "Build a finance recommendations slide with 3 margin improvement levers, each with savings target and owner"
+    },
+    {
+      "id": "actions-security",
+      "text": "Build a cybersecurity remediation slide with 4 actions, each with priority, owner, due date, and risk reduced"
+    },
+    {
+      "id": "actions-integration",
+      "text": "Build a post-merger integration action slide with 5 workstreams, each with lead, timing, and synergy value"
+    },
+    {
+      "id": "actions-operations",
+      "text": "Build an operations improvement slide with 3 plant actions, each with timeline, capex, and throughput impact"
+    }
+  ],
+  "outputDir": "output/recommendations",
+  "resultsDir": "results/recommendations",
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  }
+}

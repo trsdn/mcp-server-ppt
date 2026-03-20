@@ -163,4 +163,55 @@ public class ResultTypeSerializationTests
         // SlideIndex = 0 should be omitted (WhenWritingDefault)
         Assert.DoesNotContain("\"slideIndex\":", json);
     }
+
+    [Fact]
+    public void ArchetypeDetailResult_ObservedExamples_RemainSanitized()
+    {
+        var result = new ArchetypeDetailResult
+        {
+            Success = true,
+            Id = "framework",
+            Name = "Framework",
+            ObservedExampleSlides = ["ref-sample123"],
+            ObservedExamples =
+            [
+                new ReferenceSlideInfo
+                {
+                    Id = "ref-sample123",
+                    ArchetypeId = "framework",
+                    SubArchetypeId = "matrix-grid",
+                    Rationale = "Sample rationale."
+                }
+            ],
+            ObservedSubtypes =
+            [
+                new ReferenceSubtypeInfo
+                {
+                    SubArchetypeId = "matrix-grid",
+                    Count = 1,
+                    ExampleSlides = ["ref-sample123"],
+                    ExampleDetails =
+                    [
+                        new ReferenceSlideInfo
+                        {
+                            Id = "ref-sample123",
+                            ArchetypeId = "framework",
+                            SubArchetypeId = "matrix-grid",
+                            Rationale = "Sample rationale."
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var json = JsonSerializer.Serialize(result, JsonOptions);
+
+        Assert.Contains("\"observedExampleSlides\":[\"ref-sample123\"]", json);
+        Assert.Contains("\"observedExamples\":[", json);
+        Assert.Contains("\"exampleDetails\":[", json);
+        Assert.DoesNotContain("\"sourceName\":", json);
+        Assert.DoesNotContain("\"sourceImage\":", json);
+        Assert.DoesNotContain("\"batchId\":", json);
+        Assert.DoesNotContain("\"deckKey\":", json);
+    }
 }

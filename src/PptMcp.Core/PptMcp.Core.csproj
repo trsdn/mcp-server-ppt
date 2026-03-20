@@ -56,6 +56,15 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="PptMcp.Core.Tests" />
+    <InternalsVisibleTo Include="PptMcp.CLI.Tests" />
+    <InternalsVisibleTo Include="PptMcp.McpServer.Tests" />
+  </ItemGroup>
+
+  <!-- Embedded design catalog data files -->
+  <ItemGroup>
+    <EmbeddedResource Include="Data\*.json" />
+    <EmbeddedResource Include="Data\*.md" />
+    <EmbeddedResource Include="Data\archetypes\*.md" />
   </ItemGroup>
 
   <ItemGroup>

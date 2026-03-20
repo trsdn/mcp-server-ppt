@@ -1,0 +1,81 @@
+{
+  "name": "comparison",
+  "mode": "tuning",
+  "description": "Evaluate and improve comparison slides — before/after, current/future, option A vs B",
+  "goal": "Achieve consistent 12+/14 with metrics-as-hero pattern, semantic red/green, flat layout (no cards)",
+  "archetype": "comparison",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "compare-transformation",
+      "text": "Build a comparison slide: Current State (manual, 3 weeks, $4.2M) vs Future State (automated, 2 days, $2.1M)",
+      "expectedVariant": "before-after"
+    },
+    {
+      "id": "compare-vendors",
+      "text": "Build a comparison of 3 CRM vendors across 5 criteria with scoring",
+      "expectedVariant": "decision-matrix"
+    },
+    {
+      "id": "compare-pricing",
+      "text": "Build a comparison slide of three pricing options (Basic, Professional, Enterprise) across cost, features, and ROI",
+      "expectedVariant": "3-column"
+    },
+    {
+      "id": "compare-build-buy",
+      "text": "Build a build-vs-buy comparison for an AI assistant platform with cost, time, risk, and flexibility rows",
+      "expectedVariant": "build-vs-buy"
+    },
+    {
+      "id": "compare-before-after",
+      "text": "Build a before-vs-after operating model slide: 14 approvals and 21 days before, 5 approvals and 4 days after",
+      "expectedVariant": "before-after"
+    },
+    {
+      "id": "compare-regions",
+      "text": "Build a comparison slide of North America vs Europe sales performance across revenue, margin, win rate, and pipeline",
+      "expectedVariant": "2-column"
+    },
+    {
+      "id": "compare-scenarios",
+      "text": "Build a scenario comparison slide for Base, Upside, and Downside cases with revenue and EBITDA outcomes",
+      "expectedVariant": "scenario-comparison"
+    },
+    {
+      "id": "compare-competitors",
+      "text": "Build a competitor comparison slide showing our product vs Competitor A vs Competitor B across five buyer criteria",
+      "expectedVariant": "decision-matrix"
+    },
+    {
+      "id": "compare-tech-options",
+      "text": "Build a comparison of monolith vs modular monolith vs microservices across speed, cost, complexity, and scalability",
+      "expectedVariant": "3-column"
+    },
+    {
+      "id": "compare-sla",
+      "text": "Build a comparison slide showing current SLA performance vs target SLA across uptime, MTTR, and incident frequency",
+      "expectedVariant": "before-after"
+    }
+  ],
+  "outputDir": "output/comparison",
+  "resultsDir": "results/comparison",
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  }
+}

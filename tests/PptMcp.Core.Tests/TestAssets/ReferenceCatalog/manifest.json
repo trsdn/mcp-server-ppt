@@ -1,0 +1,68 @@
+[
+  {
+    "id": "fixture-framework-001",
+    "sourceName": "fixture-framework-001.png",
+    "sourceImage": "eval/output/slide-triage/good/fixture-framework-001.png",
+    "archetypeId": "framework",
+    "rationale": "Matrix-style framework with labeled dimensions.",
+    "batchId": "batch-0001",
+    "deckKey": "deck-a",
+    "slideNumber": 3,
+    "subArchetypeId": "matrix-grid"
+  },
+  {
+    "id": "fixture-framework-002",
+    "sourceName": "fixture-framework-002.png",
+    "sourceImage": "eval/output/slide-triage/good/fixture-framework-002.png",
+    "archetypeId": "framework",
+    "rationale": "Framework slide with strong two-axis comparison cues.",
+    "batchId": "batch-0001",
+    "deckKey": "deck-a",
+    "slideNumber": 7,
+    "subArchetypeId": "matrix-grid"
+  },
+  {
+    "id": "fixture-framework-003",
+    "sourceName": "fixture-framework-003.png",
+    "sourceImage": "eval/output/slide-triage/good/fixture-framework-003.png",
+    "archetypeId": "framework",
+    "rationale": "Pillar-based concept layout with stacked labels.",
+    "batchId": "batch-0002",
+    "deckKey": "deck-b",
+    "slideNumber": 5,
+    "subArchetypeId": "pillars-model"
+  },
+  {
+    "id": "fixture-table-001",
+    "sourceName": "fixture-table-001.png",
+    "sourceImage": "eval/output/slide-triage/good/fixture-table-001.png",
+    "archetypeId": "simple-table",
+    "rationale": "Criteria scoring table with compact numeric assessment.",
+    "batchId": "batch-0003",
+    "deckKey": "deck-c",
+    "slideNumber": 4,
+    "subArchetypeId": "scored-criteria-table"
+  },
+  {
+    "id": "fixture-table-002",
+    "sourceName": "fixture-table-002.png",
+    "sourceImage": "eval/output/slide-triage/good/fixture-table-002.png",
+    "archetypeId": "simple-table",
+    "rationale": "Second criteria table with weighted scoring rows.",
+    "batchId": "batch-0003",
+    "deckKey": "deck-c",
+    "slideNumber": 9,
+    "subArchetypeId": "scored-criteria-table"
+  },
+  {
+    "id": "fixture-org-001",
+    "sourceName": "fixture-org-001.png",
+    "sourceImage": "eval/output/slide-triage/good/fixture-org-001.png",
+    "archetypeId": "org-chart",
+    "rationale": "Hierarchy tree with clear reporting structure.",
+    "batchId": "batch-0004",
+    "deckKey": "deck-d",
+    "slideNumber": 2,
+    "subArchetypeId": "hierarchy-tree"
+  }
+]

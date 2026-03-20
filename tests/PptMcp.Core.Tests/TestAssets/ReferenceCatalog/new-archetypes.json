@@ -1,0 +1,10 @@
+[
+  {
+    "id": "org-chart",
+    "description": "Hierarchical structures with manager-to-team relationships and reporting lines.",
+    "count": 1,
+    "exampleSlides": [
+      "fixture-org-001.png"
+    ]
+  }
+]

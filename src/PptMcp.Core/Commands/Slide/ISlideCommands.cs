@@ -8,7 +8,13 @@ namespace PptMcp.Core.Commands.Slide;
 /// Slide lifecycle commands: list, read, create, duplicate, move, delete.
 /// </summary>
 [ServiceCategory("slide")]
-[McpTool("slide", Title = "Slide Operations", Destructive = true, Category = "slides")]
+[McpTool("slide", Title = "Slide Operations", Destructive = true, Category = "slides",
+    Description = "Create, duplicate, move, delete, and inspect slides. The foundation tool — use before shape/text/chart. "
+    + "WORKFLOW: file(open) → slide(create, layoutName='Blank') → shape(add-shape) → text(set). "
+    + "layout_name: 'Title Slide', 'Title and Content', 'Blank', 'Two Content', 'Section Header', 'Title Only' (from master). "
+    + "Use 'list' to see all slides. 'read' for detailed slide info with all shapes. "
+    + "'summary' for presentation overview. 'clone-with-replace' for mail-merge style duplication. "
+    + "All indices are 1-based. position=0 means 'at end'.")]
 public interface ISlideCommands
 {
     /// <summary>

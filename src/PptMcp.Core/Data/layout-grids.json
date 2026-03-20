@@ -1,0 +1,252 @@
+{
+  "safeZones": {
+    "slideWidth": 960,
+    "slideHeight": 540,
+    "margin": 36,
+    "title": { "x": 36, "y": 36, "w": 888, "h": 50 },
+    "contentArea": { "x": 36, "y": 100, "w": 888, "h": 380 },
+    "sourceBar": { "x": 36, "y": 490, "w": 888, "h": 15 },
+    "footerLeft": { "x": 36, "y": 512, "w": 200, "h": 18 },
+    "footerRight": { "x": 860, "y": 512, "w": 64, "h": 18 }
+  },
+  "grids": [
+    {
+      "id": "single-column",
+      "name": "Single Column (Full Width)",
+      "bestFor": "Executive summaries, bullet lists, single charts, big numbers",
+      "zones": [
+        { "name": "content", "x": 36, "y": 100, "w": 888, "h": 380 }
+      ]
+    },
+    {
+      "id": "two-column-equal",
+      "name": "Two Column (Equal)",
+      "bestFor": "Comparisons, before/after, pros/cons",
+      "gutter": 24,
+      "zones": [
+        { "name": "left", "x": 36, "y": 100, "w": 420, "h": 380 },
+        { "name": "right", "x": 480, "y": 100, "w": 420, "h": 380 }
+      ]
+    },
+    {
+      "id": "two-column-60-40",
+      "name": "Two Column (60/40)",
+      "bestFor": "Chart + insight callout, image + description",
+      "gutter": 24,
+      "zones": [
+        { "name": "wide", "x": 36, "y": 100, "w": 528, "h": 380 },
+        { "name": "narrow", "x": 588, "y": 100, "w": 336, "h": 380 }
+      ]
+    },
+    {
+      "id": "two-column-40-60",
+      "name": "Two Column (40/60)",
+      "bestFor": "Icon/number + explanation, sidebar + main content",
+      "gutter": 24,
+      "zones": [
+        { "name": "narrow", "x": 36, "y": 100, "w": 336, "h": 380 },
+        { "name": "wide", "x": 396, "y": 100, "w": 528, "h": 380 }
+      ]
+    },
+    {
+      "id": "three-column",
+      "name": "Three Column (Equal)",
+      "bestFor": "Three options, team profiles, triple comparison",
+      "gap": 20,
+      "zones": [
+        { "name": "col1", "x": 36, "y": 100, "w": 276, "h": 380 },
+        { "name": "col2", "x": 332, "y": 100, "w": 276, "h": 380 },
+        { "name": "col3", "x": 628, "y": 100, "w": 276, "h": 380 }
+      ]
+    },
+    {
+      "id": "four-column",
+      "name": "Four Column (Equal)",
+      "bestFor": "Four pillars, quarterly data, feature grids",
+      "gap": 16,
+      "zones": [
+        { "name": "col1", "x": 36, "y": 100, "w": 201, "h": 380 },
+        { "name": "col2", "x": 253, "y": 100, "w": 201, "h": 380 },
+        { "name": "col3", "x": 470, "y": 100, "w": 201, "h": 380 },
+        { "name": "col4", "x": 687, "y": 100, "w": 201, "h": 380 }
+      ]
+    },
+    {
+      "id": "two-row",
+      "name": "Two Row (Equal)",
+      "bestFor": "Stacked content, top chart + bottom table",
+      "gap": 24,
+      "zones": [
+        { "name": "top", "x": 36, "y": 100, "w": 888, "h": 178 },
+        { "name": "bottom", "x": 36, "y": 302, "w": 888, "h": 178 }
+      ]
+    },
+    {
+      "id": "grid-2x2",
+      "name": "2×2 Grid (Dashboard)",
+      "bestFor": "Four KPI cards, quadrant analysis, multi-chart dashboard",
+      "gap": 24,
+      "zones": [
+        { "name": "topLeft", "x": 36, "y": 100, "w": 420, "h": 178 },
+        { "name": "topRight", "x": 480, "y": 100, "w": 420, "h": 178 },
+        { "name": "bottomLeft", "x": 36, "y": 302, "w": 420, "h": 178 },
+        { "name": "bottomRight", "x": 480, "y": 302, "w": 420, "h": 178 }
+      ]
+    },
+    {
+      "id": "grid-3x2",
+      "name": "3×2 Grid",
+      "bestFor": "Six items, icon grids, feature showcases",
+      "gapH": 20,
+      "gapV": 24,
+      "zones": [
+        { "name": "r1c1", "x": 36, "y": 100, "w": 276, "h": 170 },
+        { "name": "r1c2", "x": 332, "y": 100, "w": 276, "h": 170 },
+        { "name": "r1c3", "x": 628, "y": 100, "w": 276, "h": 170 },
+        { "name": "r2c1", "x": 36, "y": 294, "w": 276, "h": 170 },
+        { "name": "r2c2", "x": 332, "y": 294, "w": 276, "h": 170 },
+        { "name": "r2c3", "x": 628, "y": 294, "w": 276, "h": 170 }
+      ]
+    },
+    {
+      "id": "big-number",
+      "name": "Big Number Layout",
+      "bestFor": "Hero metrics, key statistics",
+      "zones": [
+        { "name": "number", "x": 480, "y": 200, "description": "centered, 60-80pt bold" },
+        { "name": "label", "x": 480, "y": 290, "description": "centered, 18pt grey" },
+        { "name": "context", "x": 480, "y": 330, "description": "centered, 14pt light grey" }
+      ]
+    },
+    {
+      "id": "big-number-side",
+      "name": "Big Number with Side Context",
+      "bestFor": "Hero metric with supporting content",
+      "zones": [
+        { "name": "number", "x": 36, "y": 140, "w": 450, "description": "72pt bold, left-aligned" },
+        { "name": "context", "x": 520, "y": 140, "w": 404, "h": 300, "description": "supporting bullets/chart" }
+      ]
+    },
+    {
+      "id": "kpi-3-cards",
+      "name": "3 KPI Cards + Content",
+      "bestFor": "Dashboard header with 3 key metrics and main content below",
+      "zones": [
+        { "name": "card1", "x": 36, "y": 100, "w": 276, "h": 160 },
+        { "name": "card2", "x": 332, "y": 100, "w": 276, "h": 160 },
+        { "name": "card3", "x": 628, "y": 100, "w": 276, "h": 160 },
+        { "name": "mainContent", "x": 36, "y": 280, "w": 888, "h": 200 }
+      ]
+    },
+    {
+      "id": "kpi-4-cards",
+      "name": "4 KPI Cards (2×2)",
+      "bestFor": "Dashboard with 4 key metrics",
+      "zones": [
+        { "name": "card1", "x": 36, "y": 85, "w": 435, "h": 195 },
+        { "name": "card2", "x": 489, "y": 85, "w": 435, "h": 195 },
+        { "name": "card3", "x": 36, "y": 298, "w": 435, "h": 195 },
+        { "name": "card4", "x": 489, "y": 298, "w": 435, "h": 195 }
+      ]
+    },
+    {
+      "id": "kpi-5-cards",
+      "name": "5 KPI Cards (3+2 Staggered)",
+      "bestFor": "Dashboard with 5 key metrics",
+      "zones": [
+        { "name": "card1", "x": 36, "y": 85, "w": 276, "h": 140 },
+        { "name": "card2", "x": 332, "y": 85, "w": 276, "h": 140 },
+        { "name": "card3", "x": 628, "y": 85, "w": 276, "h": 140 },
+        { "name": "card4", "x": 184, "y": 245, "w": 276, "h": 140 },
+        { "name": "card5", "x": 480, "y": 245, "w": 276, "h": 140 }
+      ]
+    },
+    {
+      "id": "chart-full",
+      "name": "Single Chart (Full Width)",
+      "bestFor": "Full-width chart visualization",
+      "zones": [
+        { "name": "chart", "x": 60, "y": 110, "w": 840, "h": 360 }
+      ]
+    },
+    {
+      "id": "chart-callout",
+      "name": "Chart + Callout (60/40)",
+      "bestFor": "Chart with insight callout sidebar",
+      "zones": [
+        { "name": "chart", "x": 36, "y": 100, "w": 528, "h": 380 },
+        { "name": "callout", "x": 588, "y": 160, "w": 336, "h": 260 }
+      ]
+    },
+    {
+      "id": "chart-dual",
+      "name": "Two Charts Side by Side",
+      "bestFor": "Comparing two chart perspectives on same data",
+      "zones": [
+        { "name": "chart1", "x": 36, "y": 100, "w": 420, "h": 380 },
+        { "name": "chart2", "x": 480, "y": 100, "w": 420, "h": 380 }
+      ]
+    },
+    {
+      "id": "timeline",
+      "name": "Timeline Layout",
+      "bestFor": "Roadmaps, project plans, milestones",
+      "zones": [
+        { "name": "timelineBar", "x": 80, "y": 260, "w": 800, "h": 4 },
+        { "name": "labelsAbove", "y": 200, "description": "odd milestones" },
+        { "name": "labelsBelow", "y": 300, "description": "even milestones, alternating" },
+        { "name": "phaseBlocks", "y": 240, "h": 40, "description": "spanning date ranges" }
+      ]
+    },
+    {
+      "id": "process-3-step",
+      "name": "3-Step Process Flow",
+      "bestFor": "Simple 3-step workflow",
+      "zones": [
+        { "name": "step1", "x": 72, "y": 230, "w": 240, "h": 80 },
+        { "name": "arrow1", "x": 312, "y": 260, "w": 36 },
+        { "name": "step2", "x": 348, "y": 230, "w": 240, "h": 80 },
+        { "name": "arrow2", "x": 588, "y": 260, "w": 36 },
+        { "name": "step3", "x": 624, "y": 230, "w": 240, "h": 80 }
+      ]
+    },
+    {
+      "id": "section-divider",
+      "name": "Section Divider Slide",
+      "bestFor": "Breaking a deck into sections",
+      "zones": [
+        { "name": "background", "fill": "Primary", "x": 0, "y": 0, "w": 960, "h": 540 },
+        { "name": "sectionName", "x": 480, "y": 220, "description": "centered, 36pt bold, white" },
+        { "name": "sectionNumber", "x": 480, "y": 180, "description": "centered, 14pt, white 60% opacity" },
+        { "name": "subtitle", "x": 480, "y": 280, "description": "centered, 18pt, white 80% opacity" }
+      ]
+    },
+    {
+      "id": "title-dark-hero",
+      "name": "Title Slide (Dark Hero)",
+      "bestFor": "Opening slide, default title style",
+      "zones": [
+        { "name": "background", "fill": "Primary", "x": 0, "y": 0, "w": 960, "h": 540 },
+        { "name": "title", "x": 60, "y": 160, "w": 840, "description": "36pt bold, white" },
+        { "name": "subtitle", "x": 60, "y": 220, "w": 600, "description": "18pt, white 80% opacity" },
+        { "name": "accentBar", "x": 60, "y": 148, "w": 80, "h": 4, "fill": "Accent" },
+        { "name": "date", "x": 60, "y": 460, "description": "12pt, white 60% opacity" },
+        { "name": "author", "x": 60, "y": 480, "description": "12pt, white 60% opacity" }
+      ]
+    },
+    {
+      "id": "title-white-accent",
+      "name": "Title Slide (White with Brand Accent)",
+      "bestFor": "Alternative title style with brand accent",
+      "zones": [
+        { "name": "topBar", "x": 0, "y": 0, "w": 960, "h": 8, "fill": "Primary" },
+        { "name": "title", "x": 60, "y": 180, "w": 840, "description": "36pt bold, TextDark" },
+        { "name": "subtitle", "x": 60, "y": 240, "w": 600, "description": "18pt, TextMedium" },
+        { "name": "leftAccent", "x": 60, "y": 178, "w": 4, "h": 80, "fill": "Accent" },
+        { "name": "date", "x": 60, "y": 460, "description": "12pt, TextLight" },
+        { "name": "author", "x": 60, "y": 480, "description": "12pt, TextLight" },
+        { "name": "bottomBar", "x": 0, "y": 520, "w": 960, "h": 20, "fill": "Primary" }
+      ]
+    }
+  ]
+}

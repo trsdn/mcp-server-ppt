@@ -1,0 +1,71 @@
+{
+  "name": "executive-summary",
+  "mode": "tuning",
+  "description": "Evaluate and improve executive summary slides — 3-5 crisp findings with hierarchy and implication",
+  "goal": "Achieve consistent 12+/14 with one-message summaries, sharp bullet structure, and decisive prioritization",
+  "archetype": "executive-summary",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "summary-board",
+      "text": "Build an executive summary slide for a board update with three findings on growth, margin, and capital priorities"
+    },
+    {
+      "id": "summary-transformation",
+      "text": "Build an executive summary slide on digital transformation with four takeaways on value delivered, risks, and next decisions"
+    },
+    {
+      "id": "summary-ma",
+      "text": "Build an executive summary slide for an acquisition case with strategic fit, synergy, risk, and recommendation bullets"
+    },
+    {
+      "id": "summary-ops",
+      "text": "Build an executive summary slide on operations performance with three conclusions and one required management action"
+    },
+    {
+      "id": "summary-product",
+      "text": "Build an executive summary slide on a product launch with customer traction, adoption issues, and next-quarter priority actions"
+    },
+    {
+      "id": "summary-finance",
+      "text": "Build an executive summary slide for quarterly earnings prep with revenue, EBITDA, and guidance messages"
+    },
+    {
+      "id": "summary-risk",
+      "text": "Build an executive summary slide on supply chain risk with top three exposures and mitigation priorities"
+    },
+    {
+      "id": "summary-people",
+      "text": "Build an executive summary slide on talent strategy with attrition, hiring, capability gaps, and recommendation"
+    },
+    {
+      "id": "summary-security",
+      "text": "Build an executive summary slide on cyber posture with resilience gains, remaining gaps, and funding ask"
+    },
+    {
+      "id": "summary-esg",
+      "text": "Build an executive summary slide on ESG progress with emissions, supplier coverage, reporting maturity, and next milestone"
+    }
+  ],
+  "outputDir": "output/executive-summary",
+  "resultsDir": "results/executive-summary"
+}

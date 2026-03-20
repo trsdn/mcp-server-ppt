@@ -8,7 +8,11 @@ namespace PptMcp.Core.Commands.Animation;
 /// Animation effect operations: list, add, remove, reorder effects on slides.
 /// </summary>
 [ServiceCategory("animation")]
-[McpTool("animation", Title = "Animation Operations", Destructive = true, Category = "animations")]
+[McpTool("animation", Title = "Animation Operations", Destructive = true, Category = "animations",
+    Description = "Add, remove, reorder animation effects on shapes. "
+    + "effect_type (MsoAnimEffect): 1=Appear, 2=Fly, 10=Fade, 16=Wipe, 22=RandomBars, 26=Dissolve, 53=GrowAndTurn. "
+    + "trigger_type: 1=OnClick (default), 2=WithPrevious, 3=AfterPrevious. "
+    + "WORKFLOW: shape(add-shape) → animation(add) → animation(set-timing). Use animation(list) to see current effects.")]
 public interface IAnimationCommands
 {
     /// <summary>

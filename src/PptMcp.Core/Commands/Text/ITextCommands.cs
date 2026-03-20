@@ -8,7 +8,14 @@ namespace PptMcp.Core.Commands.Text;
 /// Text operations within shapes: get, set, format, find, replace.
 /// </summary>
 [ServiceCategory("text")]
-[McpTool("text", Title = "Text Operations", Destructive = true, Category = "text")]
+[McpTool("text", Title = "Text Operations", Destructive = true, Category = "text",
+    Description = "Get, set, format, find, and replace text in shapes. "
+    + "WORKFLOW: shape(add-textbox) → text(set) → text(format, font_name='Calibri', font_size=14, bold=true). "
+    + "'find'/'replace' work across slides (slide_index=0 for all). "
+    + "format alignment: 'left'/'center'/'right'/'justify'. vertical_alignment: 'top'/'middle'/'bottom'. "
+    + "bullet_type: 0=None, 1=Unnumbered (bullets), 2=Numbered. indent_level: 0-4. "
+    + "change_case case_type: 1=Sentence, 2=Lower, 3=Upper, 4=Title, 5=Toggle. "
+    + "color_hex: '#RRGGBB'. Combine multiple properties in one format call for efficiency.")]
 public interface ITextCommands
 {
     /// <summary>

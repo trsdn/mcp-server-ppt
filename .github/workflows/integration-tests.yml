@@ -1,0 +1,127 @@
+name: PowerPoint Integration Tests
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'llm-tests/**'
+      - 'global.json'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - '.github/workflows/integration-tests.yml'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'llm-tests/**'
+      - 'global.json'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - '.github/workflows/integration-tests.yml'
+  workflow_dispatch:
+    inputs:
+      run_on_demand:
+        description: 'Run the slower RunType=OnDemand COM/session tests too'
+        required: false
+        default: false
+        type: boolean
+      run_llm_gate:
+        description: 'Run the canonical manual LLM regression gate too'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  integration-runner-disabled:
+    if: ${{ vars.ENABLE_POWERPOINT_INTEGRATION_CI != 'true' }}
+    runs-on: windows-latest
+    steps:
+      - name: Report disabled PowerPoint runner
+        shell: pwsh
+        run: |
+          Write-Output "PowerPoint integration workflow is configured but inactive."
+          Write-Output "Set repository variable ENABLE_POWERPOINT_INTEGRATION_CI=true and provide a self-hosted runner labeled 'powerpoint' to activate it."
+          Write-Output "See docs/AZURE_SELFHOSTED_RUNNER_SETUP.md for setup details."
+
+  powerpoint-integration:
+    if: ${{ vars.ENABLE_POWERPOINT_INTEGRATION_CI == 'true' }}
+    runs-on: [self-hosted, windows, powerpoint]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Build CLI and MCP Server
+        shell: pwsh
+        run: |
+          dotnet build src/PptMcp.CLI/PptMcp.CLI.csproj -c Release
+          dotnet build src/PptMcp.McpServer/PptMcp.McpServer.csproj -c Release
+
+      - name: Run CLI smoke workflow
+        shell: pwsh
+        run: ./scripts/Test-CliWorkflow.ps1
+
+      - name: Run MCP smoke workflow
+        shell: pwsh
+        run: >
+          dotnet test tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
+          --filter "FullyQualifiedName~McpServerIntegrationTests.SmokeTest_AllTools_E2EWorkflow"
+          --logger "trx;LogFileName=mcp-smoke.trx"
+
+      - name: Run fast Core integration suite
+        shell: pwsh
+        run: >
+          dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj
+          --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust&Feature!=Screenshot"
+          --logger "trx;LogFileName=core-integration.trx"
+
+      - name: Run CLI integration suite
+        shell: pwsh
+        run: >
+          dotnet test tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj
+          --logger "trx;LogFileName=cli-integration.trx"
+
+      - name: Run MCP integration suite
+        shell: pwsh
+        run: >
+          dotnet test tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
+          --logger "trx;LogFileName=mcp-integration.trx"
+
+      - name: Run OnDemand COM/session suite
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_on_demand }}
+        shell: pwsh
+        run: >
+          dotnet test tests/PptMcp.ComInterop.Tests/PptMcp.ComInterop.Tests.csproj
+          --filter "RunType=OnDemand"
+          --logger "trx;LogFileName=cominterop-ondemand.trx"
+
+      - name: Run canonical LLM regression gate
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_llm_gate }}
+        shell: pwsh
+        env:
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+        run: ./scripts/Test-LlmRegressionGate.ps1
+
+      - name: Upload integration test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: powerpoint-integration-${{ github.run_id }}
+          path: |
+            **/*.trx
+            llm-tests/TestResults/**

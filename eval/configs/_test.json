@@ -1,0 +1,37 @@
+{
+  "name": "title-slide",
+  "mode": "baseline",
+  "description": "Evaluate and improve title slides — dark hero pattern, executive framing, visual presence",
+  "goal": "Achieve consistent 12+/14 on executive-framed titles with governing thought, audience context, and visual presence",
+  "archetype": "title-slide",
+  "loops": 2,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions.md",
+    "timeoutMs": 300000
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "title-board-qbr",
+      "text": "Build a title slide for a Q4 board presentation about $128M revenue exceeding plan by 8%"
+    },
+    {
+      "id": "title-sales-pitch",
+      "text": "Build a title slide for a SaaS pitch to a Fortune 500 CTO about analytics platform"
+    },
+    {
+      "id": "title-incident",
+      "text": "Build a title slide for a Sev-1 incident postmortem: 45 min downtime, 10K users affected"
+    }
+  ],
+  "outputDir": "output/title-slide",
+  "resultsDir": "results/title-slide"
+}

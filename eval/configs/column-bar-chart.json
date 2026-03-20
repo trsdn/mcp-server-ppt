@@ -1,0 +1,71 @@
+{
+  "name": "column-bar-chart",
+  "mode": "tuning",
+  "description": "Evaluate and improve column/bar chart slides — ranked categories, labeled axes, concise proof framing",
+  "goal": "Achieve consistent 12+/14 with clear chart selection, exact numeric fidelity, and concise chart-driven action titles",
+  "archetype": "column-bar-chart",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "bar-market-share",
+      "text": "Build a bar chart slide ranking five cloud vendors by market share: AWS 31%, Azure 24%, Google 13%, Oracle 4%, IBM 3%"
+    },
+    {
+      "id": "column-quarterly-revenue",
+      "text": "Build a column chart slide showing quarterly revenue: Q1 $24M, Q2 $27M, Q3 $31M, Q4 $46M with a clear year-end acceleration message"
+    },
+    {
+      "id": "bar-cost-centers",
+      "text": "Build a horizontal bar chart slide comparing six cost centers by annual spend with IT at $12M, Operations at $9M, Sales at $7M, Finance at $4M, HR at $3M, Legal at $2M"
+    },
+    {
+      "id": "column-nps-trend",
+      "text": "Build a chart slide showing NPS by quarter: 34, 39, 48, 57, 63, 68 with an action title about loyalty acceleration"
+    },
+    {
+      "id": "bar-plant-output",
+      "text": "Build a ranked bar chart slide comparing output across seven plants: A 420, B 390, C 365, D 341, E 330, F 298, G 275"
+    },
+    {
+      "id": "column-hiring-funnel",
+      "text": "Build a column chart slide showing hiring funnel conversion rates across sourcing 100%, screening 62%, interview 28%, offer 11%, hire 8%"
+    },
+    {
+      "id": "bar-regional-margin",
+      "text": "Build a bar chart slide comparing regional EBITDA margins: North America 24%, Europe 19%, APAC 16%, LATAM 11%"
+    },
+    {
+      "id": "column-energy-cost",
+      "text": "Build a column chart slide showing monthly energy cost reductions from January $2.4M to June $1.5M"
+    },
+    {
+      "id": "bar-product-adoption",
+      "text": "Build a bar chart slide ranking product feature adoption: dashboard 82%, alerts 64%, workflow 58%, AI insights 41%, exports 33%"
+    },
+    {
+      "id": "column-sla-incidents",
+      "text": "Build a chart slide showing major incidents by month: 9, 8, 7, 5, 4, 2 with the message that reliability is improving faster than target"
+    }
+  ],
+  "outputDir": "output/column-bar-chart",
+  "resultsDir": "results/column-bar-chart"
+}

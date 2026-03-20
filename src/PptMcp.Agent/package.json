@@ -1,0 +1,42 @@
+{
+  "name": "ppt-mcp-agent",
+  "version": "0.1.0",
+  "description": "Official source-side Copilot SDK orchestrator for building PowerPoint decks through mcp-server-ppt",
+  "type": "module",
+  "bin": {
+    "ppt-mcp-agent": "./src/cli.mjs"
+  },
+  "scripts": {
+    "postinstall": "node patch-deps.cjs",
+    "run": "node ./src/cli.mjs",
+    "check": "node --check ./src/cli.mjs && node --check ./src/constants.mjs && node --check ./src/orchestrator.mjs && node --check ./src/planner.mjs && node --check ./src/runtime.mjs && node --check ./src/validation.mjs",
+    "test": "node --test ./tests/planner.test.mjs ./tests/validation.test.mjs"
+  },
+  "keywords": [
+    "powerpoint",
+    "mcp",
+    "copilot-sdk",
+    "agent",
+    "orchestrator",
+    "slides"
+  ],
+  "homepage": "https://PptMcpserver.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trsdn/mcp-server-ppt.git",
+    "directory": "src/PptMcp.Agent"
+  },
+  "bugs": {
+    "url": "https://github.com/trsdn/mcp-server-ppt/issues"
+  },
+  "author": "trsdn",
+  "license": "MIT",
+  "files": [
+    "src",
+    "patch-deps.cjs",
+    "README.md"
+  ],
+  "dependencies": {
+    "@github/copilot-sdk": "^0.1.32"
+  }
+}

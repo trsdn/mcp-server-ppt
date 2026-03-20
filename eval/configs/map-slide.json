@@ -1,0 +1,71 @@
+{
+  "name": "map-slide",
+  "mode": "tuning",
+  "description": "Evaluate and improve map slides — geographic footprint, expansion priorities, and region-based evidence overlays",
+  "goal": "Achieve consistent 12+/14 with clear geography-driven messaging, regional labels, and compact supporting metrics",
+  "archetype": "map-slide",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "map-expansion-europe",
+      "text": "Build a map slide showing European expansion priorities with Germany, France, and Spain highlighted and one supporting metric per country"
+    },
+    {
+      "id": "map-sales-us",
+      "text": "Build a US map slide showing regional sales by West, Central, South, and East with the highest-growth region highlighted"
+    },
+    {
+      "id": "map-supply-chain",
+      "text": "Build a map slide showing supplier concentration risk across China, Vietnam, Mexico, and Poland"
+    },
+    {
+      "id": "map-facilities",
+      "text": "Build a map slide showing plant footprint across North America with throughput callouts for key sites"
+    },
+    {
+      "id": "map-customer-base",
+      "text": "Build a map slide showing customer concentration across EMEA, North America, and APAC with revenue share callouts"
+    },
+    {
+      "id": "map-carbon",
+      "text": "Build a map slide showing emissions hotspots across five operating countries with reduction priority markers"
+    },
+    {
+      "id": "map-market-entry",
+      "text": "Build a map slide ranking three Southeast Asia entry markets with TAM and complexity callouts"
+    },
+    {
+      "id": "map-risk",
+      "text": "Build a map slide highlighting geopolitical and logistics risk across major sourcing corridors"
+    },
+    {
+      "id": "map-service-network",
+      "text": "Build a map slide showing service center coverage across the US with response-time differences"
+    },
+    {
+      "id": "map-integration",
+      "text": "Build a map slide showing merger footprint overlap across major metros with synergy potential markers"
+    }
+  ],
+  "outputDir": "output/map-slide",
+  "resultsDir": "results/map-slide"
+}

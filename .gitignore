@@ -229,6 +229,15 @@ tests/PptMcp.Core.Tests/Integration/Commands/PowerQuery/PowerQueryCommandsTests.
 codeql-db/*
 infrastructure/azure/appinsights.secrets.local
 
+# Eval asset files (large test presentations, generated artifacts, confidential data)
+eval/input/
+eval/results/
+eval/data/
+
+# Legacy local-only archetype reference data (superseded by eval/data/archetype-references)
+local-data/archetype-references/
+src/PptMcp.Core/Data/archetype-references/
+
 # Local environment files (secrets, connection strings)
 .env
 .env.local

@@ -1,0 +1,71 @@
+{
+  "name": "simple-table",
+  "mode": "tuning",
+  "description": "Evaluate and improve simple table slides — structured comparisons, financial tables, and aligned evidence grids",
+  "goal": "Achieve consistent 12+/14 with readable tables, selective emphasis, and complete row-column evidence fidelity",
+  "archetype": "simple-table",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "table-pnl",
+      "text": "Build a simple table slide with a quarterly P&L for Revenue, Gross Profit, Opex, and EBITDA across Q1 to Q4"
+    },
+    {
+      "id": "table-feature-matrix",
+      "text": "Build a simple feature matrix table comparing three workflow tools across six features with the winner highlighted"
+    },
+    {
+      "id": "table-plant-kpis",
+      "text": "Build a table slide comparing five plants across throughput, scrap rate, uptime, and labor hours"
+    },
+    {
+      "id": "table-budget-variance",
+      "text": "Build a table slide showing budget vs actual spend across six cost centers with variance percentages"
+    },
+    {
+      "id": "table-project-status",
+      "text": "Build a table slide listing eight projects with owner, status, due date, and risk level"
+    },
+    {
+      "id": "table-customer-segments",
+      "text": "Build a table slide comparing four customer segments by size, growth, margin, and retention"
+    },
+    {
+      "id": "table-supplier-scorecard",
+      "text": "Build a supplier scorecard table across cost, quality, delivery, and ESG rating for five suppliers"
+    },
+    {
+      "id": "table-milestones",
+      "text": "Build a simple table slide with ten upcoming milestones, dates, dependency, and decision owner"
+    },
+    {
+      "id": "table-pricing-summary",
+      "text": "Build a pricing summary table showing Basic, Pro, Enterprise plans with price, seats, support tier, and ROI"
+    },
+    {
+      "id": "table-risk-register",
+      "text": "Build a compact risk register table with six risks, likelihood, impact, mitigation, and owner"
+    }
+  ],
+  "outputDir": "output/simple-table",
+  "resultsDir": "results/simple-table"
+}

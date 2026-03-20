@@ -1,0 +1,79 @@
+{
+  "name": "title-slide",
+  "mode": "tuning",
+  "description": "Evaluate and improve title slides — dark hero pattern, executive framing, visual presence",
+  "goal": "Achieve consistent 12+/14 on executive-framed titles with governing thought, audience context, and visual presence",
+  "archetype": "title-slide",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "title-board-qbr",
+      "text": "Build a title slide for a Q4 board presentation about $128M revenue exceeding plan by 8%",
+      "expectedVariant": "investor"
+    },
+    {
+      "id": "title-sales-pitch",
+      "text": "Build a title slide for a SaaS pitch to a Fortune 500 CTO about analytics platform",
+      "expectedVariant": "product-launch"
+    },
+    {
+      "id": "title-incident",
+      "text": "Build a title slide for a Sev-1 incident postmortem: 45 min downtime, 10K users affected"
+    },
+    {
+      "id": "title-ma",
+      "text": "Build a title slide for an M&A strategy review on acquiring a cybersecurity startup for growth acceleration",
+      "expectedVariant": "integration-review"
+    },
+    {
+      "id": "title-turnaround",
+      "text": "Build a title slide for a turnaround plan after two quarters of declining margins"
+    },
+    {
+      "id": "title-investor-day",
+      "text": "Build a title slide for investor day highlighting AI-led expansion and path to $500M ARR",
+      "expectedVariant": "investor"
+    },
+    {
+      "id": "title-cost-program",
+      "text": "Build a title slide for a cost transformation program targeting $50M run-rate savings",
+      "expectedVariant": "cost-program"
+    },
+    {
+      "id": "title-climate",
+      "text": "Build a title slide for an ESG update on reducing carbon emissions 40% by 2030",
+      "expectedVariant": "climate-esg"
+    },
+    {
+      "id": "title-product-launch",
+      "text": "Build a title slide for the launch of a new enterprise security platform",
+      "expectedVariant": "product-launch"
+    },
+    {
+      "id": "title-integration",
+      "text": "Build a title slide for a post-merger integration steering committee update",
+      "expectedVariant": "integration-review"
+    }
+  ],
+  "outputDir": "output/title-slide",
+  "resultsDir": "results/title-slide",
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  }
+}

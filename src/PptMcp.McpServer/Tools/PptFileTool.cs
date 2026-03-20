@@ -36,7 +36,11 @@ public static class PptFileTool
     /// If file is already open, reuse existing session_id instead of opening again.
     /// </summary>
     [McpServerTool(Name = "file", Title = "File Operations", Destructive = true)]
-    [Description("File and session management for PowerPoint automation. WORKFLOW: open → use session_id with other tools → close (save=true to persist changes).")]
+    [Description("File and session management — the FIRST tool for every workflow. "
+        + "WORKFLOW: file(open, path='C:\\...\\file.pptx') → use session_id with slide/shape/text/chart tools → file(close, save=true). "
+        + "NEW FILES: file(create, path='C:\\...\\new.pptx') creates file AND starts session. "
+        + "REUSE: file(list) first — if file is already open, reuse the session_id. "
+        + "show=true makes PowerPoint visible (Agent Mode). timeout_seconds: max operation time (default 300).")]
     public static string PptFile(
         PptFileAction action,
         [DefaultValue(null)] string? path,

@@ -8,7 +8,11 @@ namespace PptMcp.Core.Commands.Export;
 /// Export presentations to PDF, images, or other formats.
 /// </summary>
 [ServiceCategory("export")]
-[McpTool("export", Title = "Export Operations", Destructive = false, Category = "export")]
+[McpTool("export", Title = "Export Operations", Destructive = false, Category = "export",
+    Description = "Export presentations: PDF, PNG images, MP4 video, print, save-as, extract text/images. "
+    + "WORKFLOW: file(open) → build slides → export(to-pdf) or export(slide-to-image). "
+    + "save-as format: 1=pptx, 2=pptm, 3=potx, 4=ppsx, 5=pdf, 6=xps, 7=odp. "
+    + "video resolution: 1=1080p, 2=720p, 3=480p. Image size in pixels (default 1920×1080).")]
 public interface IExportCommands
 {
     /// <summary>Export the presentation to PDF.</summary>

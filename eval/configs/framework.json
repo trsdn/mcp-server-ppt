@@ -1,0 +1,71 @@
+{
+  "name": "framework",
+  "mode": "tuning",
+  "description": "Evaluate and improve framework slides — 2x2, Venn, value chain, and conceptual relationship layouts",
+  "goal": "Achieve consistent 12+/14 with the right framework choice, clean conceptual zoning, and minimal text overload",
+  "archetype": "framework",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "framework-2x2-market",
+      "text": "Build a 2x2 framework slide positioning four product lines by growth potential and implementation complexity"
+    },
+    {
+      "id": "framework-value-chain",
+      "text": "Build a value chain framework slide showing sourcing, manufacturing, distribution, and service with the biggest margin leak highlighted"
+    },
+    {
+      "id": "framework-venn-ai",
+      "text": "Build a Venn diagram slide showing the overlap between customer need, data availability, and AI feasibility"
+    },
+    {
+      "id": "framework-capability",
+      "text": "Build a framework slide organizing capabilities into strategy, technology, operations, and talent"
+    },
+    {
+      "id": "framework-prioritization",
+      "text": "Build a 2x2 prioritization matrix for ten initiatives by impact and effort, with the quick wins quadrant emphasized"
+    },
+    {
+      "id": "framework-risk-control",
+      "text": "Build a framework slide mapping risks to prevent, detect, respond, and recover control layers"
+    },
+    {
+      "id": "framework-customer-journey",
+      "text": "Build a framework slide showing awareness, consideration, purchase, onboarding, and renewal as a connected customer journey value chain"
+    },
+    {
+      "id": "framework-portfolio",
+      "text": "Build a 2x2 portfolio matrix for six business units by profitability and strategic fit"
+    },
+    {
+      "id": "framework-data-platform",
+      "text": "Build a layered framework slide for a data platform with data sources, platform services, analytics products, and governance"
+    },
+    {
+      "id": "framework-synergies",
+      "text": "Build a framework slide grouping merger synergies into revenue, cost, technology, and operating model buckets"
+    }
+  ],
+  "outputDir": "output/framework",
+  "resultsDir": "results/framework"
+}

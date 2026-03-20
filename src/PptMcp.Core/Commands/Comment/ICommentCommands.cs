@@ -8,7 +8,11 @@ namespace PptMcp.Core.Commands.Comment;
 /// Slide comments: list, add, delete.
 /// </summary>
 [ServiceCategory("comment")]
-[McpTool("comment", Title = "Slide Comments", Destructive = true, Category = "comments")]
+[McpTool("comment", Title = "Slide Comments", Destructive = true, Category = "comments",
+    Description = "Add, list, delete comments on slides. "
+    + "slide_index: 1-based (0 = all slides for list/clear). "
+    + "comment_index: 1-based (from list results) for delete. "
+    + "left/top: position in points (0 = top-left corner).")]
 public interface ICommentCommands
 {
     /// <summary>List all comments on a slide (0 = all slides).</summary>

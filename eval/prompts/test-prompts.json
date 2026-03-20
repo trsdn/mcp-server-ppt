@@ -1,0 +1,602 @@
+[
+  {
+    "id": "corp-01",
+    "category": "corporate",
+    "prompt": "Create a quarterly business review for Q4 2025 showing revenue of $45M (up 12%), costs of $32M, and 3 strategic priorities for Q1",
+    "difficulty": "medium"
+  },
+  {
+    "id": "corp-02",
+    "category": "corporate",
+    "prompt": "Build a board presentation about our companys ESG progress with carbon reduction metrics, diversity stats, and governance improvements",
+    "difficulty": "hard"
+  },
+  {
+    "id": "corp-03",
+    "category": "corporate",
+    "prompt": "Create a department budget review showing planned vs actual spend across 6 cost centers with variance analysis",
+    "difficulty": "medium"
+  },
+  {
+    "id": "corp-04",
+    "category": "corporate",
+    "prompt": "Make a monthly operations dashboard with 4 KPIs: uptime 99.7%, incidents down 23%, MTTR improved 40%, customer satisfaction 4.6/5",
+    "difficulty": "medium"
+  },
+  {
+    "id": "corp-05",
+    "category": "corporate",
+    "prompt": "Present our company restructuring plan: merging 3 divisions into 2, timeline over 6 months, impact on 200 employees",
+    "difficulty": "hard"
+  },
+  {
+    "id": "corp-06",
+    "category": "corporate",
+    "prompt": "Create an investor update covering revenue growth, ARR trajectory, burn rate, and runway with 18 months of data",
+    "difficulty": "hard"
+  },
+  {
+    "id": "corp-07",
+    "category": "corporate",
+    "prompt": "Build a risk assessment presentation with a 4x4 risk matrix showing 8 identified risks across likelihood and impact",
+    "difficulty": "medium"
+  },
+  {
+    "id": "corp-08",
+    "category": "corporate",
+    "prompt": "Present IT infrastructure modernization results: cloud migration 75% complete, cost savings $2.3M, remaining timeline",
+    "difficulty": "medium"
+  },
+  {
+    "id": "corp-09",
+    "category": "corporate",
+    "prompt": "Create a vendor evaluation comparing 3 CRM platforms across 8 criteria with scoring and recommendation",
+    "difficulty": "medium"
+  },
+  {
+    "id": "corp-10",
+    "category": "corporate",
+    "prompt": "Annual company all-hands presentation: achievements, challenges, employee milestones, vision for next year",
+    "difficulty": "easy"
+  },
+  {
+    "id": "sales-01",
+    "category": "sales",
+    "prompt": "Pitch our SaaS analytics platform to a Fortune 500 retail company. Show pain points, solution, ROI of 300%, 3 customer case studies",
+    "difficulty": "hard"
+  },
+  {
+    "id": "sales-02",
+    "category": "sales",
+    "prompt": "Create a competitive comparison deck: our product vs 2 competitors across 10 features, pricing, and support",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sales-03",
+    "category": "sales",
+    "prompt": "Build a customer success story: client reduced operational costs by 40% using our platform over 12 months",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sales-04",
+    "category": "sales",
+    "prompt": "Pitch a consulting engagement: problem diagnosis, proposed approach, team, timeline, investment of $500K",
+    "difficulty": "hard"
+  },
+  {
+    "id": "sales-05",
+    "category": "sales",
+    "prompt": "Create a product demo deck with 5 key features, each with a screenshot placeholder and benefit statement",
+    "difficulty": "easy"
+  },
+  {
+    "id": "sales-06",
+    "category": "sales",
+    "prompt": "Build a pricing proposal deck: 3 tiers (Starter $99, Pro $299, Enterprise custom) with feature comparison",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sales-07",
+    "category": "sales",
+    "prompt": "ROI calculator presentation: show how switching from competitor saves $1.2M over 3 years with waterfall breakdown",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sales-08",
+    "category": "sales",
+    "prompt": "Partnership proposal: joint go-to-market opportunity, combined TAM of $5B, complementary capabilities",
+    "difficulty": "hard"
+  },
+  {
+    "id": "sales-09",
+    "category": "sales",
+    "prompt": "Renewal presentation for existing client: usage metrics, value delivered, expansion opportunities, new pricing",
+    "difficulty": "medium"
+  },
+  {
+    "id": "sales-10",
+    "category": "sales",
+    "prompt": "Create a brief 5-slide elevator pitch for a new AI-powered HR tool targeting mid-market companies",
+    "difficulty": "easy"
+  },
+  {
+    "id": "proj-01",
+    "category": "project",
+    "prompt": "Sprint review presentation: 12 stories completed, 3 carried over, velocity trend chart, demo highlights",
+    "difficulty": "easy"
+  },
+  {
+    "id": "proj-02",
+    "category": "project",
+    "prompt": "Program status dashboard: 5 workstreams with RAG status, key milestones, risks, and decisions needed",
+    "difficulty": "medium"
+  },
+  {
+    "id": "proj-03",
+    "category": "project",
+    "prompt": "Post-mortem for a failed product launch: timeline of events, root causes, lessons learned, preventive actions",
+    "difficulty": "hard"
+  },
+  {
+    "id": "proj-04",
+    "category": "project",
+    "prompt": "Migration project update: 60% of 500 servers migrated, blockers, revised timeline, resource needs",
+    "difficulty": "medium"
+  },
+  {
+    "id": "proj-05",
+    "category": "project",
+    "prompt": "New office construction project status: phases, budget tracking ($15M of $20M spent), completion timeline",
+    "difficulty": "medium"
+  },
+  {
+    "id": "proj-06",
+    "category": "project",
+    "prompt": "Software release readiness review: feature completion, test coverage, known bugs, go/no-go recommendation",
+    "difficulty": "medium"
+  },
+  {
+    "id": "proj-07",
+    "category": "project",
+    "prompt": "Cross-functional initiative update: 4 teams contributing, dependencies map, critical path items",
+    "difficulty": "hard"
+  },
+  {
+    "id": "proj-08",
+    "category": "project",
+    "prompt": "Agile transformation progress: teams converted, velocity improvements, satisfaction survey results",
+    "difficulty": "medium"
+  },
+  {
+    "id": "proj-09",
+    "category": "project",
+    "prompt": "Data center decommission status: 80 of 120 racks removed, cost savings realized, remaining schedule",
+    "difficulty": "easy"
+  },
+  {
+    "id": "proj-10",
+    "category": "project",
+    "prompt": "Project kickoff deck: scope, team introductions, timeline, communication plan, success criteria",
+    "difficulty": "easy"
+  },
+  {
+    "id": "exec-01",
+    "category": "executive",
+    "prompt": "CEO presentation to the board: company performance vs plan, strategic pivots, capital allocation decisions",
+    "difficulty": "hard"
+  },
+  {
+    "id": "exec-02",
+    "category": "executive",
+    "prompt": "M&A target analysis: company profile, financial metrics, strategic fit score, integration risks, valuation range",
+    "difficulty": "hard"
+  },
+  {
+    "id": "exec-03",
+    "category": "executive",
+    "prompt": "Market entry strategy: 3 target markets ranked by attractiveness, entry mode, investment required, expected returns",
+    "difficulty": "hard"
+  },
+  {
+    "id": "exec-04",
+    "category": "executive",
+    "prompt": "Cost optimization findings: $8M savings identified across procurement, headcount, and technology. Quick wins vs long-term",
+    "difficulty": "medium"
+  },
+  {
+    "id": "exec-05",
+    "category": "executive",
+    "prompt": "Digital transformation roadmap: current maturity, target state, 3-year phased plan, investment of $25M",
+    "difficulty": "hard"
+  },
+  {
+    "id": "exec-06",
+    "category": "executive",
+    "prompt": "Competitive landscape briefing: 5 competitors mapped on market share vs growth, our positioning, threats",
+    "difficulty": "medium"
+  },
+  {
+    "id": "exec-07",
+    "category": "executive",
+    "prompt": "Talent strategy presentation: attrition trends, hiring plan, skills gaps, retention initiatives, budget impact",
+    "difficulty": "medium"
+  },
+  {
+    "id": "exec-08",
+    "category": "executive",
+    "prompt": "Supply chain resilience report: single-source risks, geographic concentration, mitigation recommendations",
+    "difficulty": "medium"
+  },
+  {
+    "id": "exec-09",
+    "category": "executive",
+    "prompt": "Customer segmentation analysis: 4 segments with size, growth, profitability, and strategic priority ranking",
+    "difficulty": "medium"
+  },
+  {
+    "id": "exec-10",
+    "category": "executive",
+    "prompt": "Quarterly earnings preparation deck: revenue, EBITDA, guidance, talking points for analyst questions",
+    "difficulty": "hard"
+  },
+  {
+    "id": "prod-01",
+    "category": "product",
+    "prompt": "New product announcement: features, pricing, availability date, target audience, go-to-market plan",
+    "difficulty": "medium"
+  },
+  {
+    "id": "prod-02",
+    "category": "product",
+    "prompt": "Product roadmap for next 4 quarters with features grouped by theme, effort estimates, and dependencies",
+    "difficulty": "medium"
+  },
+  {
+    "id": "prod-03",
+    "category": "product",
+    "prompt": "Feature prioritization presentation: 15 features scored on impact vs effort, recommended top 5",
+    "difficulty": "medium"
+  },
+  {
+    "id": "prod-04",
+    "category": "product",
+    "prompt": "Beta launch results: 500 users, NPS 72, top feature requests, bugs found, launch readiness assessment",
+    "difficulty": "medium"
+  },
+  {
+    "id": "prod-05",
+    "category": "product",
+    "prompt": "Platform architecture overview for a technical audience: microservices, data flow, integration points",
+    "difficulty": "hard"
+  },
+  {
+    "id": "prod-06",
+    "category": "product",
+    "prompt": "Product discontinuation announcement: reasons, migration path, timeline, customer communication plan",
+    "difficulty": "medium"
+  },
+  {
+    "id": "prod-07",
+    "category": "product",
+    "prompt": "API product launch: endpoints, authentication, rate limits, pricing tiers, developer onboarding flow",
+    "difficulty": "hard"
+  },
+  {
+    "id": "prod-08",
+    "category": "product",
+    "prompt": "Mobile app redesign proposal: current UX issues, new designs, A/B test plan, success metrics",
+    "difficulty": "medium"
+  },
+  {
+    "id": "prod-09",
+    "category": "product",
+    "prompt": "Hardware product spec sheet presentation: dimensions, materials, performance benchmarks, certifications",
+    "difficulty": "easy"
+  },
+  {
+    "id": "prod-10",
+    "category": "product",
+    "prompt": "Product comparison for internal decision: build vs buy analysis across cost, timeline, risk, and capability",
+    "difficulty": "medium"
+  },
+  {
+    "id": "train-01",
+    "category": "training",
+    "prompt": "Onboarding presentation for new engineers: team structure, tech stack, dev workflow, first-week checklist",
+    "difficulty": "easy"
+  },
+  {
+    "id": "train-02",
+    "category": "training",
+    "prompt": "Security awareness training: phishing examples, password policy, incident reporting, 5 key behaviors",
+    "difficulty": "easy"
+  },
+  {
+    "id": "train-03",
+    "category": "training",
+    "prompt": "Leadership development workshop: 4 modules on communication, delegation, feedback, and conflict resolution",
+    "difficulty": "medium"
+  },
+  {
+    "id": "train-04",
+    "category": "training",
+    "prompt": "Data literacy training: what is data analytics, key metrics, how to read dashboards, hands-on exercises",
+    "difficulty": "medium"
+  },
+  {
+    "id": "train-05",
+    "category": "training",
+    "prompt": "Sales methodology training: qualification framework, discovery questions, objection handling, closing techniques",
+    "difficulty": "medium"
+  },
+  {
+    "id": "train-06",
+    "category": "training",
+    "prompt": "Compliance training: regulatory requirements, dos and donts, case studies, quiz questions",
+    "difficulty": "easy"
+  },
+  {
+    "id": "train-07",
+    "category": "training",
+    "prompt": "Project management fundamentals: waterfall vs agile, planning tools, risk management, stakeholder communication",
+    "difficulty": "medium"
+  },
+  {
+    "id": "train-08",
+    "category": "training",
+    "prompt": "Technical deep-dive on Kubernetes: architecture, pods, services, deployments, scaling, monitoring",
+    "difficulty": "hard"
+  },
+  {
+    "id": "train-09",
+    "category": "training",
+    "prompt": "Customer service excellence: empathy techniques, escalation procedures, SLA management, quality metrics",
+    "difficulty": "easy"
+  },
+  {
+    "id": "train-10",
+    "category": "training",
+    "prompt": "Change management workshop: ADKAR model, stakeholder mapping, communication plan, resistance strategies",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dash-01",
+    "category": "dashboard",
+    "prompt": "Marketing dashboard: website traffic 250K visits, conversion rate 3.2%, CAC $85, LTV $2400, channel breakdown",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dash-02",
+    "category": "dashboard",
+    "prompt": "Financial dashboard: revenue, gross margin, EBITDA, cash flow, debt ratio, all with YoY comparison",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dash-03",
+    "category": "dashboard",
+    "prompt": "Sales pipeline dashboard: $12M pipeline, 45 opportunities, stage conversion rates, forecast vs quota",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dash-04",
+    "category": "dashboard",
+    "prompt": "HR metrics dashboard: headcount 450, turnover 12%, time-to-hire 35 days, engagement score 4.1/5, diversity breakdown",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dash-05",
+    "category": "dashboard",
+    "prompt": "Product analytics dashboard: DAU 15K, retention curve, feature adoption rates, error rates, load times",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dash-06",
+    "category": "dashboard",
+    "prompt": "Supply chain dashboard: on-time delivery 94%, inventory turnover 8x, supplier lead times, quality defect rate 0.3%",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dash-07",
+    "category": "dashboard",
+    "prompt": "Customer health dashboard: NPS 65, CSAT 4.3, support tickets by category, resolution times, churn risk segments",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dash-08",
+    "category": "dashboard",
+    "prompt": "Manufacturing KPIs: OEE 82%, yield 97.5%, downtime hours, maintenance backlog, safety incidents",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dash-09",
+    "category": "dashboard",
+    "prompt": "Energy consumption dashboard: kWh by building, solar generation, carbon footprint trend, cost per sqft",
+    "difficulty": "medium"
+  },
+  {
+    "id": "dash-10",
+    "category": "dashboard",
+    "prompt": "Executive summary dashboard: top 6 KPIs across finance, customers, operations, people with traffic light status",
+    "difficulty": "hard"
+  },
+  {
+    "id": "strat-01",
+    "category": "strategy",
+    "prompt": "3-year corporate strategy: vision, strategic pillars, key initiatives per pillar, success metrics",
+    "difficulty": "hard"
+  },
+  {
+    "id": "strat-02",
+    "category": "strategy",
+    "prompt": "Technology roadmap: current state, target architecture, migration phases, investment timeline",
+    "difficulty": "hard"
+  },
+  {
+    "id": "strat-03",
+    "category": "strategy",
+    "prompt": "Go-to-market strategy for APAC expansion: market sizing, channel strategy, pricing localization, hiring plan",
+    "difficulty": "hard"
+  },
+  {
+    "id": "strat-04",
+    "category": "strategy",
+    "prompt": "Innovation portfolio: 12 initiatives mapped on horizon framework (H1 core, H2 adjacent, H3 transformational)",
+    "difficulty": "medium"
+  },
+  {
+    "id": "strat-05",
+    "category": "strategy",
+    "prompt": "Sustainability strategy: 2030 targets, current baseline, reduction pathways, investment requirements",
+    "difficulty": "medium"
+  },
+  {
+    "id": "strat-06",
+    "category": "strategy",
+    "prompt": "Platform strategy: build ecosystem with 3rd party developers, API monetization, marketplace vision",
+    "difficulty": "hard"
+  },
+  {
+    "id": "strat-07",
+    "category": "strategy",
+    "prompt": "Pricing strategy review: current vs proposed pricing, elasticity analysis, competitor benchmarks, revenue impact",
+    "difficulty": "medium"
+  },
+  {
+    "id": "strat-08",
+    "category": "strategy",
+    "prompt": "Workforce planning: skills needed in 3 years, gap analysis, build vs buy vs borrow decisions",
+    "difficulty": "medium"
+  },
+  {
+    "id": "strat-09",
+    "category": "strategy",
+    "prompt": "Channel strategy optimization: direct vs partner vs digital, margin analysis, recommended mix shift",
+    "difficulty": "medium"
+  },
+  {
+    "id": "strat-10",
+    "category": "strategy",
+    "prompt": "Data strategy: governance framework, data mesh architecture, literacy program, 2-year implementation plan",
+    "difficulty": "hard"
+  },
+  {
+    "id": "team-01",
+    "category": "team",
+    "prompt": "Team introduction: 8 members with photo placeholders, roles, fun facts, and team charter",
+    "difficulty": "easy"
+  },
+  {
+    "id": "team-02",
+    "category": "team",
+    "prompt": "Department reorganization: current vs new structure, role changes, transition timeline",
+    "difficulty": "medium"
+  },
+  {
+    "id": "team-06",
+    "category": "team",
+    "prompt": "Hiring plan presentation: 25 open positions across 4 departments, timeline, budget, employer branding strategy",
+    "difficulty": "medium"
+  },
+  {
+    "id": "team-07",
+    "category": "team",
+    "prompt": "Team retrospective results: what went well, what to improve, action items with owners and deadlines",
+    "difficulty": "easy"
+  },
+  {
+    "id": "team-08",
+    "category": "team",
+    "prompt": "Culture survey results: 85% response rate, scores across 6 dimensions, trend vs last year, action plan",
+    "difficulty": "medium"
+  },
+  {
+    "id": "team-03",
+    "category": "creative",
+    "prompt": "Brand guidelines presentation: logo usage, color palette, typography, tone of voice, do/dont examples",
+    "difficulty": "medium"
+  },
+  {
+    "id": "team-04",
+    "category": "creative",
+    "prompt": "Event planning proposal: venue options, agenda, speakers, budget breakdown, sponsorship tiers",
+    "difficulty": "medium"
+  },
+  {
+    "id": "team-05",
+    "category": "creative",
+    "prompt": "Social media campaign results: impressions 2.5M, engagement rate 4.7%, top posts, sentiment analysis",
+    "difficulty": "medium"
+  },
+  {
+    "id": "creative-03",
+    "category": "creative",
+    "prompt": "Conference sponsorship deck: audience demographics, sponsorship tiers (Gold/Silver/Bronze), booth map, ROI for sponsors",
+    "difficulty": "medium"
+  },
+  {
+    "id": "creative-04",
+    "category": "creative",
+    "prompt": "Podcast launch presentation: concept, target audience, content calendar, production workflow, growth projections",
+    "difficulty": "easy"
+  },
+  {
+    "id": "creative-05",
+    "category": "creative",
+    "prompt": "Rebranding proposal: current vs new brand identity, rationale, implementation timeline, budget",
+    "difficulty": "hard"
+  },
+  {
+    "id": "tech-01",
+    "category": "technical",
+    "prompt": "System architecture diagram: frontend, API gateway, microservices, databases, message queues, monitoring",
+    "difficulty": "hard"
+  },
+  {
+    "id": "tech-02",
+    "category": "technical",
+    "prompt": "Incident response presentation: timeline, impact (45 min downtime, 10K users affected), root cause, prevention",
+    "difficulty": "medium"
+  },
+  {
+    "id": "tech-03",
+    "category": "technical",
+    "prompt": "Database migration plan: source MySQL, target PostgreSQL, data mapping, testing strategy, rollback plan",
+    "difficulty": "medium"
+  },
+  {
+    "id": "tech-04",
+    "category": "technical",
+    "prompt": "Performance benchmark results: comparing 3 solutions on throughput, latency, memory usage, cost",
+    "difficulty": "medium"
+  },
+  {
+    "id": "tech-05",
+    "category": "technical",
+    "prompt": "Security audit findings: 3 critical, 7 high, 12 medium vulnerabilities with remediation priority and timeline",
+    "difficulty": "medium"
+  },
+  {
+    "id": "tech-06",
+    "category": "technical",
+    "prompt": "API documentation overview: 5 endpoint groups, authentication flow, rate limits, error codes, SDK support",
+    "difficulty": "medium"
+  },
+  {
+    "id": "tech-07",
+    "category": "technical",
+    "prompt": "Cloud cost analysis: AWS spend breakdown by service, optimization opportunities totaling $180K annual savings",
+    "difficulty": "medium"
+  },
+  {
+    "id": "tech-08",
+    "category": "technical",
+    "prompt": "ML model evaluation: accuracy 94.2%, precision/recall curves, confusion matrix, comparison to baseline, deployment plan",
+    "difficulty": "hard"
+  },
+  {
+    "id": "tech-09",
+    "category": "technical",
+    "prompt": "Zero-trust security architecture: network segmentation, identity verification, device trust, monitoring layers",
+    "difficulty": "hard"
+  }
+]

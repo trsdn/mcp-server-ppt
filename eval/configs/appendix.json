@@ -1,0 +1,71 @@
+{
+  "name": "appendix",
+  "mode": "tuning",
+  "description": "Evaluate and improve appendix slides — backup evidence, definitions, assumption pages, and reference exhibits",
+  "goal": "Achieve consistent 12+/14 with appendix slides that are structured, legible, and clearly subordinate but still evidence-complete",
+  "archetype": "appendix",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "appendix-assumptions",
+      "text": "Build an appendix slide listing the key assumptions behind a revenue forecast with categories, values, and notes"
+    },
+    {
+      "id": "appendix-definitions",
+      "text": "Build an appendix slide defining eight KPI terms used in the main deck with short business definitions"
+    },
+    {
+      "id": "appendix-source-log",
+      "text": "Build an appendix slide summarizing primary data sources, date ranges, and validation status for an operations review"
+    },
+    {
+      "id": "appendix-extra-table",
+      "text": "Build an appendix slide with backup regional financial detail not shown in the main deck"
+    },
+    {
+      "id": "appendix-risk-detail",
+      "text": "Build an appendix slide with detailed risk descriptions, owner names, and mitigation actions"
+    },
+    {
+      "id": "appendix-methodology",
+      "text": "Build an appendix slide describing the benchmarking methodology and sample used for a market study"
+    },
+    {
+      "id": "appendix-customer-list",
+      "text": "Build an appendix slide listing ten reference customers by segment, geography, and use case"
+    },
+    {
+      "id": "appendix-synergy-detail",
+      "text": "Build an appendix slide breaking synergy estimates into workstreams, timing, and confidence levels"
+    },
+    {
+      "id": "appendix-roadmap-detail",
+      "text": "Build an appendix slide with detailed milestone dates and dependency notes behind the transformation roadmap"
+    },
+    {
+      "id": "appendix-glossary",
+      "text": "Build an appendix glossary slide for an AI strategy deck with acronym and term definitions"
+    }
+  ],
+  "outputDir": "output/appendix",
+  "resultsDir": "results/appendix"
+}

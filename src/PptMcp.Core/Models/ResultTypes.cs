@@ -599,3 +599,275 @@ public class ReadingOrderEntry
     public string ShapeType { get; set; } = string.Empty;
     public int ZOrderPosition { get; set; }
 }
+
+// ── Design Catalog ───────────────────────────────────────
+
+public class ArchetypeListResult : ResultBase
+{
+    public List<ArchetypeListItem> Archetypes { get; set; } = [];
+}
+
+public class ArchetypeListItem
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string When { get; set; } = string.Empty;
+    public List<string> BestDensity { get; set; } = [];
+    public List<string> Variants { get; set; } = [];
+    public string ExampleTitle { get; set; } = string.Empty;
+    public bool HasCuratedLayoutGuidance { get; set; }
+    public int ObservedSlideCount { get; set; }
+    public int ObservedSubtypeCount { get; set; }
+    public List<string> ObservedExampleSlides { get; set; } = [];
+}
+
+public class ArchetypeDetailResult : ResultBase
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string When { get; set; } = string.Empty;
+    public List<string> BestDensity { get; set; } = [];
+    public List<string> Variants { get; set; } = [];
+    public bool HasCuratedLayoutGuidance { get; set; }
+    public int ObservedSlideCount { get; set; }
+    public List<string> ObservedExampleSlides { get; set; } = [];
+    public List<ReferenceSlideInfo> ObservedExamples { get; set; } = [];
+    public List<ReferenceSubtypeInfo> ObservedSubtypes { get; set; } = [];
+    public List<ReferenceMisbucketedSampleInfo> AuditSamples { get; set; } = [];
+    public string Detail { get; set; } = string.Empty;
+}
+
+public class ReferenceSubtypeInfo
+{
+    public string SubArchetypeId { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public List<string> HeuristicPhrases { get; set; } = [];
+    public int Count { get; set; }
+    public List<string> ExampleSlides { get; set; } = [];
+    public List<ReferenceSlideInfo> ExampleDetails { get; set; } = [];
+}
+
+public class ReferenceMisbucketedSampleInfo
+{
+    public string ReferenceId { get; set; } = string.Empty;
+    public string CurrentArchetypeId { get; set; } = string.Empty;
+    public string SuggestedArchetypeId { get; set; } = string.Empty;
+    public string Reason { get; set; } = string.Empty;
+}
+
+public class ReferenceSlideInfo
+{
+    public string Id { get; set; } = string.Empty;
+    public string ArchetypeId { get; set; } = string.Empty;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SubArchetypeId { get; set; }
+
+    public string Rationale { get; set; } = string.Empty;
+}
+
+public class PaletteListResult : ResultBase
+{
+    public List<PaletteListItem> Palettes { get; set; } = [];
+}
+
+public class PaletteListItem
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string BestFor { get; set; } = string.Empty;
+}
+
+public class PaletteDetailResult : ResultBase
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string BestFor { get; set; } = string.Empty;
+    public Dictionary<string, string> Colors { get; set; } = [];
+}
+
+public class StyleProfileListResult : ResultBase
+{
+    public List<StyleProfileListItem> Profiles { get; set; } = [];
+}
+
+public class StyleProfileListItem
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string BestFor { get; set; } = string.Empty;
+    public string ColorScheme { get; set; } = string.Empty;
+}
+
+public class StyleProfileDetailResult : ResultBase
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string BestFor { get; set; } = string.Empty;
+    public string ColorScheme { get; set; } = string.Empty;
+    public string Font { get; set; } = string.Empty;
+    public string TitleStyle { get; set; } = string.Empty;
+    public int TitleSize { get; set; }
+    public int BodySize { get; set; }
+    public int FootnoteSize { get; set; }
+    public string BulletsPerSlide { get; set; } = string.Empty;
+    public string WordsPerBullet { get; set; } = string.Empty;
+    public string ContentDensity { get; set; } = string.Empty;
+    public List<string> PreferredArchetypes { get; set; } = [];
+    public string Whitespace { get; set; } = string.Empty;
+    public string Background { get; set; } = string.Empty;
+    public string ChartStyle { get; set; } = string.Empty;
+    public string SpecialRules { get; set; } = string.Empty;
+}
+
+public class LayoutGridResult : ResultBase
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string BestFor { get; set; } = string.Empty;
+    public List<LayoutZone> Zones { get; set; } = [];
+}
+
+public class LayoutZone
+{
+    public string Name { get; set; } = string.Empty;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? X { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Y { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? W { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? H { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Description { get; set; }
+}
+
+public class LayoutGridListResult : ResultBase
+{
+    public List<LayoutGridListItem> Grids { get; set; } = [];
+}
+
+public class LayoutGridListItem
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string BestFor { get; set; } = string.Empty;
+}
+
+public class DensityProfileResult : ResultBase
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string UsedFor { get; set; } = string.Empty;
+    public string Audience { get; set; } = string.Empty;
+    public string Mode { get; set; } = string.Empty;
+    public string TextVolume { get; set; } = string.Empty;
+    public string ElementCount { get; set; } = string.Empty;
+    public string DataGranularity { get; set; } = string.Empty;
+    public string AnnotationDepth { get; set; } = string.Empty;
+    public string SourceCompleteness { get; set; } = string.Empty;
+    public string WhiteSpaceRatio { get; set; } = string.Empty;
+    public string Character { get; set; } = string.Empty;
+    public List<string> BestArchetypes { get; set; } = [];
+}
+
+public class DensityProfileListResult : ResultBase
+{
+    public List<DensityProfileListItem> Profiles { get; set; } = [];
+}
+
+public class DensityProfileListItem
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string UsedFor { get; set; } = string.Empty;
+}
+
+public class ContextModelResult : ResultBase
+{
+    public List<MeetingTypeInfo> MeetingTypes { get; set; } = [];
+    public List<AudienceLevelInfo> AudienceLevels { get; set; } = [];
+    public List<ConsumptionModeInfo> ConsumptionModes { get; set; } = [];
+    public string DefaultDensity { get; set; } = string.Empty;
+}
+
+public class MeetingTypeInfo
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Audience { get; set; } = string.Empty;
+    public string TimePerSlide { get; set; } = string.Empty;
+    public string Goal { get; set; } = string.Empty;
+    public string DecisionPressure { get; set; } = string.Empty;
+    public string PrimaryMode { get; set; } = string.Empty;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SecondaryMode { get; set; }
+
+    public string DefaultDensity { get; set; } = string.Empty;
+}
+
+public class AudienceLevelInfo
+{
+    public string Id { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public string Roles { get; set; } = string.Empty;
+    public string PreferredDensity { get; set; } = string.Empty;
+    public string WantsToSee { get; set; } = string.Empty;
+}
+
+public class ConsumptionModeInfo
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public bool SpeakerPresent { get; set; }
+    public bool SelfContained { get; set; }
+    public string TextDensity { get; set; } = string.Empty;
+}
+
+public class DeckSequenceListResult : ResultBase
+{
+    public List<DeckSequenceListItem> Sequences { get; set; } = [];
+}
+
+public class DeckSequenceListItem
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string UsedFor { get; set; } = string.Empty;
+    public string Intent { get; set; } = string.Empty;
+}
+
+public class DeckSequenceDetailResult : ResultBase
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string UsedFor { get; set; } = string.Empty;
+    public string Intent { get; set; } = string.Empty;
+    public List<DeckSlideInfo> Slides { get; set; } = [];
+}
+
+public class DeckSlideInfo
+{
+    public string Position { get; set; } = string.Empty;
+    public string Purpose { get; set; } = string.Empty;
+    public string Archetype { get; set; } = string.Empty;
+    public string Density { get; set; } = string.Empty;
+}
+
+public class SlidePatternListResult : ResultBase
+{
+    public string Content { get; set; } = string.Empty;
+}
+
+public class IconShapeListResult : ResultBase
+{
+    public string Content { get; set; } = string.Empty;
+}

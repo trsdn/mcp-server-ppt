@@ -28,6 +28,21 @@ Provides {{ operationcount }} PowerPoint operations via Model Context Protocol. 
 - Use full Windows paths: `C:\Users\Name\Documents\Report.pptx`
 - PowerPoint files must not be open in another PowerPoint instance
 
+## Large Deck Pattern
+
+For larger builds, use a **single controlling client** with these logical phases:
+
+1. Plan
+2. Execute
+3. Verify
+4. Improve
+
+Important:
+
+- Keep this orchestration in the client, not in the MCP server
+- Use normal sequential MCP calls
+- Do **not** assume MCP batch execution or subagents are available
+
 ## Slide Transitions Workflow
 
 Use `transition` for **slide transition effects**. Apply transitions to individual slides or across the entire presentation:
@@ -169,25 +184,26 @@ When building multi-slide presentations, maintain consistent colors, fonts, and 
 | Set animations | `animation` | add, remove, reorder |
 | Set slide transitions | `transition` | set, remove |
 | Add speaker notes | `notes` | set, get |
-| Visual verification | `screenshot` | capture, capture-slide |
+| Visual verification | `export` | slide-to-image |
 
 ## Reference Documentation
 
 See `references/` for detailed guidance:
 
 - [Core execution rules and LLM guidelines](./references/behavioral-rules.md)
-- [Common mistakes to avoid](./references/anti-patterns.md)
-- [Presentation workflows and patterns](./references/workflows.md)
-- [Charts and formatting](./references/chart.md)
-- [Shapes and visual elements](./references/conditionalformat.md)
-- [Presentation design best practices](./references/dashboard.md)
-- [Animations and transitions](./references/datamodel.md)
-- [Slide layout reference](./references/dmv-reference.md)
-- [Text formatting reference](./references/m-code-syntax.md)
-- [Table operations](./references/pivottable.md)
-- [Media and embedded content](./references/powerquery.md)
-- [Shapes and positioning](./references/range.md)
-- [Screenshot and visual verification](./references/screenshot.md)
-- [Notes and comments](./references/slicer.md)
-- [Table operations](./references/table.md)
-- [Slide operations](./references/slide.md)
+- [Slide design principles](./references/slide-design-principles.md)
+- [Slide design review checklist](./references/slide-design-review.md)
+- [Generation pipeline](./references/generation-pipeline.md)
+- [Agent mode patterns](./references/ppt_agent_mode.md)
+
+For design catalog data (archetypes, palettes, grids, styles, density), use the `design` tool:
+- `design(list-archetypes)` / `design(get-archetype)` — Primary unified archetype surface with curated layout guidance plus learned subtypes and concrete sanitized example details when local reference data is available
+- `design(list-palettes)` / `design(get-palette)` — Color palettes with hex values
+- `design(list-layout-grids)` / `design(get-layout-grid)` — Exact positioning coordinates
+- `design(list-style-profiles)` / `design(get-style-profile)` — Style configurations
+- `design(get-context-model)` — Meeting type → density mapping
+- `design(get-deck-sequence)` — Canonical slide sequences
+- `design(get-slide-patterns)` — Advanced consulting patterns
+- `design(get-icon-shapes)` — Native shape icon catalog
+
+Reference examples are exposed only as sanitized ids/details embedded in `design(get-archetype)`. Raw filenames and source provenance remain in local gitignored reference data and never appear in MCP responses.

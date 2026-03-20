@@ -7,28 +7,58 @@ These rules ensure efficient and reliable PowerPoint automation. AI assistants s
 These rules are validated by automated LLM tests and MUST be followed:
 
 - **Execute tasks immediately without asking for confirmation**
-- **Never ask clarifying questions - make reasonable assumptions and proceed**
+- **Never ask clarifying questions — make reasonable assumptions and proceed**
 - Ask the user whether they want PowerPoint visible or hidden when starting multi-step tasks
 - When the user asks to "show PowerPoint" or "watch" the work, use `window(show)` + `window(arrange)` to position it
-- Format PowerPoint files professionally (proper column widths, headers, number formats)
-- Always format data ranges as PowerPoint Tables (not plain ranges)
-- **Always end with a text summary** - never end on just a tool call or command
+- Format presentations professionally (proper typography, alignment, consistent colors)
+- **Always end with a text summary** — never end on just a tool call or command
 
 ## CRITICAL: No Clarification Questions
 
-**STOP.** If you are about to ask "Which file?", "What table?", "Where should I put this?" - DON'T.
+**STOP.** If you are about to ask "Which file?", "Which slide?", "Where should I put this?" — DON'T.
 
 **Instead, discover the information yourself:**
 
 | Bad (Asking) | Good (Discovering) |
-|--------------|-------------------|
+|---|---|
 | "Which PowerPoint file should I use?" | `file(list)` → use the open session |
-| "What's the table name?" | `table(list)` → discover tables |
-| "Which sheet has the data?" | `worksheet(list)` → check all sheets |
-| "Should I create a PivotTable?" | YES - create it on a new sheet |
-| "What values should I filter?" | Read the data first, then filter appropriately |
+| "Which slide has the chart?" | `slide(list)` → discover slides |
+| "What shapes are on this slide?" | `shape(list)` → check the slide |
+| "Should I create a new slide?" | YES — create it and proceed |
+| "What font should I use?" | Use `design(get-style-profile)` to get the right style |
 
 **You have tools to answer your own questions. USE THEM.**
+
+## Archetype Selection Rules (CRITICAL)
+
+### Force Contribution/Arithmetic Pattern for Build-Up Language
+
+**HARD RULE: When prompt contains "waterfall," "bridge," "build-up," "show each source," "prove the math," or "demonstrate how" → MUST use contribution/arithmetic archetype, NOT big-number archetype.**
+
+Required elements:
+- **Each source labeled explicitly**: "Platform savings: $3.1M", "Revenue uplift: $1.8M", "License consolidation: $0.4M"
+- **Each value tied to named source**: No generic placeholders
+- **Visual sum structure**: Waterfall chart or build-up table showing additive logic
+- **Mathematical flow**: Each component shows how it contributes to headline metric
+
+**NEVER use big-number archetype when build-up language is present** — the user is explicitly requesting component breakdown logic, not hero display.
+
+### Business Update Title Slides — Preserve Prompt Fidelity
+
+**MANDATORY for business update presentations**: Title slides must preserve the core message from user prompts and include headline results, NOT generic meeting labels.
+
+**Required title content for business updates:**
+- **Include headline metric**: Specific result that answers "what happened?"
+- **Add comparison + implication**: Context showing performance vs. baseline
+- **Preserve prompt subject**: Don't drift from user's core message
+
+**WRONG — Generic meeting title:**
+- "Quarterly Business Review"
+- "Financial Update - Q4 2024"
+
+**CORRECT — Action title with headline result:**
+- "Q4 revenue beat forecast by 8%, driving record profitability"
+- "Cost reduction program delivered $5.2M savings, exceeding target"
 
 ## Core Execution Rules
 
@@ -36,26 +66,24 @@ These rules are validated by automated LLM tests and MUST be followed:
 
 Do NOT ask clarifying questions for standard operations. Proceed with reasonable defaults:
 
-- **File creation**: Create the file and report the path
-- **Data operations**: Execute the operation and report results
+- **Slide creation**: Create the slide and report what was built
+- **Shape operations**: Execute and report results
 - **Formatting**: Apply formatting and confirm completion
 
-**When to ask**: Only when the request is genuinely ambiguous (e.g., "update the data" without specifying what data or which file).
+**When to ask**: Only when the request is genuinely ambiguous (e.g., "make it better" without specifying what).
 
 ### Ask About PowerPoint Visibility
 
-When starting a multi-step task, **ask the user** whether they want PowerPoint visible or hidden. Present two clear action card choices:
+When starting a multi-step task, **ask the user** whether they want PowerPoint visible or hidden:
 
 > **Watch me work** — Show PowerPoint side-by-side so you see every change live. Operations run slightly slower because PowerPoint renders each update on screen.
 >
 > **Work in background** — Keep PowerPoint hidden for maximum speed. You won't see changes until the task is done, but operations complete faster.
 
 **Skip asking** when the user has already stated a preference:
-- User says "show me PowerPoint", "let me watch", "I want to see it" → Show immediately
+- User says "show me PowerPoint", "let me watch" → Show immediately
 - User says "just do it", "work in background" → Keep hidden
-- Simple one-shot operations (e.g., "what's in A1?") → Keep hidden, no need to ask
-
-**If the user doesn't respond**, keep PowerPoint hidden.
+- Simple one-shot operations (e.g., "how many slides?") → Keep hidden, no need to ask
 
 **How to show PowerPoint:**
 ```
@@ -63,95 +91,66 @@ When starting a multi-step task, **ask the user** whether they want PowerPoint v
 2. window(action: 'arrange', preset: 'left-half') → Position for side-by-side
 ```
 
-Do NOT:
-- Show PowerPoint without the user choosing to see it
-- Tell users to look at PowerPoint windows unless PowerPoint is visible
-- Reference PowerPoint UI elements when PowerPoint is hidden
-- Suggest manual PowerPoint interactions
+### Design-First Workflow
+
+Before building slides, query the design catalog for the right configuration:
+
+```
+1. design(get-context-model)                    → Determine density from meeting type
+2. design(get-style-profile, profileId='...')    → Get fonts, sizes, spacing
+3. design(get-palette, paletteId='...')          → Get color hex values
+4. design(get-archetype, archetypeId='...')      → Get the unified archetype view: layout rules, observed subtypes, and concrete sanitized example details when local reference data exists
+5. design(get-layout-grid, gridId='...')         → Get exact x/y/w/h positions
+```
+
+This replaces reading long reference documents — query only what you need.
+Reference examples come back embedded in `get-archetype` as sanitized ids/details; raw filenames and provenance metadata stay in local gitignored reference data.
+
+### External Controller Workflow
+
+If a host or custom client is orchestrating a larger deck build, keep the orchestration OUTSIDE the MCP server:
+
+- Planning, execution, verification, and improvement are **client-controlled phases**
+- The MCP server remains a normal request/response tool surface
+- Do **not** assume MCP batch execution or subagents are available
+- Use one controlling client that issues ordinary sequential MCP calls
+
+Recommended external flow:
+
+1. **Plan locally** — create a structured slide plan from the user task
+2. **Execute via MCP** — open/create one presentation and build slides in order
+3. **Verify via MCP** — re-read slides, inspect shapes/text, and export slide images when helpful
+4. **Apply targeted fixes** — adjust only the specific issues found
+
+### Plan Extraction Fallback
+
+External controllers should be tolerant if the model returns a plan as text instead of a perfect structured object.
+
+Accept these patterns:
+
+- JSON object with `{"slides":[...]}`
+- JSON object with `{"plan":{"slides":[...]}}`
+- Bare JSON array of slide objects
+- Markdown blocks like:
+
+```
+### Slide 1: Title
+- Archetype: executive-summary
+- Intent: ...
+- Content: ...
+```
+
+If a valid structured plan can be recovered from one of these formats, continue with execution rather than failing immediately.
 
 ### Format Professionally
 
-When creating or modifying PowerPoint files:
+When creating presentations:
 
-- Set appropriate column widths for content
-- Apply header formatting (bold, filters)
-- Use proper number formats (currency, dates, percentages)
-- Format data as PowerPoint Tables (not plain ranges)
-
-**Use `set-style` for semantic status labels and document structure:**
-- `Good` / `Bad` / `Neutral` — colour-coded status cells (green/red/yellow fills, theme-aware)
-- `Heading 1` / `Heading 2` / `Title` — document hierarchy
-- `Normal` — reset all formatting
-
-**Use `format-range` for visual layout (header rows, custom colours) — ALL properties in ONE call:**
-- `set-style('Heading 1')` does NOT apply a fill colour; if you want a coloured header row use `format-range`
-- Pass bold, fillColor, fontColor, and alignment together in a single call — do not call `format-range` multiple times for the same range
-
-**Apply each formatting operation once** — do not reapply the same properties to the same range unless a later step explicitly changes them.
-
-### Format Cells by Data Type (CRITICAL)
-
-Always apply number formats after setting values. Without formatting:
-- Dates appear as serial numbers (45678 instead of 2025-01-22)
-- Currency appears as plain numbers (1234.56 instead of $1,234.56)
-- Percentages appear as decimals (0.15 instead of 15%)
-
-**Common format codes (US locale, auto-translated):**
-
-| Data Type | Format Code | Result |
-|-----------|-------------|--------|
-| USD | `$#,##0.00` | $1,234.56 |
-| EUR | `€#,##0.00` | €1,234.56 |
-| Number | `#,##0.00` | 1,234.56 |
-| Percent | `0.00%` | 15.00% |
-| Date (ISO) | `yyyy-mm-dd` | 2025-01-22 |
-| Date (US) | `mm/dd/yyyy` | 01/22/2025 |
-
-**Workflow:**
-```
-1. range set-values (data is now in cells)
-2. range set-number-format (apply format to range)
-```
-
-### Format Tabular Data as PowerPoint Tables
-
-Always convert tabular data to PowerPoint Tables (ListObjects):
-
-```
-1. range set-values (write data including headers)
-2. table create tableName="SalesData" rangeAddress="A1:D100"
-```
-
-**Why Tables over plain ranges:**
-- Structured references: `=SUM(Sales[Amount])` instead of `=SUM(B2:B100)`
-- Auto-expand when rows are added
-- Built-in filtering, sorting, and banded rows
-- Required for `add-to-data-model` action (Data Model/DAX)
-- Named reference for Power Query: `Excel.CurrentWorkbook(){[Name="SalesData"]}`
-
-**When NOT to use Tables:**
-- Single-cell parameters (use named ranges instead)
-- Layout areas with merged cells
-- Print-formatted reports with specific spacing
-
-### Report Results
-
-After completing operations, report:
-
-- What was created/modified
-- File path (for new files)
-- Any relevant statistics (row counts, etc.)
-
-### CRITICAL: Always End With a Text Response
-
-**NEVER end your turn with only a tool call or command execution.** After all operations are complete, you MUST provide a text message summarizing what was accomplished.
-
-| Bad (Silent completion) | Good (Text summary) |
-|------------------------|--------------------|
-| *(tool call with no text)* | "Created PivotTable 'SalesPivot' with tabular layout on the Analysis sheet." |
-| *(just runs a command)* | "Set the PivotTable to compact layout (row fields in a single indented column)." |
-
-**Why**: Users and automation expect a text confirmation. A silent tool call or command with no follow-up text is an incomplete response.
+- Use action titles on every content slide (see slide-design-principles)
+- Apply consistent typography hierarchy (title, body, footnote)
+- Use colors from the chosen palette only
+- Maintain 36pt margins on all sides
+- Add source bars to every data slide
 
 ### Session Lifecycle
 
@@ -160,68 +159,67 @@ Always close sessions when done:
 ```
 1. file(action: 'open', path: '...')  → sessionId
 2. All operations use sessionId
-3. file(action: 'close', sessionId: '...', save: true)  → saves and closes
+3. file(action: 'close', sessionId: '...', save: true)
 ```
 
 **Why**: Unclosed sessions leave PowerPoint processes running, consuming memory and locking files.
 
+### CRITICAL: Always End With a Text Response
+
+**NEVER end your turn with only a tool call.** After all operations, provide a text summary.
+
+| Bad (Silent completion) | Good (Text summary) |
+|---|---|
+| *(tool call with no text)* | "Created 3-card KPI dashboard on slide 2 with Corporate Blue palette." |
+| *(just runs a command)* | "Added title slide with dark hero background and accent bar." |
+
 ### Format Results as Tables
 
-When presenting data to users, format as Markdown tables:
+When presenting data to users, format as Markdown tables, not raw JSON.
 
-```markdown
-| Column A | Column B | Column C |
-|----------|----------|----------|
-| Value 1  | Value 2  | Value 3  |
-```
+## Slide Building Rules
 
-NOT as raw JSON arrays: `[["Column A","Column B"],["Value 1","Value 2"]]`
+### Shape and Text Operations
 
-## Data Model Output Rules
+When building slides programmatically:
 
-### Choose the Right Display Method
+- Create shapes with explicit positions (x, y, w, h in points)
+- Use `text(set)` immediately after creating text-containing shapes
+- Apply formatting (`text(format)`) after setting text content
+- Use `--color` parameter for text color (NOT `--font-color`)
+- Use `--alignment` parameter (NOT `--horizontal-alignment`)
 
-When displaying Data Model data:
+### Multi-Line Text
 
-| Scenario | Use | NOT |
-|----------|-----|-----|
-| Show DAX query results | `table create-from-dax` | PivotTable |
-| Static report/snapshot | `table create-from-dax` | PivotTable |
-| Data needed in formulas | `table create-from-dax` | PivotTable |
-| User needs interactive filtering | `pivottable` | DAX table |
-| Cross-tabulation layout | `pivottable` | DAX table |
+- **MCP Server**: `\n` in JSON strings works correctly for line breaks
+- **CLI**: `\n` literal does NOT work in `--text` arguments — use separate textboxes stacked vertically instead
 
-**Why**: PivotTables add UI complexity (field panes, refresh prompts) that's unnecessary for simple data display. DAX-backed tables are cleaner for presenting query results.
+### Table Operations on Slides
 
-### Chart Data Model Data Directly
+When adding tables to slides:
+- Use `slidetable(create)` to add tables directly to slides
+- Position tables using exact coordinates from layout grids
+- Format header rows with bold text and accent color fill
+- Right-align numeric columns, left-align text columns
 
-When creating charts from Data Model:
+### Chart Operations
 
-- **Use**: `chart create-from-pivottable` (creates PivotChart)
-- **NOT**: Create PivotTable → Create separate Chart from the PivotTable
-
-**Why**: A PivotChart is a single object connected to the Data Model. Creating PivotTable + Chart is redundant - two objects instead of one.
+When creating charts:
+- Use `chart(create)` with appropriate chart type for the data shape
+- Position charts using layout grid coordinates
+- Always add chart titles and axis labels
+- Apply palette colors to chart series
+- Add source bars below charts
 
 ## Data Modification Rules
 
 ### Verify Before Delete
 
-Before deleting tables, slides, or named ranges:
+Before deleting slides, shapes, or sections:
 
 1. List existing items first
-2. Confirm the exact name exists
+2. Confirm the exact name/index exists
 3. Delete the specified item
-
-**Why**: Delete operations cannot be undone. Verification prevents accidental data loss.
-
-### Targeted Updates Over Wholesale Replace
-
-When updating data:
-
-- **Prefer**: `set-values` on specific range (e.g., `A5:C5` for row 5)
-- **Avoid**: Deleting and recreating entire structures
-
-**Why**: Targeted updates preserve formatting, formulas, and references that wholesale replacement destroys.
 
 ### Save Explicitly
 
@@ -230,42 +228,6 @@ Call `file(action: 'close', save: true)` to persist changes:
 - Operations modify the in-memory presentation
 - Changes are NOT automatically saved to disk
 - Session termination WITHOUT save loses all changes
-
-## Workflow Sequencing Rules
-
-### Data Model Prerequisites
-
-DAX operations require tables in the Data Model:
-
-```
-Step 1: Create or import data → Table exists
-Step 2: table(action: 'add-to-data-model') → Table in Data Model
-Step 3: datamodel(action: 'create-measure') → NOW this works
-```
-
-Skipping Step 2 causes DAX operations to fail with "table not found".
-
-### Power Query Load Destinations
-
-Choose load destination based on workflow:
-
-| Destination | When to Use |
-|-------------|-------------|
-| `worksheet` | View data, simple analysis |
-| `data-model` | DAX measures, PivotTables, relationships |
-| `both` | View data AND use in DAX |
-| `connection-only` | Data staging, intermediate queries |
-
-### Refresh After Create
-
-`powerquery(action: 'create')` imports the M code but does NOT execute it:
-
-```
-Step 1: powerquery(action: 'create', ...) → Query created
-Step 2: powerquery(action: 'refresh', queryName: '...') → Data loaded
-```
-
-Without refresh, the query exists but contains no data.
 
 ## Error Handling Rules
 
@@ -276,8 +238,8 @@ PowerPoint MCP errors include actionable context:
 ```json
 {
   "success": false,
-  "errorMessage": "Table 'Sales' not found in Data Model",
-  "suggestedNextActions": ["table(action: 'add-to-data-model', tableName: 'Sales')"]
+  "errorMessage": "Shape 'Title' not found on slide 1",
+  "suggestedNextActions": ["shape(action: 'list', slideIndex: 1)"]
 }
 ```
 
@@ -288,7 +250,7 @@ Follow `suggestedNextActions` when provided.
 If an operation fails:
 
 1. Read the error message carefully
-2. Check prerequisites (session, table in Data Model, etc.)
+2. Check prerequisites (session open, slide exists, shape exists)
 3. Retry with corrected parameters
 
 Do NOT immediately re-run the same failing command.
@@ -301,6 +263,6 @@ When operations fail:
 - Explain what went wrong
 - Suggest the corrective action
 
-**Good**: "Failed to add DAX measure: Table 'Sales' is not in the Data Model. Use `table(action: 'add-to-data-model')` first."
+**Good**: "Failed to set text: Shape 'Title 1' not found on slide 2. Use `shape(list, slideIndex=2)` to see available shapes."
 
 **Bad**: "An error occurred."

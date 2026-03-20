@@ -1,0 +1,85 @@
+[
+  {
+    "id": "S1",
+    "name": "Decision Deck",
+    "usedFor": "M01 (Board), M02 (Steering), M03 (IC), M06 (Transformation)",
+    "intent": "Secure a specific decision or approval",
+    "slides": [
+      { "position": 1, "purpose": "Cover / title", "archetype": "cover", "density": "D1" },
+      { "position": 2, "purpose": "Executive summary", "archetype": "executive-summary", "density": "D2-D3" },
+      { "position": 3, "purpose": "Context / mandate", "archetype": "big-number", "density": "D2" },
+      { "position": "4-5", "purpose": "Core diagnosis", "archetype": "big-number, trend, waterfall", "density": "D2-D3" },
+      { "position": "6-7", "purpose": "Supporting evidence", "archetype": "comparison, chart", "density": "D2-D3" },
+      { "position": 8, "purpose": "Options or tradeoffs", "archetype": "comparison, framework", "density": "D2-D3" },
+      { "position": 9, "purpose": "Recommendation", "archetype": "recommendations", "density": "D2" },
+      { "position": 10, "purpose": "Risks / dependencies", "archetype": "framework", "density": "D2-D3" },
+      { "position": 11, "purpose": "Roadmap / next steps", "archetype": "timeline", "density": "D2-D3" },
+      { "position": "A1-An", "purpose": "Appendix", "archetype": "appendix", "density": "D5" }
+    ]
+  },
+  {
+    "id": "S2",
+    "name": "Performance Review",
+    "usedFor": "M05 (QBR), M14 (Vendor review)",
+    "intent": "Assess performance against plan, agree on corrective actions",
+    "slides": [
+      { "position": 1, "purpose": "Cover", "archetype": "cover", "density": "D1" },
+      { "position": 2, "purpose": "Summary / traffic light", "archetype": "kpi-dashboard, executive-summary", "density": "D2-D3" },
+      { "position": 3, "purpose": "Overall performance vs plan", "archetype": "trend, comparison", "density": "D2-D3" },
+      { "position": "4-6", "purpose": "Deep-dive on key KPIs", "archetype": "big-number, waterfall", "density": "D3" },
+      { "position": 7, "purpose": "Root cause / driver analysis", "archetype": "waterfall, framework", "density": "D3" },
+      { "position": 8, "purpose": "Actions taken / underway", "archetype": "process-diagram, timeline", "density": "D3" },
+      { "position": 9, "purpose": "Outlook / forecast", "archetype": "trend", "density": "D2-D3" },
+      { "position": 10, "purpose": "Decisions / asks", "archetype": "recommendations", "density": "D2" }
+    ]
+  },
+  {
+    "id": "S3",
+    "name": "Pitch / Proposal",
+    "usedFor": "M08 (Client pitch), M09 (Investor roadshow)",
+    "intent": "Persuade external audience to engage or invest",
+    "slides": [
+      { "position": 1, "purpose": "Cover", "archetype": "cover", "density": "D1" },
+      { "position": 2, "purpose": "The challenge / opportunity", "archetype": "big-number", "density": "D1-D2" },
+      { "position": 3, "purpose": "Our point of view / thesis", "archetype": "big-number", "density": "D2" },
+      { "position": "4-5", "purpose": "Evidence / proof points", "archetype": "trend, comparison, chart", "density": "D2" },
+      { "position": 6, "purpose": "Approach / how we would do it", "archetype": "process-diagram, timeline", "density": "D2" },
+      { "position": 7, "purpose": "Team / credentials", "archetype": "comparison", "density": "D2" },
+      { "position": 8, "purpose": "Impact / value proposition", "archetype": "big-number, waterfall", "density": "D2" },
+      { "position": 9, "purpose": "Call to action / next steps", "archetype": "recommendations", "density": "D1-D2" }
+    ]
+  },
+  {
+    "id": "S4",
+    "name": "Transformation / Change Narrative",
+    "usedFor": "M04 (Strategy off-site), M06 (Transformation), M12 (All-hands)",
+    "intent": "Build understanding and commitment for a change program",
+    "slides": [
+      { "position": 1, "purpose": "Cover", "archetype": "cover", "density": "D1" },
+      { "position": 2, "purpose": "Why change is necessary", "archetype": "big-number", "density": "D1-D2" },
+      { "position": 3, "purpose": "Current state diagnosis", "archetype": "big-number, comparison", "density": "D2" },
+      { "position": 4, "purpose": "Target state vision", "archetype": "framework, big-number", "density": "D2" },
+      { "position": 5, "purpose": "The gap / what must change", "archetype": "waterfall, comparison", "density": "D2-D3" },
+      { "position": "6-7", "purpose": "Workstream detail", "archetype": "process-diagram, timeline", "density": "D2-D3" },
+      { "position": 8, "purpose": "Timeline / phasing", "archetype": "timeline", "density": "D2-D3" },
+      { "position": 9, "purpose": "Risks and mitigations", "archetype": "framework", "density": "D2-D3" },
+      { "position": 10, "purpose": "What we need from you", "archetype": "recommendations", "density": "D2" }
+    ]
+  },
+  {
+    "id": "S5",
+    "name": "Regulatory / Compliance Briefing",
+    "usedFor": "M13 (Regulatory/audit), M14 (Vendor review with compliance)",
+    "intent": "Demonstrate compliance, provide evidence, answer regulator questions",
+    "slides": [
+      { "position": 1, "purpose": "Cover", "archetype": "cover", "density": "D1" },
+      { "position": 2, "purpose": "Executive summary / posture", "archetype": "executive-summary, kpi-dashboard", "density": "D3" },
+      { "position": 3, "purpose": "Regulatory landscape", "archetype": "big-number", "density": "D3" },
+      { "position": "4-6", "purpose": "Compliance evidence per area", "archetype": "big-number, comparison", "density": "D3-D4" },
+      { "position": 7, "purpose": "Open items / remediation", "archetype": "kpi-dashboard, timeline", "density": "D3-D4" },
+      { "position": 8, "purpose": "Risk assessment", "archetype": "framework", "density": "D3-D4" },
+      { "position": 9, "purpose": "Next steps / timeline", "archetype": "timeline", "density": "D3" },
+      { "position": "A1-An", "purpose": "Detailed evidence appendix", "archetype": "appendix", "density": "D5" }
+    ]
+  }
+]

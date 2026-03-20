@@ -8,7 +8,13 @@ namespace PptMcp.Core.Commands.Chart;
 /// Embedded chart operations: create, get info, set title, set type, delete.
 /// </summary>
 [ServiceCategory("chart")]
-[McpTool("chart", Title = "Chart Operations", Destructive = true, Category = "charts")]
+[McpTool("chart", Title = "Chart Operations", Destructive = true, Category = "charts",
+    Description = "Create and configure embedded charts on slides. "
+    + "WORKFLOW: chart(create) → chart(set-data, values=[[headers],[row1],[row2]]) → chart(set-title). "
+    + "chart_type (XlChartType): 51=ColumnClustered, 52=ColumnStacked, 4=Line, 5=Pie, 65=DoughnutExploded, "
+    + "-4100=Area, 72=BarClustered, -4169=xl3DColumn. "
+    + "legend position: -4107=Bottom, -4131=Left, -4152=Right, -4160=Top. "
+    + "axis_type: 1=Category(X), 2=Value(Y). Positions in points (72pt = 1 inch).")]
 public interface IChartCommands
 {
     /// <summary>

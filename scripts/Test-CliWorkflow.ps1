@@ -6,14 +6,16 @@
 .DESCRIPTION
     This script demonstrates and tests a basic CLI workflow:
     1. Create session (auto-starts daemon, creates file)
-    2. Create worksheet
-    3. List worksheets
-    4. Delete worksheet
-    5. Close session (with save)
-    6. Reopen saved file (session open - exercises Presentations.Open path)
-    7. List worksheets in reopened session
-    8. Close reopened session
-    9. Verify file exists
+    2. Create slide with Blank layout
+    3. List slides
+    4. Add textbox content
+    5. List shapes on the slide
+    6. Close session (with save)
+    7. Reopen saved file (session open - exercises Presentations.Open path)
+    8. List slides in reopened session
+    9. List shapes in reopened session
+    10. Close reopened session
+    11. Verify file exists
 
 .EXAMPLE
     .\scripts\Test-CliWorkflow.ps1
@@ -30,11 +32,15 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # Find CLI executable (prefer Release build)
-$cliPath = Join-Path $PSScriptRoot "..\src\PptMcp.CLI\bin\Release\net10.0-windows\pptcli.exe"
-if (-not (Test-Path $cliPath)) {
-    $cliPath = Join-Path $PSScriptRoot "..\src\PptMcp.CLI\bin\Debug\net10.0-windows\pptcli.exe"
-}
-if (-not (Test-Path $cliPath)) {
+$candidateCliPaths = @(
+    "..\src\PptMcp.CLI\bin\Release\net9.0-windows\pptcli.exe",
+    "..\src\PptMcp.CLI\bin\Debug\net9.0-windows\pptcli.exe",
+    "..\src\PptMcp.CLI\bin\Release\net10.0-windows\pptcli.exe",
+    "..\src\PptMcp.CLI\bin\Debug\net10.0-windows\pptcli.exe"
+) | ForEach-Object { Join-Path $PSScriptRoot $_ }
+
+$cliPath = $candidateCliPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $cliPath) {
     Write-Error "CLI not found. Build first: dotnet build src/PptMcp.CLI"
     exit 1
 }
@@ -63,7 +69,7 @@ function Test-Step {
             $verifyResult = & $Verify $result
             if (-not $verifyResult) {
                 Write-Host "  FAIL: Verification failed" -ForegroundColor Red
-                Write-Host "  Result: $result" -ForegroundColor Gray
+                Write-Host "  Result: $($result | ConvertTo-Json -Depth 5 -Compress)" -ForegroundColor Gray
                 $script:failed++
                 return $null
             }
@@ -74,6 +80,9 @@ function Test-Step {
     }
     catch {
         Write-Host "  FAIL: $_" -ForegroundColor Red
+        if ($_.ErrorDetails.Message) {
+            Write-Host "  Details: $($_.ErrorDetails.Message)" -ForegroundColor Gray
+        }
         $script:failed++
         return $null
     }
@@ -103,33 +112,43 @@ if (-not $session.sessionId) {
 $sessionId = $session.sessionId
 Write-Host "  Session ID: $sessionId" -ForegroundColor Gray
 
-# 2. Create worksheet (simpler than set-values with JSON)
-Test-Step "Create worksheet 'Data'" {
-    & $cli -q sheet create --session $sessionId --sheet-name Data | ConvertFrom-Json
+# 2. Create slide
+Test-Step "Create slide with Blank layout" {
+    & $cli -q slide create --session $sessionId --position 0 --layout-name Blank | ConvertFrom-Json
 } -Verify {
     param($r)
     $r.success -eq $true
 }
 
-# 3. List worksheets
-$sheets = Test-Step "List worksheets" {
-    & $cli -q sheet list --session $sessionId | ConvertFrom-Json
+# 3. List slides
+$slides = Test-Step "List slides" {
+    & $cli -q slide list --session $sessionId | ConvertFrom-Json
 } -Verify {
     param($r)
-    $r.success -eq $true -or $r.worksheets -ne $null
+    $r.success -eq $true -and $null -ne $r.slides
 }
 
-Write-Host "  Sheets: $(($sheets.worksheets | Measure-Object).Count)" -ForegroundColor Gray
+Write-Host "  Slides: $(($slides.slides | Measure-Object).Count)" -ForegroundColor Gray
 
-# 4. Delete worksheet
-Test-Step "Delete worksheet 'Data'" {
-    & $cli -q sheet delete --session $sessionId --sheet-name Data | ConvertFrom-Json
+# 4. Add textbox content
+Test-Step "Add textbox to slide 1" {
+    & $cli -q shape add-textbox --session $sessionId --slide-index 1 --left 72 --top 72 --width 240 --height 48 --text "CLI smoke test" | ConvertFrom-Json
 } -Verify {
     param($r)
     $r.success -eq $true
 }
 
-# 5. Close session (with save)
+# 5. List shapes on slide 1
+$shapes = Test-Step "List shapes on slide 1" {
+    & $cli -q shape list --session $sessionId --slide-index 1 | ConvertFrom-Json
+} -Verify {
+    param($r)
+    $r.success -eq $true -and $null -ne $r.shapes
+}
+
+Write-Host "  Shapes: $(($shapes.shapes | Measure-Object).Count)" -ForegroundColor Gray
+
+# 6. Close session (with save)
 Test-Step "Close session (with save)" {
     & $cli -q session close --session $sessionId --save | ConvertFrom-Json
 } -Verify {
@@ -137,9 +156,9 @@ Test-Step "Close session (with save)" {
     $r.success -eq $true
 }
 
-# 6. Reopen saved file (session open - exercises Presentations.Open path distinct from Add+SaveAs)
+# 7. Reopen saved file (session open - exercises Presentations.Open path distinct from Add+SaveAs)
 #    This step would catch deployment issues like missing office.dll (issue #487) because
-#    PptBatch.ctor runs AutomationSecurity setup before opening any workbook.
+#    PptBatch.ctor runs AutomationSecurity setup before opening any presentation.
 $reopenSession = Test-Step "Reopen saved file (session open)" {
     & $cli -q session open $testFile | ConvertFrom-Json
 } -Verify {
@@ -147,17 +166,29 @@ $reopenSession = Test-Step "Reopen saved file (session open)" {
     $r.sessionId -and $r.success -ne $false
 }
 
-# 6b. List worksheets in reopened session (proves the file loaded correctly)
+# 8. List slides in reopened session (proves the file loaded correctly)
 if ($reopenSession -and $reopenSession.sessionId) {
     $reopenSessionId = $reopenSession.sessionId
-    Test-Step "List worksheets in reopened session" {
-        & $cli -q sheet list --session $reopenSessionId | ConvertFrom-Json
+    $reopenedSlides = Test-Step "List slides in reopened session" {
+        & $cli -q slide list --session $reopenSessionId | ConvertFrom-Json
     } -Verify {
         param($r)
-        $r.success -eq $true -or $r.worksheets -ne $null
+        $r.success -eq $true -and $null -ne $r.slides
     }
 
-    # 6c. Close reopened session
+    Write-Host "  Reopened slides: $(($reopenedSlides.slides | Measure-Object).Count)" -ForegroundColor Gray
+
+    # 9. List shapes in reopened session (proves saved content loaded correctly)
+    $reopenedShapes = Test-Step "List shapes in reopened slide 1" {
+        & $cli -q shape list --session $reopenSessionId --slide-index 1 | ConvertFrom-Json
+    } -Verify {
+        param($r)
+        $r.success -eq $true -and $null -ne $r.shapes
+    }
+
+    Write-Host "  Reopened shapes: $(($reopenedShapes.shapes | Measure-Object).Count)" -ForegroundColor Gray
+
+    # 10. Close reopened session
     Test-Step "Close reopened session" {
         & $cli -q session close --session $reopenSessionId | ConvertFrom-Json
     } -Verify {
@@ -166,7 +197,7 @@ if ($reopenSession -and $reopenSession.sessionId) {
     }
 }
 
-# 7. Verify file exists
+# 11. Verify file exists
 Test-Step "Verify file exists" {
     if (Test-Path $testFile) {
         $size = (Get-Item $testFile).Length

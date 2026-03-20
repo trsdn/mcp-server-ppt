@@ -8,7 +8,13 @@ namespace PptMcp.Core.Commands.SlideTable;
 /// Table shape operations: create, read, write cells, add/delete rows and columns, merge cells.
 /// </summary>
 [ServiceCategory("slidetable")]
-[McpTool("slidetable", Title = "Table Operations", Destructive = true, Category = "tables")]
+[McpTool("slidetable", Title = "Table Operations", Destructive = true, Category = "tables",
+    Description = "Create and edit table shapes on slides. "
+    + "WORKFLOW: slidetable(create, rows=4, columns=3) → slidetable(write-cell) or slidetable(write-row). "
+    + "All row/column indices are 1-based. position=-1 means 'at end' for add-row/add-column. "
+    + "format-cell: fill_color='#RRGGBB', text_align='left'/'center'/'right'. "
+    + "merge-cells: specify start_row/start_column/end_row/end_column rectangle. "
+    + "Positions in points (72pt = 1 inch).")]
 public interface ISlideTableCommands
 {
     /// <summary>

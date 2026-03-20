@@ -109,6 +109,11 @@ var descriptionOverrides = new System.Collections.Generic.Dictionary<string, str
     { "slicer", "Slicer types, creation patterns, and multi-select filtering" },
     { "table", "PowerPoint Table operations, Data Model integration, and column management" },
     { "workflows", "Key constraints, batch operations, and session management patterns" },
+    { "context-model", "Meeting types, audience levels, consumption modes, and context-driven slide design decisions" },
+    { "density-profiles", "D1-D5 density profiles: text volume, element count, data granularity, annotation depth, whitespace" },
+    { "deck-architecture", "SCQA narrative, MECE grouping, canonical deck sequences S1-S5, headline flow validation" },
+    { "generation-pipeline", "Pre/post-generation pipeline, prompt contract, data-to-visual and intent-to-archetype mappings" },
+    { "professional-slide-patterns", "Advanced consulting-grade slide patterns: multi-panel charts, comments sidebar, ranking tables, evidence density benchmarks, transformation deck structure" },
     { "worksheet", "Worksheet operations including cross-file copy and move" },
 };
 

@@ -1,0 +1,81 @@
+{
+  "name": "big-number",
+  "mode": "tuning",
+  "description": "Evaluate and improve big-number slides — hero metric with evidence support (waterfall, before/after, driver breakdown)",
+  "goal": "Achieve consistent 12+/14 with proof structure that withstands CFO scrutiny, not just directional claims",
+  "archetype": "big-number",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "bignum-roi-300",
+      "text": "Build a big-number slide showing 300% ROI from a SaaS analytics platform with value driver breakdown proving the math",
+      "expectedVariant": "proof-oriented"
+    },
+    {
+      "id": "bignum-savings-8m",
+      "text": "Build a big-number slide showing $8M cost savings from a procurement optimization with waterfall showing each savings source",
+      "expectedVariant": "proof-oriented"
+    },
+    {
+      "id": "bignum-retention-94",
+      "text": "Build a big-number slide showing 94% customer retention rate with benchmark comparison vs industry average of 82%",
+      "expectedVariant": "benchmark"
+    },
+    {
+      "id": "bignum-time-60pct",
+      "text": "Build a big-number slide showing 60% reduction in time-to-hire (from 45 days to 18 days) with before/after comparison and timeline trend",
+      "expectedVariant": "dual-proof"
+    },
+    {
+      "id": "bignum-revenue-128m",
+      "text": "Build a big-number slide showing $128M annual revenue exceeding plan by 8% with quarterly build-up showing Q1-Q4 contribution",
+      "expectedVariant": "proof-oriented"
+    },
+    {
+      "id": "bignum-nps-72",
+      "text": "Build a big-number slide showing NPS score of 72 with industry benchmark bar (SaaS avg 36) and quarterly trend line from 55 to 72",
+      "expectedVariant": "dual-proof"
+    },
+    {
+      "id": "bignum-headcount-450",
+      "text": "Build a big-number slide showing 450 employees with growth trajectory (+120 in 18 months) and breakdown by department",
+      "expectedVariant": "trajectory"
+    },
+    {
+      "id": "bignum-marketshare-23",
+      "text": "Build a big-number slide showing 23% market share gained in 2 years, with competitor comparison showing we overtook #2 player",
+      "expectedVariant": "benchmark"
+    },
+    {
+      "id": "bignum-uptime-999",
+      "text": "Build a big-number slide showing 99.97% uptime (only 13 min downtime in 30 days) with SLA target comparison and incident count trend",
+      "expectedVariant": "dual-proof"
+    },
+    {
+      "id": "bignum-carbon-40pct",
+      "text": "Build a big-number slide showing 40% carbon reduction vs 2020 baseline with pathway breakdown: energy efficiency 15%, renewables 18%, offsets 7%",
+      "expectedVariant": "pathway-breakdown"
+    }
+  ],
+  "outputDir": "output/big-number",
+  "resultsDir": "results/big-number"
+}

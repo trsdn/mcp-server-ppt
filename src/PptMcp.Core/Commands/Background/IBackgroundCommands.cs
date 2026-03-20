@@ -8,7 +8,10 @@ namespace PptMcp.Core.Commands.Background;
 /// Slide background: get, set solid color, set image, reset to master.
 /// </summary>
 [ServiceCategory("background")]
-[McpTool("background", Title = "Slide Background", Destructive = true, Category = "background")]
+[McpTool("background", Title = "Slide Background", Destructive = true, Category = "background",
+    Description = "Get, set, or reset slide backgrounds. Supports solid color, gradient, and image backgrounds. "
+    + "color_hex: '#RRGGBB' format (e.g. '#0B3D91' for navy). Use 'reset' to revert to slide master background. "
+    + "gradient_style: 1=Horizontal, 2=Vertical, 3=DiagonalUp, 4=DiagonalDown, 5=FromCorner, 6=FromCenter.")]
 public interface IBackgroundCommands
 {
     /// <summary>Get the current background info for a slide.</summary>

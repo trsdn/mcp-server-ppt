@@ -1,0 +1,34 @@
+{
+  "name": "architecture-diagram",
+  "mode": "baseline",
+  "description": "Evaluate architecture slides — layered systems and context diagrams with restrained connectors and clear zoning",
+  "goal": "Achieve consistent 12+/14 with clear system boundaries, readable labels, and disciplined connector logic",
+  "archetype": "architecture-diagram",
+  "loops": 2,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "architecture-layered-platform",
+      "text": "Build a layered architecture diagram for a modern data platform covering channels, applications, data services, platform services, and governance"
+    },
+    {
+      "id": "architecture-system-context",
+      "text": "Build a system context diagram for a digital underwriting platform showing brokers, underwriters, policy admin, pricing engine, data providers, and regulators around the core system"
+    }
+  ],
+  "outputDir": "output/architecture-diagram",
+  "resultsDir": "results/architecture-diagram"
+}

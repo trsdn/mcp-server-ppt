@@ -1,0 +1,6 @@
+# Eval framework asset data - copied in from private repo as needed
+input/
+output/
+results/
+data/
+node_modules/

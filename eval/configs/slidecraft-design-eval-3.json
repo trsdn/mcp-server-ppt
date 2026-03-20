@@ -1,0 +1,70 @@
+{
+  "name": "slidecraft-design-eval-3",
+  "mode": "baseline",
+  "description": "Third wave: edge cases, multi-chart slides, complex narratives, international contexts, and challenging density transitions. Tests the full executive slidecraft framework under stress.",
+  "goal": "Push the design pipeline to its limits: mixed languages, complex data shapes, edge-case archetypes, and demanding audience contexts",
+  "archetype": "mixed",
+  "loops": 10,
+  "builder": {
+    "model": "claude-opus-4.6",
+    "reasoningEffort": "high",
+    "transport": "mcp",
+    "reuseSessionContext": true,
+    "skillFiles": [
+      "generation-pipeline.md",
+      "slide-design-principles.md",
+      "slide-design-review.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp-design.md",
+    "timeoutMs": 600000
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "ceo-townhall-turnaround",
+      "text": "Build a slide for the CEO's town hall announcing a company turnaround. After 3 consecutive quarters of declining revenue, Q4 showed +4% growth — the first positive quarter in a year. Show this as a trend line with 6 quarters: Q3'24 -2%, Q4'24 -5%, Q1'25 -8%, Q2'25 -3%, Q3'25 -1%, Q4'25 +4%. Mark the inflection point. The message is cautiously optimistic — the trend reversed but the job isn't done. Live presentation for the entire company (~3,000 people). Source: Finance, Q4 2025 preliminary results."
+    },
+    {
+      "id": "board-risk-heatmap",
+      "text": "Build a slide for a board meeting pre-read showing enterprise risk posture as a 3x3 likelihood-impact matrix. High likelihood + High impact: Cyber attack (red), Supply chain disruption (red). High likelihood + Medium impact: Talent attrition (amber). Medium likelihood + High impact: Regulatory change (amber). Medium likelihood + Medium impact: FX exposure (yellow). Low likelihood + High impact: Pandemic (amber). The board needs to see the overall risk landscape at a glance and approve the Q1 mitigation budget of EUR 8M. Source: Enterprise Risk Management quarterly assessment, January 2026."
+    },
+    {
+      "id": "pe-fund-portfolio-review",
+      "text": "Build a slide for a PE fund's investment committee showing portfolio company performance. Present 6 companies in a table format: AlphaTech (Revenue $120M, EBITDA 22%, ahead of plan), BetaHealth ($85M, 18%, on plan), GammaSaaS ($45M, -5%, below plan — needs intervention), DeltaLogistics ($200M, 15%, ahead), EpsilonRetail ($60M, 8%, below plan), ZetaFinance ($150M, 25%, ahead). Overall portfolio: $660M revenue, 16% blended EBITDA margin. Highlight GammaSaaS and EpsilonRetail as requiring attention. This is a detailed pre-read for IC members who will study every number. D4 density. Source: Portfolio company management accounts, Q4 2025."
+    },
+    {
+      "id": "product-launch-funnel",
+      "text": "Build a slide for the product team's working session showing the launch funnel for the new enterprise product. Stage 1: Awareness — 50,000 reached via campaigns. Stage 2: Interest — 8,200 signed up for webinar (16.4% conversion). Stage 3: Trial — 2,100 started free trial (25.6% conversion). Stage 4: Activation — 840 completed onboarding (40% conversion). Stage 5: Paid — 290 converted to paid (34.5% conversion). Stage 6: Retained — 260 active after 90 days (89.7% retention). Key insight: the biggest drop-off is Awareness→Interest (83.6% lost) — marketing needs to sharpen targeting. Source: product analytics + CRM, Jan 1 - Mar 1, 2026."
+    },
+    {
+      "id": "ma-synergy-bridge",
+      "text": "Build a slide for a deal review showing expected synergies from the proposed acquisition. Use a waterfall chart: Starting point (combined standalone EBITDA) EUR 95M, Revenue synergies +EUR 12M (cross-sell to combined customer base), Cost synergies +EUR 18M (procurement consolidation EUR 8M, headcount optimization EUR 6M, IT rationalization EUR 4M), Integration costs -EUR 7M (one-time), Dis-synergies -EUR 3M (customer overlap churn). Target combined EBITDA: EUR 115M. Timeline to full run-rate: 24 months. This is for IC members in a pre-read. Source: Joint due diligence team analysis, March 2026 (Project Phoenix, confidential)."
+    },
+    {
+      "id": "customer-journey-painpoints",
+      "text": "Build a slide for a client pitch showing the current-state customer onboarding journey with pain points. 6 stages: Application (2 days, low friction), Document Collection (5 days, HIGH friction — 40% drop-off, manual upload process), Identity Verification (3 days, medium friction — third-party delays), Credit Assessment (1 day, low friction), Account Setup (2 days, medium friction — legacy system integration), Welcome & Activation (1 day, low friction). Total journey: 14 days. The insight is that Document Collection alone causes 40% of abandonments and could be reduced to 1 day with automated extraction. Live presentation for prospective client C-suite. Source: Client operational data, sample of 5,000 applications, H2 2025."
+    },
+    {
+      "id": "sustainability-progress-dashboard",
+      "text": "Build a slide for the ESG steering committee showing sustainability KPI progress. 4 metrics: Scope 1+2 Emissions (target: -30% by 2025, actual: -28%, amber — 2pp short), Renewable Energy (target: 80%, actual: 84%, green — exceeding), Waste Diversion (target: 90%, actual: 76%, red — 14pp gap, landfill contract issue), Water Intensity (target: -15%, actual: -18%, green — exceeding). Overall: 2 of 4 on track, 1 near-miss, 1 requiring immediate action. Include trend arrows showing direction of each metric vs prior quarter. Source: Sustainability reporting platform + utility invoices, Q4 2025 verified data."
+    },
+    {
+      "id": "tech-architecture-layers",
+      "text": "Build a slide for a CTO presentation showing the target technology architecture as a layered diagram. 5 layers from bottom to top: Infrastructure (AWS + Azure multi-cloud, Kubernetes), Data Platform (Snowflake data warehouse, Kafka streaming, dbt transforms), Core Services (microservices: Auth, Payments, Notifications, Analytics), Application Layer (React frontend, Mobile SDK, Partner API), AI/ML Layer (recommendation engine, fraud detection, NLP chatbot). Show data flow arrows between layers. The CTO will present this to the board to justify the $15M technology investment. Keep it D2 clean — board members need to understand the architecture without being engineers. Source: Technology Strategy Office, Target Architecture v2.0, February 2026."
+    },
+    {
+      "id": "competitive-market-position",
+      "text": "Build a slide for an investor roadshow showing our competitive market position. Use a 2x2 matrix with axes: X = Market Share (low to high), Y = Growth Rate (low to high). Position 5 players: Us (medium-high share, high growth — top-right, accent color), Competitor A (high share, low growth — bottom-right, grey), Competitor B (low share, high growth — top-left, grey), Competitor C (medium share, medium growth — center, grey), Competitor D (low share, low growth — bottom-left, grey). Bubble size represents revenue. Key message: We are the only player combining strong share position with above-market growth. Live presentation, institutional investors, 90 seconds per slide. Source: industry market share report 2025 + company filings."
+    },
+    {
+      "id": "change-readiness-scorecard",
+      "text": "Build a slide for a transformation steering committee showing organizational change readiness across 5 dimensions. Leadership Alignment: 4.2/5 (green, strong executive sponsorship). Employee Engagement: 3.1/5 (amber, survey shows change fatigue in operations). Technical Readiness: 3.8/5 (green, infrastructure 90% migrated). Process Maturity: 2.4/5 (red, legacy workflows still dominant in 3 of 7 departments). Communication Effectiveness: 3.5/5 (amber, frontline managers report insufficient cascading). Overall readiness: 3.4/5 — conditionally ready with process maturity as the critical blocker. Include a recommended action per dimension. Live presentation for program sponsor and workstream leads. Source: Organizational Readiness Survey, n=2,400 respondents, February 2026."
+    }
+  ],
+  "outputDir": "output/slidecraft-design-eval-3",
+  "resultsDir": "results/slidecraft-design-eval-3"
+}

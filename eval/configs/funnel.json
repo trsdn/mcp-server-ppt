@@ -1,0 +1,34 @@
+{
+  "name": "funnel",
+  "mode": "baseline",
+  "description": "Evaluate funnel slides — staged conversion flows with visible drop-off and conversion proof",
+  "goal": "Achieve consistent 12+/14 with clear stage narrowing, explicit conversion math, and a decisive headline insight",
+  "archetype": "funnel",
+  "loops": 2,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "funnel-sales",
+      "text": "Build a sales funnel slide with Lead, Qualified, Proposal, Negotiation, and Closed Won stages showing volume, conversion rate, and biggest drop-off"
+    },
+    {
+      "id": "funnel-recruiting",
+      "text": "Build a recruiting funnel slide from Applicants to Screen to Interview to Offer to Accepted with stage conversion rates and one short improvement takeaway"
+    }
+  ],
+  "outputDir": "output/funnel",
+  "resultsDir": "results/funnel"
+}

@@ -9,7 +9,11 @@ namespace PptMcp.Core.Commands.Media;
 /// Supports linking or embedding media files.
 /// </summary>
 [ServiceCategory("media")]
-[McpTool("media", Title = "Media Operations", Destructive = true, Category = "content")]
+[McpTool("media", Title = "Media Operations", Destructive = true, Category = "content",
+    Description = "Insert audio (.mp3/.wav/.m4a/.wma) and video (.mp4/.avi/.mov/.wmv) onto slides. "
+    + "link_to_file=true keeps file external (smaller .pptx). save_with_document=true embeds audio. "
+    + "width/height: 0 = native video dimensions. "
+    + "Use set-playback to control volume (0.0-1.0), mute, fade in/out seconds.")]
 public interface IMediaCommands
 {
     /// <summary>

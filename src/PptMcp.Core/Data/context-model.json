@@ -1,0 +1,48 @@
+{
+  "meetingTypes": [
+    { "id": "M01", "name": "Board meeting", "audience": "Non-exec directors", "timePerSlide": "3-5 min", "goal": "Governance oversight, strategic approval", "decisionPressure": "High", "primaryMode": "preread", "secondaryMode": "live", "defaultDensity": "D1" },
+    { "id": "M02", "name": "Executive steering", "audience": "C-suite, SVPs", "timePerSlide": "2-4 min", "goal": "Cross-functional decision-making", "decisionPressure": "High", "primaryMode": "live", "secondaryMode": "preread", "defaultDensity": "D2" },
+    { "id": "M03", "name": "Investment committee", "audience": "IC members, CIO, fund partners", "timePerSlide": "2-4 min", "goal": "Approve/reject investment thesis", "decisionPressure": "Very high", "primaryMode": "preread", "secondaryMode": "appendix", "defaultDensity": "D3" },
+    { "id": "M04", "name": "Strategy off-site", "audience": "Top 20-50 leaders", "timePerSlide": "1-3 min", "goal": "Align on direction, build commitment", "decisionPressure": "Medium", "primaryMode": "live", "secondaryMode": "workshop", "defaultDensity": "D2" },
+    { "id": "M05", "name": "Quarterly business review", "audience": "BU leads, functional heads", "timePerSlide": "2-3 min", "goal": "Performance accountability", "decisionPressure": "Medium", "primaryMode": "live", "secondaryMode": "preread", "defaultDensity": "D2-D3" },
+    { "id": "M06", "name": "Transformation steering", "audience": "Program sponsor, workstream leads", "timePerSlide": "2-3 min", "goal": "Track progress, unblock issues", "decisionPressure": "High", "primaryMode": "live", "secondaryMode": "preread", "defaultDensity": "D2" },
+    { "id": "M07", "name": "Deal / transaction review", "audience": "Deal team, IC, external advisors", "timePerSlide": "2-4 min", "goal": "Evaluate transaction merit", "decisionPressure": "Very high", "primaryMode": "preread", "secondaryMode": "appendix", "defaultDensity": "D3-D4" },
+    { "id": "M08", "name": "Client pitch / proposal", "audience": "Prospective client executives", "timePerSlide": "2-4 min", "goal": "Win engagement", "decisionPressure": "High", "primaryMode": "live", "secondaryMode": "leavebehind", "defaultDensity": "D2" },
+    { "id": "M09", "name": "Investor roadshow", "audience": "Institutional investors, analysts", "timePerSlide": "1-3 min", "goal": "Convince on equity/credit story", "decisionPressure": "Very high", "primaryMode": "live", "secondaryMode": "leavebehind", "defaultDensity": "D2" },
+    { "id": "M10", "name": "Working session", "audience": "Project team, analysts, managers", "timePerSlide": "1-5 min", "goal": "Problem-solve, iterate", "decisionPressure": "Low", "primaryMode": "workshop", "secondaryMode": "live", "defaultDensity": "D2-D3" },
+    { "id": "M11", "name": "Training / enablement", "audience": "Mixed seniority, learners", "timePerSlide": "1-3 min", "goal": "Build understanding", "decisionPressure": "None", "primaryMode": "live", "secondaryMode": "leavebehind", "defaultDensity": "D2" },
+    { "id": "M12", "name": "All-hands / town hall", "audience": "Entire organization", "timePerSlide": "1-3 min", "goal": "Communicate direction, build morale", "decisionPressure": "None", "primaryMode": "live", "secondaryMode": null, "defaultDensity": "D1" },
+    { "id": "M13", "name": "Regulatory / audit briefing", "audience": "Regulators, auditors, compliance", "timePerSlide": "2-4 min", "goal": "Demonstrate compliance", "decisionPressure": "Medium", "primaryMode": "preread", "secondaryMode": "appendix", "defaultDensity": "D3-D4" },
+    { "id": "M14", "name": "Vendor / provider review", "audience": "External provider + internal governance", "timePerSlide": "2-3 min", "goal": "Evaluate performance, negotiate", "decisionPressure": "Medium", "primaryMode": "preread", "secondaryMode": "live", "defaultDensity": "D2-D3" }
+  ],
+  "audienceLevels": [
+    { "id": "L1", "label": "Board / supervisory", "roles": "Non-exec directors", "attentionSpan": "Very short (seconds)", "preferredDensity": "D1", "wantsToSee": "Net conclusion, risk posture, approval ask" },
+    { "id": "L2", "label": "C-suite", "roles": "CEO, CFO, COO, CTO", "attentionSpan": "Short (seconds to 1 min)", "preferredDensity": "D1-D2", "wantsToSee": "Decision, tradeoffs, financial impact, timeline" },
+    { "id": "L3", "label": "SVP / VP", "roles": "Division heads, functional leaders", "attentionSpan": "Medium (1-2 min)", "preferredDensity": "D2-D3", "wantsToSee": "Drivers, options, implementation implications" },
+    { "id": "L4", "label": "Director / senior manager", "roles": "Program leads, department heads", "attentionSpan": "Medium-long (2-3 min)", "preferredDensity": "D3", "wantsToSee": "Detailed logic, dependencies, resource asks" },
+    { "id": "L5", "label": "Manager / analyst", "roles": "Project managers, analysts", "attentionSpan": "Long (3-5 min)", "preferredDensity": "D4", "wantsToSee": "Full methodology, data tables, assumptions" },
+    { "id": "L6", "label": "Mixed / external", "roles": "Cross-functional, clients, regulators", "attentionSpan": "Variable", "preferredDensity": "D2-D3", "wantsToSee": "Clear narrative, explicit definitions" }
+  ],
+  "consumptionModes": [
+    { "id": "live", "name": "Live presentation", "speakerPresent": true, "selfContained": false, "textDensity": "Very low", "annotationDepth": "Minimal" },
+    { "id": "preread", "name": "Executive pre-read", "speakerPresent": false, "selfContained": true, "textDensity": "Medium", "annotationDepth": "Moderate" },
+    { "id": "leavebehind", "name": "Leave-behind / slidedoc", "speakerPresent": false, "selfContained": true, "textDensity": "High", "annotationDepth": "High" },
+    { "id": "appendix", "name": "Analytical appendix", "speakerPresent": false, "selfContained": true, "textDensity": "High", "annotationDepth": "Very high" },
+    { "id": "workshop", "name": "Workshop / working material", "speakerPresent": true, "selfContained": false, "textDensity": "Medium", "annotationDepth": "Low-moderate" }
+  ],
+  "densitySelection": {
+    "description": "SELECT density = f(audience_level, consumption_mode)",
+    "rules": [
+      { "mode": "live", "audience": ["L1", "L2"], "density": "D1" },
+      { "mode": "live", "audience": ["L3", "L4", "L5", "L6"], "density": "D2" },
+      { "mode": "preread", "audience": ["L1", "L2"], "density": "D2-D3" },
+      { "mode": "preread", "audience": ["L3", "L4"], "density": "D3" },
+      { "mode": "preread", "audience": ["L5", "L6"], "density": "D4" },
+      { "mode": "leavebehind", "audience": ["L1", "L2"], "density": "D3" },
+      { "mode": "leavebehind", "audience": ["L3", "L4", "L5", "L6"], "density": "D4" },
+      { "mode": "appendix", "audience": ["*"], "density": "D5" },
+      { "mode": "workshop", "audience": ["*"], "density": "D2-D3" }
+    ],
+    "default": "D2"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "slidecraft-design-eval-2",
+  "mode": "baseline",
+  "description": "Second wave: deeper design pipeline tests targeting weak dimensions (evidence support, source citations) and more archetype variety. Includes working sessions, investor roadshows, training, and vendor reviews.",
+  "goal": "Improve evidence support and source citation scores while testing additional meeting types (M09, M10, M11, M14) and density profiles (D1, D4-D5)",
+  "archetype": "mixed",
+  "loops": 10,
+  "builder": {
+    "model": "claude-opus-4.6",
+    "reasoningEffort": "high",
+    "transport": "mcp",
+    "reuseSessionContext": true,
+    "skillFiles": [
+      "generation-pipeline.md",
+      "slide-design-principles.md",
+      "slide-design-review.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp-design.md",
+    "timeoutMs": 600000
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "investor-roadshow-growth",
+      "text": "Build a slide for a 25-minute investor roadshow to institutional investors. Show that our SaaS platform grew ARR from $180M to $320M in 18 months, with net retention at 135%. The key message is that the growth engine is enterprise expansion, not new logos. Keep it clean and visually compelling — investors will see this for 90 seconds while the CEO talks. Source: Company filings, Q4 2025 earnings release."
+    },
+    {
+      "id": "working-session-prioritization",
+      "text": "Build a slide for a working session with the project team (analysts and managers). Use a 2x2 impact-vs-effort matrix to prioritize 8 digital initiatives: AI chatbot (high impact, low effort), ERP migration (high impact, high effort), mobile app redesign (medium impact, low effort), data warehouse upgrade (high impact, high effort), CRM integration (medium impact, medium effort), process automation (high impact, low effort), security audit (low impact, medium effort), customer portal (medium impact, high effort). This is for interactive discussion — leave space for the team to debate placement. Source: Digital Strategy Workshop, March 2026."
+    },
+    {
+      "id": "vendor-review-performance",
+      "text": "Build a slide for a vendor review meeting assessing IT outsourcing provider performance. Show 5 KPIs vs SLA: ticket resolution 4.2hrs (SLA: 4hrs, amber), first-call resolution 78% (SLA: 80%, amber), uptime 99.98% (SLA: 99.95%, green), customer satisfaction 4.1/5 (SLA: 4.0, green), and security incidents 0 (SLA: <2/quarter, green). Overall: 3 of 5 KPIs met, 2 narrowly missed. This is a pre-read for internal governance and the vendor — it must be precise and fair. Source: ServiceNow reporting dashboard, Q4 2025 data, extracted Jan 5 2026."
+    },
+    {
+      "id": "training-process-flow",
+      "text": "Build a slide for a training session explaining the new expense approval process. Show 5 steps: 1) Employee submits via the expense platform (auto-validation), 2) Manager review (<$5K auto-approved, >$5K requires VP), 3) Finance spot check (random 10% audit), 4) Payment processing (3 business days), 5) Reconciliation (monthly close). Mark step 2 as the decision point and step 3 as the quality gate. This is for mixed-seniority learners who need to understand the flow completely. Source: Finance Operations Handbook v3.2, effective March 2026."
+    },
+    {
+      "id": "strategy-offsite-vision",
+      "text": "Build a slide for a strategy off-site with the top 30 leaders. Present the target operating model: move from 7 siloed business units to 3 integrated platforms (Customer Platform, Operations Platform, Data Platform). Each platform has a P&L owner, shared services layer, and dedicated engineering team. The key insight is that this reduces duplication by 40% while increasing speed-to-market by 60%. This will be projected live while the CEO walks through the vision — keep it D2 clean density with strong visual hierarchy. Source: Operating Model Assessment, February 2026."
+    },
+    {
+      "id": "ic-deal-comparison",
+      "text": "Build a slide for an investment committee pre-read comparing two acquisition targets. Target A: FinTech startup, $45M revenue, 25% growth, 8x revenue multiple, strong product but weak distribution. Target B: InsurTech company, $80M revenue, 12% growth, 5x revenue multiple, strong distribution but aging platform. Evaluate on: strategic fit, financial return (IRR), integration risk, and time to value. Recommend Target A for growth acceleration despite higher multiple. This is for IC members who will study it carefully — D3 structured density. Source: External due diligence report, March 2026 (confidential)."
+    },
+    {
+      "id": "allhands-celebration-minimal",
+      "text": "Build a slide for a company all-hands celebrating that we just signed our 1,000th enterprise customer. Show the number 1,000 as the dominant hero element. Add a brief context line: started with 12 customers in 2019, doubled every 18 months. This is the emotional peak of the all-hands — maximum visual impact, absolute minimum text. D1 minimal density. No source needed — this is a milestone announcement, not a data slide."
+    },
+    {
+      "id": "appendix-methodology",
+      "text": "Build an appendix slide documenting the methodology behind the NPS analysis presented in the main deck. Include: survey methodology (online, n=12,450 respondents, 34% response rate), sampling approach (stratified by segment: Enterprise 40%, Mid-market 35%, SMB 25%), calculation method (standard NPS: % Promoters minus % Detractors, scale 0-10), confidence interval (95% CI, margin of error +/-1.2 points), exclusions (accounts <6 months tenure, internal test accounts), and data collection period (Oct 1 - Dec 15, 2025). This is D5 dense/appendix density — pack it with detail for anyone who wants to audit the numbers. Source: Customer survey platform, Customer Insights team."
+    },
+    {
+      "id": "qbr-bridge-margin",
+      "text": "Build a slide for a QBR showing why gross margin declined from 42.3% to 38.1% quarter-over-quarter. Use a waterfall/bridge chart showing: Starting point 42.3%, Volume mix shift -1.8pp, Raw material inflation -2.1pp, Freight cost increase -0.8pp, Pricing actions +0.9pp, Operational efficiency -0.4pp, Ending point 38.1%. The key message is that input cost inflation (-2.1pp) is the dominant driver and pricing actions only partially offset. Audience is business unit heads in a live QBR. Source: Management accounts, Q4 2025 vs Q3 2025, Finance controller sign-off Jan 20 2026."
+    },
+    {
+      "id": "exec-summary-transformation",
+      "text": "Build an executive summary slide for the CEO and CHRO summarizing the first year of the workforce transformation program. Key findings: 1) Reskilling target 85% achieved (1,200 of 1,400 employees completed digital skills certification), 2) Voluntary attrition dropped from 18% to 11% after program launch, 3) Internal mobility increased 3x — 340 lateral moves vs 110 prior year, 4) Remaining gap: data science and AI/ML roles still 40% unfilled, requiring external hiring acceleration. Recommendation: Extend program for Year 2 with EUR 2.8M additional investment, focused on AI/ML bootcamps. Source: HR analytics + learning platform data, December 2025 year-end review."
+    }
+  ],
+  "outputDir": "output/slidecraft-design-eval-2",
+  "resultsDir": "results/slidecraft-design-eval-2"
+}

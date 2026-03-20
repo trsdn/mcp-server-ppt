@@ -8,7 +8,10 @@ namespace PptMcp.Core.Commands.Tag;
 /// Custom tags/metadata on slides and shapes.
 /// </summary>
 [ServiceCategory("tag")]
-[McpTool("tag", Title = "Tags & Metadata", Destructive = true, Category = "tags")]
+[McpTool("tag", Title = "Tags & Metadata", Destructive = true, Category = "tags",
+    Description = "Set custom key-value metadata tags on slides or shapes. "
+    + "shape_name: null/empty = slide-level tag. tag_name is case-insensitive. "
+    + "Tags persist with the file and can be used for filtering, automation, or custom workflows.")]
 public interface ITagCommands
 {
     /// <summary>List all tags on a slide or shape.</summary>

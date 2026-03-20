@@ -199,12 +199,17 @@ Parameters that accept lists require JSON array format:
 ## Reference Documentation
 
 - [Core execution rules and LLM guidelines](./references/behavioral-rules.md)
-- [Common mistakes to avoid](./references/anti-patterns.md)
-- [Presentation workflows and patterns](./references/workflows.md)
-- [Charts, positioning, and formatting](./references/chart.md)
-- [CLI commands reference](./references/cli-commands.md)
-- [Presentation design best practices](./references/dashboard.md)
-- [Screenshot and visual verification](./references/screenshot.md)
-- [Table operations](./references/table.md)
-- [Window management](./references/window.md)
+- [Slide design principles](./references/slide-design-principles.md)
+- [Slide design review checklist](./references/slide-design-review.md)
+- [Generation pipeline](./references/generation-pipeline.md)
 - [Agent mode patterns](./references/ppt_agent_mode.md)
+
+For design catalog data (archetypes, palettes, grids, styles, density), use the `design` CLI command:
+- `pptcli design list-archetypes` / `pptcli design get-archetype --archetype-id ...` — primary unified archetype surface; includes learned subtypes and concrete sanitized example details when local reference data is available
+- `pptcli design list-palettes` / `pptcli design get-palette --palette-id ...`
+- `pptcli design list-layout-grids` / `pptcli design get-layout-grid --grid-id ...`
+- `pptcli design list-style-profiles` / `pptcli design get-style-profile --profile-id ...`
+- `pptcli design get-context-model` — Meeting type → density mapping
+- `pptcli design get-deck-sequence --sequence-id ...` — Canonical slide sequences
+
+Reference examples are exposed only as sanitized ids/details embedded in `get-archetype`. Raw filenames and provenance metadata remain in local gitignored reference catalog data and are not part of the public CLI surface.

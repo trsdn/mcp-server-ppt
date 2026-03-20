@@ -1,0 +1,34 @@
+{
+  "name": "swot-analysis",
+  "mode": "baseline",
+  "description": "Evaluate SWOT slides — 2x2 strategy framing with balanced quadrant density and clear internal/external logic",
+  "goal": "Achieve consistent 12+/14 with disciplined quadrant structure, concise bullets, and a clear strategic takeaway",
+  "archetype": "swot-analysis",
+  "loops": 2,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "swot-digital-bank",
+      "text": "Build a SWOT analysis slide for a digital retail bank expanding into SME lending, with four concise bullets per quadrant and a clear action-title takeaway"
+    },
+    {
+      "id": "swot-industrial-ai",
+      "text": "Build a SWOT slide for an industrial manufacturer launching an AI-enabled predictive maintenance offer across Europe"
+    }
+  ],
+  "outputDir": "output/swot-analysis",
+  "resultsDir": "results/swot-analysis"
+}

@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <Compile Include="..\PptMcp.Core.Tests\Helpers\TempDirectoryFixture.cs" Link="Helpers\TempDirectoryFixture.cs" />
+    <Compile Include="..\PptMcp.Core.Tests\Helpers\ReferenceCatalogFixture.cs" Link="Helpers\ReferenceCatalogFixture.cs" />
   </ItemGroup>
 
 </Project>

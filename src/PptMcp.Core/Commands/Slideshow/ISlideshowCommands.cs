@@ -8,7 +8,11 @@ namespace PptMcp.Core.Commands.Slideshow;
 /// Slideshow presentation mode: start, stop, navigate, get status.
 /// </summary>
 [ServiceCategory("slideshow")]
-[McpTool("slideshow", Title = "Slideshow Operations", Destructive = false, Category = "slideshow")]
+[McpTool("slideshow", Title = "Slideshow Operations", Destructive = false, Category = "slideshow",
+    Description = "Control presentation slideshow mode: start, stop, navigate, configure. "
+    + "show_type for configure: 1=Speaker (fullscreen), 2=Browsed by individual (window), 3=Kiosk (loop). "
+    + "Use 'start' with start_slide (1-based, 0=beginning). "
+    + "'goto-slide' navigates during active show. 'get-status' checks if show is running.")]
 public interface ISlideshowCommands
 {
     /// <summary>

@@ -8,7 +8,11 @@ namespace PptMcp.Core.Commands.Placeholder;
 /// Slide placeholder operations: list available placeholders, fill text.
 /// </summary>
 [ServiceCategory("placeholder")]
-[McpTool("placeholder", Title = "Slide Placeholders", Destructive = true, Category = "placeholders")]
+[McpTool("placeholder", Title = "Slide Placeholders", Destructive = true, Category = "placeholders",
+    Description = "List and fill layout placeholders (title, subtitle, content, footer). "
+    + "Use 'list' to discover available placeholders and their indices. "
+    + "'set-text' fills a placeholder with text. 'set-image' replaces placeholder content with an image. "
+    + "placeholder_index: 1-based (from list results). Prefer placeholders over freeform shapes for consistent layouts.")]
 public interface IPlaceholderCommands
 {
     /// <summary>List all placeholders on a slide with type and current text.</summary>

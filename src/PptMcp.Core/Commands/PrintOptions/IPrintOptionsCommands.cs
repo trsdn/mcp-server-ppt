@@ -8,7 +8,11 @@ namespace PptMcp.Core.Commands.PrintOptions;
 /// Manage print options: output type, color mode, framing, fit-to-page, hidden slides.
 /// </summary>
 [ServiceCategory("printoptions")]
-[McpTool("printoptions", Title = "Print Options", Destructive = true, Category = "print")]
+[McpTool("printoptions", Title = "Print Options", Destructive = true, Category = "print",
+    Description = "Configure print settings before printing. "
+    + "output_type: 1=Slides, 2=TwoSlideHandouts, 3=ThreeSlideHandouts, 4=SixSlideHandouts, 5=NotesPages, 6=Outline. "
+    + "color_type: 1=Color, 2=Grayscale, 3=BlackWhite. "
+    + "frame_slides/fit_to_page/print_hidden_slides: bool. Use export(print) to actually print.")]
 public interface IPrintOptionsCommands
 {
     /// <summary>

@@ -1,4 +1,9 @@
 {
 	"inputs": [],
-	"servers": {}
+	"servers": {
+		"ppt-mcp": {
+			"type": "stdio",
+			"command": "${workspaceFolder}/src/PptMcp.McpServer/bin/Release/net9.0-windows/PptMcp.McpServer.exe"
+		}
+	}
 }

@@ -1,0 +1,70 @@
+{
+  "name": "slidecraft-design-eval-4",
+  "mode": "baseline",
+  "description": "Fourth wave: consulting-pattern focused. Tests multi-panel charts, comments sidebar, ranking tables, geographic flows, YoY badges, and data-pack mode with scope titles. Uses design tool catalog for patterns.",
+  "goal": "Validate that real consulting patterns (multi-panel, comments sidebar, direct label density, scope subtitles) produce higher evidence and source citation scores",
+  "archetype": "mixed",
+  "loops": 10,
+  "builder": {
+    "model": "claude-opus-4.6",
+    "reasoningEffort": "high",
+    "transport": "mcp",
+    "reuseSessionContext": true,
+    "skillFiles": [
+      "generation-pipeline.md",
+      "slide-design-principles.md",
+      "slide-design-review.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp-design.md",
+    "timeoutMs": 600000
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "mck-market-overview-multipanel",
+      "text": "Build a data slide for an industry report showing global SaaS market activity in 2025. Left panel: bar chart showing market size by region (Americas $280B 52%, EMEA $140B 26%, APAC $120B 22%, total $540B). Right panel: bar chart showing growth rate by segment (Enterprise +18%, Mid-market +24%, SMB +31%). Add a comments section with 3-4 bullet insights interpreting both panels. Use a scope title style: 'Global SaaS market by region and segment, $B, 2025'. Source: SaaS Market Monitor 2025; Worldwide SaaS Forecast."
+    },
+    {
+      "id": "mck-ranking-table-colored",
+      "text": "Build a ranking table slide showing the top 15 European banks by digital maturity. Columns: Rank, Bank Name, Overall Score (out of 100), Mobile App (rank 1-15), Open Banking (rank 1-15), AI Adoption (rank 1-15), Cloud Migration (rank 1-15). Top 3: Bank A (score 87), Bank B (82), Bank C (79). Middle: Bank D (71), Bank E (68), Bank F (65), Bank G (63), Bank H (61), Bank I (58). Bottom: Bank J (54), Bank K (52), Bank L (49), Bank M (47), Bank N (45), Bank O (43). Color-band the ranks: 1-5 dark blue, 6-10 medium blue, 11-15 light grey. Source: Digital Banking Maturity Index, 2025 (n=150 banks, 42 dimensions assessed)."
+    },
+    {
+      "id": "mck-yoy-change-badges",
+      "text": "Build a slide for a quarterly earnings pre-read showing key financial metrics with year-over-year changes prominently displayed. Revenue: $3.2B (-8% YoY), EBITDA: $640M (-12% YoY), Free Cash Flow: $280M (+5% YoY), Net Debt/EBITDA: 2.4x (+0.3x YoY), Headcount: 12,400 (-6% YoY), CapEx: $380M (-15% YoY). Show each metric with its YoY change as an inline badge (green for positive, red for negative). The key message is that top-line declined but cash generation improved through cost discipline. Audience: CFO office and IR team, pre-read for earnings call prep. Source: Company management accounts, Q4 2025 preliminary (unaudited)."
+    },
+    {
+      "id": "mck-composition-stacked-bars",
+      "text": "Build a slide showing revenue mix evolution over 4 years using stacked bars. 2022: Product $180M (60%), Services $90M (30%), Subscription $30M (10%). 2023: Product $170M (50%), Services $100M (29%), Subscription $70M (21%). 2024: Product $160M (42%), Services $110M (29%), Subscription $110M (29%). 2025: Product $150M (35%), Services $120M (28%), Subscription $160M (37%). Each bar segment must have both absolute value and percentage label. The key insight is that subscription revenue overtook product revenue for the first time in 2025, fundamentally shifting the business model. Add a comments sidebar with 3 bullets interpreting the trend. Source: Revenue recognition system, FY2022-2025 audited figures."
+    },
+    {
+      "id": "mck-bridge-with-footnotes",
+      "text": "Build a waterfall/bridge chart slide showing the EBITDA walk from FY2024 to FY2025. Start: EUR 420M. Volume growth: +EUR 35M. Price/mix: +EUR 22M. Raw material inflation: -EUR 48M (footnote 1: based on spot prices as of Dec 31, 2025). Labor cost increase: -EUR 18M. Productivity improvements: +EUR 15M. FX impact: -EUR 12M (footnote 2: assumes EUR/USD 1.08, EUR/GBP 0.86). Restructuring charges: -EUR 8M (footnote 3: one-time; excluded from adjusted EBITDA). End: EUR 406M. The dominant driver is raw material inflation offsetting organic growth. Include numbered footnotes below the chart, above the source line. Source: Group Controlling, FY2025 management bridge (Board version, March 2026)."
+    },
+    {
+      "id": "mck-process-with-metrics",
+      "text": "Build a process flow slide for a client pitch showing the current loan origination journey with cycle time and drop-off at each stage. Stage 1: Application (online form, 15 min, 100% start). Stage 2: Document Upload (manual, 3 days, 72% remaining — 28% drop-off, PAIN POINT). Stage 3: Credit Check (automated, 2 hours, 68% remaining). Stage 4: Underwriting (manual review, 5 days, 62% remaining — 6% drop-off). Stage 5: Approval (committee, 2 days, 58% remaining). Stage 6: Disbursement (automated, 1 day, 55% remaining). Total: 11.5 days, 45% total drop-off. Mark Stages 2 and 4 as bottlenecks with red indicators. The insight is that digitizing document upload alone could recover 20% of lost applicants. Source: Client operational data, 10,000 applications, H2 2025."
+    },
+    {
+      "id": "mck-scatter-bubble-competitive",
+      "text": "Build a competitive landscape slide using a scatter/bubble plot for an investor roadshow. X-axis: Market share (0-30%). Y-axis: Revenue growth rate (0-40%). Plot 6 companies as bubbles (size = revenue): Company A (our company, 22% share, 28% growth, $540M revenue — accent color, labeled). Company B (18% share, 8% growth, $420M — grey). Company C (12% share, 35% growth, $180M — grey). Company D (8% share, 15% growth, $120M — grey). Company E (25% share, 3% growth, $680M — grey, label as 'incumbent'). Company F (5% share, 22% growth, $60M — grey). Add quadrant labels: top-right 'Stars', top-left 'Rising challengers', bottom-right 'Cash cows', bottom-left 'Niche players'. Source: market share study 2025 + company filings."
+    },
+    {
+      "id": "mck-exec-summary-scqa",
+      "text": "Build an executive summary slide following SCQA structure for a board decision deck. SITUATION: The company has grown 25% annually for 3 years through organic expansion. COMPLICATION: Growth is decelerating to 12% as the core market matures; competitors are consolidating. ANSWER: Recommend acquiring the target company ($180M revenue, 35% growth) to re-accelerate to 20%+ growth and enter adjacent markets. Support points: 1) Strategic fit — the target's AI platform complements our data infrastructure. 2) Financial return — 15% IRR at 8x revenue multiple, accretive by Year 2. 3) Integration risk — manageable (shared tech stack, 70% customer overlap addressable). DECISION ASK: Approve engagement of an external advisor for exclusive due diligence (EUR 2M fee, 8-week timeline). Source: Corporate Development analysis, March 2026."
+    },
+    {
+      "id": "mck-dashboard-6-kpi-rag",
+      "text": "Build a 6-KPI executive dashboard with RAG (Red/Amber/Green) status for a transformation steering committee. 1) Cost Synergies: EUR 18M captured / EUR 25M target (72%, Amber, on track for year-end). 2) Revenue Synergies: EUR 3M captured / EUR 12M target (25%, Red, needs acceleration). 3) System Integration: 4 of 6 systems migrated (67%, Green, ahead of plan). 4) Headcount Optimization: 180 of 250 FTE reductions complete (72%, Amber, voluntary exits slower). 5) Customer Retention: 94% (Green, above 90% target). 6) Employee Engagement: 3.2/5 (Red, below 3.5 threshold, change fatigue). Show each KPI as a card with: metric name, actual vs target, RAG indicator, one-line status note. Source: PMI dashboard, HRIS + ERP, data as of Feb 28, 2026."
+    },
+    {
+      "id": "mck-recommendation-with-ask",
+      "text": "Build a recommendation slide for an investment committee. Recommend approving EUR 15M Series B investment in the target company (cleantech startup, carbon tracking platform). Rationale: 1) Market timing — EU Carbon Border Adjustment Mechanism creates $8B addressable market by 2028. 2) Competitive moat — only platform with real-time supply chain emissions tracking (patent pending). 3) Traction — ARR grew from EUR 1M to EUR 8M in 18 months, 140% net retention. Impact: Expected 4x return at exit (5-year horizon), 28% IRR base case. Dependencies: Series B co-led with a lead investor (EUR 10M committed), board seat required. EXPLICIT ASK: Approve EUR 15M investment and board nomination of [Partner Name] by March 31, 2026. Source: Target company data room, Q4 2025 financials (audited externally). Risk: Technology risk rated Medium (validated by independent technical due diligence)."
+    }
+  ],
+  "outputDir": "output/slidecraft-design-eval-4",
+  "resultsDir": "results/slidecraft-design-eval-4"
+}

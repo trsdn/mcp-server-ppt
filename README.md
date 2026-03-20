@@ -9,6 +9,8 @@
 
 **MCP Server for PowerPoint** enables AI assistants (GitHub Copilot, Claude, ChatGPT) to automate PowerPoint through natural language commands. Manage slides, shapes, text, charts, tables, animations, transitions, VBA macros, and more (33 tools with 204 operations).
 
+For multi-phase build / verify / repair workflows from source, the repo also includes the official orchestration client under `src\PptMcp.Agent`.
+
 **🛡️ 100% Safe — Uses PowerPoint's Native COM API** — Zero risk of file corruption. Uses PowerPoint's official COM API ensuring complete safety and compatibility.
 
 **💡 Interactive Development** — See results instantly in PowerPoint. Add slides, create charts, format text, and iterate. PowerPoint becomes your AI-powered workspace.
@@ -124,6 +126,40 @@ dotnet tool install --global PptMcp.CLI
 ```
 
 
+## 🤖 Optional: Official Agent Client from Source
+
+For larger deck-building tasks, this repo also ships an official source-side controller: `src\PptMcp.Agent`.
+
+It is intentionally **not** a third server surface. Instead, it sits above the MCP server and runs one client-side loop:
+
+- plan the deck
+- execute through normal sequential MCP tool calls
+- verify the generated deck
+- repair incomplete output when needed
+
+Quick start:
+
+```powershell
+dotnet build src\PptMcp.McpServer\PptMcp.McpServer.csproj -c Release
+
+Set-Location src\PptMcp.Agent
+npm install
+npm run check
+npm test
+
+node .\src\cli.mjs run `
+  --task "Build a 5-slide executive deck on Q4 revenue performance and next actions." `
+  --output "C:\Users\you\Documents\q4-revenue-deck.pptx"
+```
+
+Read more:
+
+- [Agent Client Component README](src/PptMcp.Agent/README.md)
+- [Agent Client Architecture](docs/AGENT-CLIENT.md)
+- [Eval Framework](eval/README.md)
+- [Archetype Pipeline](docs/ARCHETYPE-PIPELINE.md)
+
+
 ## ⚙️ How It Works — COM Automation & Unified Service Architecture
 
 **PptMcp uses Windows COM automation to control the actual PowerPoint application (not just .pptx files).**
@@ -164,7 +200,7 @@ The AI will display the PowerPoint window so you can watch every operation happe
 
 ## 📋 Additional Information
 
-📚 **[CLI Guide →](src/PptMcp.CLI/README.md)** | **[CLI Skill for Agents →](skills/ppt-cli/SKILL.md)** | **[MCP Server Guide →](src/PptMcp.McpServer/README.md)** | **[All Agent Skills →](skills/README.md)**
+📚 **[CLI Guide →](src/PptMcp.CLI/README.md)** | **[MCP Server Guide →](src/PptMcp.McpServer/README.md)** | **[Agent Client →](src/PptMcp.Agent/README.md)** | **[Eval Framework →](eval/README.md)** | **[Archetype Pipeline →](docs/ARCHETYPE-PIPELINE.md)** | **[All Agent Skills →](skills/README.md)**
 
 **License:** MIT License - see [LICENSE](LICENSE) file
 

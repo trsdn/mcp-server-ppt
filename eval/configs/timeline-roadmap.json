@@ -1,0 +1,71 @@
+{
+  "name": "timeline-roadmap",
+  "mode": "tuning",
+  "description": "Evaluate and improve timeline and roadmap slides — phases, milestones, and sequencing logic",
+  "goal": "Achieve consistent 12+/14 with clear phase structure, milestone pacing, and readable roadmap chronology",
+  "archetype": "timeline-roadmap",
+  "loops": 10,
+  "builder": {
+    "model": "claude-sonnet-4.5",
+    "skillFiles": [
+      "slide-design-principles.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp.md",
+    "timeoutMs": 300000,
+    "transport": "mcp"
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "improver": {
+    "model": "claude-sonnet-4",
+    "instructionsFile": "agents/improver-instructions.md",
+    "timeoutMs": 180000
+  },
+  "prompts": [
+    {
+      "id": "timeline-product-launch",
+      "text": "Build a 12-month product launch roadmap with discovery, beta, launch, and scale phases plus major milestones"
+    },
+    {
+      "id": "timeline-integration",
+      "text": "Build a post-merger integration timeline over 18 months with Day 1, stabilize, integrate, optimize phases"
+    },
+    {
+      "id": "timeline-cloud",
+      "text": "Build a cloud migration roadmap with assessment, pilot, migration waves, and decommissioning milestones"
+    },
+    {
+      "id": "timeline-cost-program",
+      "text": "Build a cost transformation roadmap across quick wins, structural moves, and sustain phases"
+    },
+    {
+      "id": "timeline-governance",
+      "text": "Build a regulatory remediation timeline with design, implementation, validation, and regulator sign-off milestones"
+    },
+    {
+      "id": "timeline-hiring",
+      "text": "Build a hiring roadmap for opening a new engineering hub with planning, recruiting, onboarding, and productivity ramp stages"
+    },
+    {
+      "id": "timeline-ai",
+      "text": "Build an AI transformation roadmap for 2026 with foundation, pilot, scale, and operating model phases"
+    },
+    {
+      "id": "timeline-turnaround",
+      "text": "Build a turnaround timeline with stabilize cash, improve margin, restart growth, and exit actions over four quarters"
+    },
+    {
+      "id": "timeline-esg",
+      "text": "Build an ESG roadmap to 2030 with emissions baselining, supplier program, renewable rollout, and reporting milestones"
+    },
+    {
+      "id": "timeline-security",
+      "text": "Build a cyber maturity roadmap with identity, detection, response, and resilience milestones over six quarters"
+    }
+  ],
+  "outputDir": "output/timeline-roadmap",
+  "resultsDir": "results/timeline-roadmap"
+}

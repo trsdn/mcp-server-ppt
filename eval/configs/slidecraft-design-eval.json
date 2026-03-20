@@ -1,0 +1,62 @@
+{
+  "name": "slidecraft-design-eval",
+  "mode": "baseline",
+  "description": "Test full executive design pipeline: context (meeting type, audience, mode) -> density -> archetype -> headline -> evidence -> footer. Each prompt is a real business scenario where the agent must make all design decisions.",
+  "goal": "Validate that design tool catalog (context-model, density-profiles, deck-sequences, archetypes) produces context-appropriate slides with correct density, archetype selection, and professional quality",
+  "archetype": "mixed",
+  "loops": 8,
+  "builder": {
+    "model": "claude-opus-4.6",
+    "reasoningEffort": "high",
+    "transport": "mcp",
+    "reuseSessionContext": true,
+    "skillFiles": [
+      "generation-pipeline.md",
+      "slide-design-principles.md",
+      "slide-design-review.md"
+    ],
+    "instructionsFile": "agents/builder-instructions-mcp-design.md",
+    "timeoutMs": 600000
+  },
+  "judge": {
+    "model": "gpt-5.4",
+    "instructionsFile": "agents/judge-instructions.md",
+    "timeoutMs": 120000
+  },
+  "prompts": [
+    {
+      "id": "board-preread-strategy",
+      "text": "Build a slide for a board of directors pre-read package. The board needs to approve a $50M investment in a two-wave operating model migration. Show the recommendation, three supporting reasons (cost savings of EUR 10M/year, reduced FTE from 340 to 280, improved SLA compliance from 92% to 98%), and an explicit decision ask. The board members will read this alone before the meeting — it must stand on its own without a presenter."
+    },
+    {
+      "id": "exec-steering-live-comparison",
+      "text": "Build a slide for a live executive steering committee meeting. The CFO and COO must decide today between three operating model options: status quo (EUR 48M cost, 340 FTE), hub-and-spoke (EUR 38M, 280 FTE, 15% SLA risk), and full centralization (EUR 32M, 220 FTE, 35% SLA risk). Show which option is recommended and why. This will be projected and the presenter has 2-3 minutes per slide."
+    },
+    {
+      "id": "qbr-kpi-dashboard",
+      "text": "Build a slide for a quarterly business review with division heads and functional leaders. Show 4 KPIs: Revenue $128M (plan: $125M, +2.4% vs target), Gross Margin 14.2% (down 2.8pp YoY, driven by input costs), NPS 72 (up from 58, industry avg 55), and Employee Attrition 12% (target: 8%, needs attention). The audience expects to see performance vs plan with clear on-track/off-track signals. Live presentation, 2-3 minutes per slide. Source: Finance ERP + HR system, Q4 2025 actuals."
+    },
+    {
+      "id": "deal-review-waterfall",
+      "text": "Build a slide for an investment committee pre-read explaining why EBITDA declined from EUR 48M to EUR 38M year-over-year. The contributing factors are: volume decline (-EUR 4M), input cost inflation (-EUR 8M), pricing actions (+EUR 3M), and cost optimization (+EUR 1M). Net decline is EUR 8M driven primarily by input cost inflation. The IC members will study this in detail before the meeting and expect full source attribution. Source: Management accounts, FY2025 vs FY2024, audited figures."
+    },
+    {
+      "id": "client-pitch-roi",
+      "text": "Build a slide for a 30-minute client pitch to skeptical C-suite prospects. Show that our platform delivers 300% ROI: platform cost savings from $4.2M to $1.1M ($3.1M saved), revenue acceleration from delayed to real-time decisions ($1.8M captured), and license consolidation from 12 tools to 1 ($0.4M savings). Total value $5.3M on $1.8M investment. This is the proof slide — it must be immediately convincing when projected at a distance. Source: Industry ROI Study 2025 (n=47 enterprise deployments)."
+    },
+    {
+      "id": "transformation-roadmap",
+      "text": "Build a slide for a transformation steering committee showing a two-wave migration plan. Wave 1 (months 1-6): consolidate 3 smallest regional centers into 1 spoke, 60 FTE impacted, EUR 2.4M investment. Wave 2 (months 7-18): migrate remaining 4 centers to hub + 2 spokes, 200 FTE impacted, EUR 5.1M investment. Key milestones: Wave 1 go-live at month 6, full transition at month 18. The sequencing logic is that Wave 1 creates proof and operational capacity for Wave 2. Live presentation for program sponsor and workstream leads."
+    },
+    {
+      "id": "allhands-hero-number",
+      "text": "Build a slide for a company all-hands town hall announcing that annual revenue reached $500M this year, up 28% year-over-year. This is the celebratory opening slide — it will be on screen for about 30 seconds while the CEO speaks. The audience is the entire organization (2,000+ people). Keep it minimal, bold, and inspiring. One dominant number, almost poster-like."
+    },
+    {
+      "id": "regulatory-risk-assessment",
+      "text": "Build a slide for a regulatory audit briefing pre-read showing compliance risk posture across 4 areas: Data Privacy (Green, 98% compliant, 2 minor findings), Financial Reporting (Amber, SOX remediation 85% complete, 1 material weakness pending), Cyber Security (Green, zero breaches in 24 months, SOC 2 Type II certified), and Third-Party Risk (Red, 3 critical vendor assessments overdue, remediation plan submitted). Include severity, mitigation status, and responsible owners. Regulators and auditors will read this carefully. Source: Internal Audit Report Q4 2025, GRC platform data as of Jan 15, 2026."
+    }
+  ],
+  "outputDir": "output/slidecraft-design-eval",
+  "resultsDir": "results/slidecraft-design-eval"
+}
