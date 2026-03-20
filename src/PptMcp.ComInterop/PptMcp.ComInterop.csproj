@@ -48,13 +48,11 @@
     <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
   </PropertyGroup>
 
-  <!-- Remove XML docs and PDB files from Release output -->
+  <!-- Remove PDB files from Release output (keep XML docs for NuGet IntelliSense) -->
   <Target Name="RemoveDebugFilesFromRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
     <ItemGroup>
-      <XmlDocsToDelete Include="$(OutputPath)**\*.xml" />
       <PdbFilesToDelete Include="$(OutputPath)**\*.pdb" />
     </ItemGroup>
-    <Delete Files="@(XmlDocsToDelete)" />
     <Delete Files="@(PdbFilesToDelete)" />
   </Target>
 
