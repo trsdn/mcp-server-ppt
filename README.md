@@ -1,5 +1,9 @@
 # PptMcp - MCP Server for Microsoft PowerPoint
 
+[![Release](https://img.shields.io/github/v/release/trsdn/mcp-server-ppt?display_name=tag)](https://github.com/trsdn/mcp-server-ppt/releases)
+[![Release Workflow](https://github.com/trsdn/mcp-server-ppt/actions/workflows/release.yml/badge.svg)](https://github.com/trsdn/mcp-server-ppt/actions/workflows/release.yml)
+[![NuGet MCP Server](https://img.shields.io/nuget/v/PptMcp.McpServer?label=NuGet%20MCP%20Server)](https://www.nuget.org/packages/PptMcp.McpServer)
+[![NuGet CLI](https://img.shields.io/nuget/v/PptMcp.CLI?label=NuGet%20CLI)](https://www.nuget.org/packages/PptMcp.CLI)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET](https://img.shields.io/badge/.NET-9-blue.svg)](https://dotnet.microsoft.com/download/dotnet/9.0)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://github.com/trsdn/mcp-server-ppt)
@@ -7,7 +11,11 @@
 
 **Automate PowerPoint with AI — A Model Context Protocol (MCP) server for comprehensive PowerPoint automation through conversational AI.**
 
-**MCP Server for PowerPoint** enables AI assistants (GitHub Copilot, Claude, ChatGPT) to automate PowerPoint through natural language commands. Manage slides, shapes, text, charts, tables, animations, transitions, VBA macros, and more (33 tools with 204 operations).
+**PptMcp** enables AI assistants such as GitHub Copilot, Claude, and ChatGPT to automate Microsoft PowerPoint through natural language commands. It covers real presentation work end to end: create slides, edit text, place shapes and images, build charts and tables, apply themes, run VBA, export to PDF or video, and manage live PowerPoint windows safely through the native COM API.
+
+**Origin and credit:** This project builds on the original MCP automation foundation created by **[Stefan Broenner (sbroenne)](https://github.com/sbroenne)** in [mcp-server-excel](https://github.com/sbroenne/mcp-server-excel), extended here into a full PowerPoint-focused toolchain.
+
+**Releases and packages:** [GitHub Releases](https://github.com/trsdn/mcp-server-ppt/releases) | [NuGet: PptMcp.McpServer](https://www.nuget.org/packages/PptMcp.McpServer) | [NuGet: PptMcp.CLI](https://www.nuget.org/packages/PptMcp.CLI)
 
 For multi-phase build / verify / repair workflows from source, the repo also includes the official orchestration client under `src\PptMcp.Agent`.
 
@@ -209,7 +217,6 @@ The AI will display the PowerPoint window so you can watch every operation happe
 **Built With:** This entire project was developed using GitHub Copilot AI assistance - mainly with Claude but lately with Auto-mode.
 
 **Acknowledgments:**
-- **[Stefan Broenner (sbroenne)](https://github.com/sbroenne)** — Original author and creator of the [upstream mcp-server-excel](https://github.com/sbroenne/mcp-server-excel) project. This fork builds on his excellent foundation for PowerPoint COM automation via MCP.
 - Microsoft PowerPoint Team — For comprehensive COM automation APIs
 - Model Context Protocol community — For the AI integration standard
 - Open Source Community — For inspiration and best practices
