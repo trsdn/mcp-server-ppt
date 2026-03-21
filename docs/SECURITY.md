@@ -15,7 +15,7 @@ We take security seriously. If you discover a security vulnerability in PptMcp, 
 ### How to Report
 
 1. **Do NOT create a public GitHub issue** for security vulnerabilities
-2. Send an email to: [stefan_broenner@yahoo.com](mailto:stefan_broenner@yahoo.com)
+2. Contact me directly
 3. Include the following information:
    - Description of the vulnerability
    - Steps to reproduce the issue
@@ -106,4 +106,4 @@ PptMcp has minimal dependencies to reduce attack surface:
 
 ## Contact
 
-For security-related questions or concerns, please contact [Stefan Broenner](mailto:stefan_broenner@yahoo.com) through GitHub issues (for non-sensitive matters) or the security reporting method outlined above.
+For security-related questions or concerns, please contact Torsten Mahr through GitHub issues (for non-sensitive matters) or the security reporting method outlined above.

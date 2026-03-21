@@ -209,7 +209,7 @@ The AI will display the PowerPoint window so you can watch every operation happe
 **Built With:** This entire project was developed using GitHub Copilot AI assistance - mainly with Claude but lately with Auto-mode.
 
 **Acknowledgments:**
-- **[Stefan Broenner (sbroenne)](https://github.com/sbroenne)** — Original author and creator of the [upstream mcp-server-ppt](https://github.com/sbroenne/mcp-server-ppt) project. This fork builds on his excellent foundation for PowerPoint COM automation via MCP.
+- **[Stefan Broenner (sbroenne)](https://github.com/sbroenne)** — Original author and creator of the [upstream mcp-server-excel](https://github.com/sbroenne/mcp-server-excel) project. This fork builds on his excellent foundation for PowerPoint COM automation via MCP.
 - Microsoft PowerPoint Team — For comprehensive COM automation APIs
 - Model Context Protocol community — For the AI integration standard
 - Open Source Community — For inspiration and best practices
@@ -218,7 +218,5 @@ The AI will display the PowerPoint window so you can watch every operation happe
 
 Upstream projects by Stefan Broenner:
 
-- [mcp-server-ppt (upstream)](https://github.com/sbroenne/mcp-server-ppt) — Original MCP Server for PowerPoint by Stefan Broenner
+- [mcp-server-excel (upstream)](https://github.com/sbroenne/mcp-server-excel) — Original MCP Server for Excel by Stefan Broenner
 - [pytest-aitest](https://github.com/sbroenne/pytest-aitest) — LLM-powered testing framework for AI agents
-- [OBS Studio MCP Server](https://github.com/sbroenne/mcp-server-obs) — AI-powered OBS Studio automation
-- [HeyGen MCP Server](https://github.com/sbroenne/heygen-mcp) — MCP server for HeyGen AI video generation

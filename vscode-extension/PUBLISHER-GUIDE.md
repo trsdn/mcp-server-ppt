@@ -64,7 +64,7 @@ This guide walks you through publishing your VS Code extension to the marketplac
      - ⚠️ This MUST be exactly what's in your package.json
      - ⚠️ Cannot be changed later
      - Can only contain letters, numbers, and hyphens
-   - **Display name**: `Stefan Broenne` (shown to users)
+   - **Display name**: `Torsten Mahr` (shown to users)
    - **Description**: Brief description of your publisher account
    - **Logo** (optional): Upload a square image (recommended 128x128px)
 5. Click **"Create"**

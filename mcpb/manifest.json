@@ -6,7 +6,7 @@
   "description": "Manage Slides, Shapes, Text, Charts, Layouts, Transitions, Animations, Formatting & more - requires PowerPoint to be installed",
   "long_description": "Enterprise-grade MCP server for Microsoft PowerPoint automation. 23 specialized tools with 214 operations for Slides, Shapes, Charts, Layouts, Transitions, and more. Windows-only, requires Microsoft PowerPoint desktop application (2016 or later).",
   "author": {
-    "name": "Stefan Broenner",
+    "name": "TOrsten Mahr",
     "url": "https://github.com/trsdn"
   },
   "repository": {
