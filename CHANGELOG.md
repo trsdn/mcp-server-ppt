@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+
+- **Bumped Scriban 6.6.0 → 7.1.0** to clear three NuGet advisories that were promoted to hard build errors by `TreatWarningsAsErrors=true`:
+  - `GHSA-5wr9-m6jw-xx44` (critical) — sandbox bypass via cached `MemberFilter`
+  - `GHSA-m2p3-hwv5-xpqw` (moderate) — `LimitToString` denial of service
+  - `GHSA-xw6w-9jjh-p9cr` (moderate) — unbounded string multiplication / BigInteger shift denial of service
+  - Practical exposure was nil — Scriban is only used at build time by `PptMcp.Build.Tasks` to render source-controlled skill prompt templates, never with attacker-supplied input. The bump unblocks the McpServer build and clears the advisories. Scriban API surface used by `GenerateSkillFile` is stable across 6 → 7; no code changes were required.
+
 ### Added
 
 - Official source-side Copilot SDK agent client under `src\PptMcp.Agent`, including local planner tests and documentation for the agent architecture
