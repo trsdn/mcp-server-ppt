@@ -7,9 +7,24 @@ namespace PptMcp.Core.Commands.Shape;
 /// <summary>
 /// Shape management: list, read, create, move, resize, delete, z-order.
 /// </summary>
+/// <remarks>
+/// SHAPE REFERENCES (shapeName / shapeNames parameters):
+/// Every shape-targeting parameter accepts one of two reference styles:
+///   - Literal <c>Shape.Name</c>, e.g. <c>"Title 1"</c>, <c>"Rectangle 7"</c>.
+///   - Stable <c>Shape.Id</c> via the <c>id:&lt;N&gt;</c> prefix, e.g. <c>"id:42"</c>.
+/// Names are user-mutable and may collide after delete/re-add. Ids are assigned
+/// by PowerPoint at insertion time and stable for the lifetime of the shape —
+/// they survive renames, copy/paste, and reordering. Prefer Id-based references
+/// for any agent workflow that touches the same shape across multiple turns.
+/// Both <c>shape(list)</c> and <c>shape(read)</c> return the <c>ShapeId</c>
+/// you should use.
+/// </remarks>
 [ServiceCategory("shape")]
 [McpTool("shape", Title = "Shape Operations", Destructive = true, Category = "shapes",
     Description = "Create, move, resize, format, and manage shapes on slides. The primary building tool. "
+    + "SHAPE REFERENCES: shape_name / shape_names accept either the literal Shape.Name (e.g. 'Title 1') "
+    + "or the stable Shape.Id via 'id:<N>' prefix (e.g. 'id:42'). Ids survive renames and reordering — "
+    + "prefer them. Get ids from shape(list) / shape(read). "
     + "auto_shape_type (MsoAutoShapeType): 1=Rectangle, 5=Triangle, 9=Oval, 10=Hexagon, 13=Pentagon, "
     + "16=Cube, 23=RoundedRectangle, 55=Chevron, 61=RightArrow, 92=Heart, 106=Plus, 127=Callout. "
     + "color_hex: '#RRGGBB' (e.g. '#0B3D91'). Use 'none' for transparent fill/line. "

@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Shape commands: stable shape identity via `id:N` prefix.** Every `shapeName` / `shapeNames` parameter on the `shape` tool now accepts either the literal `Shape.Name` (existing behavior) or the stable `Shape.Id` via an `id:<N>` prefix (e.g. `id:42`). Ids are returned by `shape(list)` and `shape(read)` and survive renames, copy/paste, and reordering — making them safe references for multi-turn agent workflows. Backwards-compatible: no signature changes; name-based lookups continue to work.
 - Official source-side Copilot SDK agent client under `src\PptMcp.Agent`, including local planner tests and documentation for the agent architecture
 - Dedicated documentation for the evaluation framework and the archetype/reference pipeline
 - **33 PowerPoint MCP tools with 204 operations** for comprehensive PowerPoint automation via COM interop
