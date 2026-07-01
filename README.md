@@ -210,6 +210,8 @@ The AI will display the PowerPoint window so you can watch every operation happe
 
 📚 **[CLI Guide →](src/PptMcp.CLI/README.md)** | **[MCP Server Guide →](src/PptMcp.McpServer/README.md)** | **[Agent Client →](src/PptMcp.Agent/README.md)** | **[Eval Framework →](eval/README.md)** | **[Archetype Pipeline →](docs/ARCHETYPE-PIPELINE.md)** | **[All Agent Skills →](skills/README.md)**
 
+**Related:** [microsoft-slides](https://github.com/trsdn/microsoft-slides) provides a Copilot skill for generating Microsoft-branded PowerPoint decks with bundled brand assets, layout helpers, and render/QA guidance. Internal evaluation assets live in [mcp-server-ppt-eval-assets](https://github.com/trsdn/mcp-server-ppt-eval-assets).
+
 **License:** MIT License - see [LICENSE](LICENSE) file
 
 **Contributing:** See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines
