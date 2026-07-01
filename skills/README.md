@@ -7,8 +7,6 @@ Two skill packages for AI coding assistants:
 | **[ppt-cli](ppt-cli/SKILL.md)** | CLI Tool | Coding agents - token-efficient, `--help` discoverable |
 | **[ppt-mcp](ppt-mcp/SKILL.md)** | MCP Server | Conversational AI - rich tool schemas |
 
-For a Microsoft-branded deck-building skill with bundled BAR theme assets, layout helpers, and visual QA guidance, see [microsoft-slides](https://github.com/trsdn/microsoft-slides).
-
 ## Installation
 
 ```bash
