@@ -10,9 +10,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Scriban bumped 6.6.0 → 7.2.6**: resolves NU1904 (critical) and four NU1902 (moderate) NuGet audit advisories that broke `dotnet restore` and caused the scheduled CodeQL workflow to fail on `main` since July
 - **StreamJsonRpc bumped 2.24.84 → 2.25.29**: clears the transitive `MessagePack` 2.5.198 (2 high, 9 moderate) and `Nerdbank.MessagePack` 1.0.2 (1 high, 2 moderate) advisories. `dotnet list package --vulnerable --include-transitive` is now empty
+- **All 33 open npm advisories resolved** (17 high, 14 moderate, 2 low): transitive dependencies were refreshed in `vscode-extension`, `src/PptMcp.Agent` and `eval`, clearing advisories in `undici`, `form-data`, `tmp`, `lodash`, `js-yaml`, `brace-expansion`, `picomatch`, `fast-uri`, `linkify-it`, `markdown-it`, `qs`, `uuid`, `@azure/identity` and `@azure/msal-node`. Only lock files changed — no declared dependency version was altered, and all affected packages are build-time only, so nothing shipped in the extension package was affected. `npm audit` now reports 0 vulnerabilities in all three manifests
 
 ### Fixed
 
+- **Required status checks could never pass on documentation- or dependency-only pull requests**: `build-cli` and `integration-runner-disabled` are required checks on `main`, but both workflows were restricted to source paths. A skipped check never reports a status, so any pull request that did not touch those paths stayed permanently blocked with "the base branch policy prohibits the merge".
+  - ROOT CAUSE: a required status check combined with a `paths` filter — GitHub treats "skipped" and "never reported" identically for branch protection
+  - FIX: removed the `paths` filter from the `pull_request` trigger of both workflows so the required checks always report. The `push` filters are unchanged, so pushes to `main` still skip irrelevant builds
+- **Dependency review license gate rejected the GitHub Copilot CLI**: `@github/copilot` and its nine platform-specific packages ship under their own `LICENSE.md` rather than an SPDX identifier, so the license checker classified them as incompatible and failed every pull request that touched those lock files. They are now exempt from the license check only — vulnerability scanning still applies to them.
 - **`master` tool threw `RuntimeBinderException` on every action**: `list`, `list-shapes`, `edit-shape-text` and `list-layouts` all read `Presentation.SlideMasters`, which does not exist in the PowerPoint COM API.
   - ROOT CAUSE: property carried over from a spreadsheet-oriented code base; PowerPoint exposes masters through `Presentation.Designs.Item(i).SlideMaster` (one master per design)
   - FIX: added a shared `GetMaster(presentation, masterIndex)` helper that resolves masters through `Designs`, and routed all four actions through it

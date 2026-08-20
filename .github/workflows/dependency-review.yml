@@ -44,6 +44,22 @@ jobs:
           # Known unfixable transitive vulnerabilities in dev-only build tools
           # minimatch@3.x ReDoS in @vscode/vsce (no fix available upstream)
           allow-ghsas: GHSA-3ppc-4f35-3m26
+
+          # The GitHub Copilot CLI ships under its own terms (LICENSE.md) rather than
+          # an SPDX identifier, so the license check cannot classify it. It is
+          # first-party GitHub tooling used only by the eval and agent harnesses and
+          # is never redistributed, so it is exempted from the license check only.
+          # Vulnerability scanning still applies to these packages.
+          allow-dependencies-licenses: >-
+            pkg:npm/%40github/copilot,
+            pkg:npm/%40github/copilot-darwin-arm64,
+            pkg:npm/%40github/copilot-darwin-x64,
+            pkg:npm/%40github/copilot-linux-arm64,
+            pkg:npm/%40github/copilot-linux-x64,
+            pkg:npm/%40github/copilot-linuxmusl-arm64,
+            pkg:npm/%40github/copilot-linuxmusl-x64,
+            pkg:npm/%40github/copilot-win32-arm64,
+            pkg:npm/%40github/copilot-win32-x64
           
       - name: Dependency Review Summary
         if: always()
