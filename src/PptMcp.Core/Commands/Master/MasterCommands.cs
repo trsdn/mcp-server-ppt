@@ -7,20 +7,54 @@ namespace PptMcp.Core.Commands.Master;
 
 public class MasterCommands : IMasterCommands
 {
+    /// <summary>
+    /// PowerPoint COM has no Presentation.SlideMasters collection. Masters are reached
+    /// through Presentation.Designs, where each Design exposes exactly one SlideMaster.
+    /// </summary>
+    private static dynamic GetMaster(dynamic pres, int masterIndex)
+    {
+        dynamic designs = pres.Designs;
+        try
+        {
+            int designCount = (int)designs.Count;
+            if (masterIndex < 1 || masterIndex > designCount)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(masterIndex),
+                    $"Master index {masterIndex} is out of range. Presentation has {designCount} master(s).");
+            }
+
+            dynamic design = designs.Item(masterIndex);
+            try
+            {
+                return design.SlideMaster;
+            }
+            finally
+            {
+                ComUtilities.Release(ref design!);
+            }
+        }
+        finally
+        {
+            ComUtilities.Release(ref designs!);
+        }
+    }
+
     public MasterListResult List(IPptBatch batch)
     {
         return batch.Execute((ctx, ct) =>
         {
             var result = new MasterListResult { Success = true, FilePath = ctx.PresentationPath };
             dynamic pres = ctx.Presentation;
-            dynamic masters = pres.SlideMasters;
+            dynamic designs = pres.Designs;
             try
             {
-                int masterCount = (int)masters.Count;
+                int masterCount = (int)designs.Count;
 
                 for (int m = 1; m <= masterCount; m++)
                 {
-                    dynamic master = masters.Item(m);
+                    dynamic design = designs.Item(m);
+                    dynamic master = design.SlideMaster;
                     try
                     {
                         var masterInfo = new MasterInfo
@@ -59,6 +93,7 @@ public class MasterCommands : IMasterCommands
                     finally
                     {
                         ComUtilities.Release(ref master!);
+                        ComUtilities.Release(ref design!);
                     }
                 }
 
@@ -66,7 +101,7 @@ public class MasterCommands : IMasterCommands
             }
             finally
             {
-                ComUtilities.Release(ref masters!);
+                ComUtilities.Release(ref designs!);
             }
         });
     }
@@ -75,8 +110,7 @@ public class MasterCommands : IMasterCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic masters = ((dynamic)ctx.Presentation).SlideMasters;
-            dynamic master = masters.Item(masterIndex);
+            dynamic master = GetMaster(ctx.Presentation, masterIndex);
             dynamic shapes = master.Shapes;
             try
             {
@@ -113,7 +147,6 @@ public class MasterCommands : IMasterCommands
             {
                 ComUtilities.Release(ref shapes!);
                 ComUtilities.Release(ref master!);
-                ComUtilities.Release(ref masters!);
             }
         });
     }
@@ -124,8 +157,7 @@ public class MasterCommands : IMasterCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic masters = ((dynamic)ctx.Presentation).SlideMasters;
-            dynamic master = masters.Item(masterIndex);
+            dynamic master = GetMaster(ctx.Presentation, masterIndex);
             dynamic shape = master.Shapes.Item(shapeName);
             try
             {
@@ -146,7 +178,6 @@ public class MasterCommands : IMasterCommands
             {
                 ComUtilities.Release(ref shape!);
                 ComUtilities.Release(ref master!);
-                ComUtilities.Release(ref masters!);
             }
         });
     }
@@ -155,8 +186,7 @@ public class MasterCommands : IMasterCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic masters = ((dynamic)ctx.Presentation).SlideMasters;
-            dynamic master = masters.Item(masterIndex);
+            dynamic master = GetMaster(ctx.Presentation, masterIndex);
             dynamic layouts = master.CustomLayouts;
             try
             {
@@ -200,7 +230,6 @@ public class MasterCommands : IMasterCommands
             {
                 ComUtilities.Release(ref layouts!);
                 ComUtilities.Release(ref master!);
-                ComUtilities.Release(ref masters!);
             }
         });
     }

@@ -116,7 +116,7 @@ public class SlideCommands : ISlideCommands
             // Find the layout by name
             dynamic? layout = FindLayout(pres, layoutName);
             if (layout == null)
-                throw new ArgumentException($"Layout '{layoutName}' not found in this presentation.");
+                throw new ArgumentException(BuildLayoutNotFoundMessage(pres, layoutName));
 
             try
             {
@@ -235,7 +235,7 @@ public class SlideCommands : ISlideCommands
             dynamic? layout = FindLayout(pres, layoutName);
 
             if (layout == null)
-                throw new ArgumentException($"Layout '{layoutName}' not found in this presentation.");
+                throw new ArgumentException(BuildLayoutNotFoundMessage(pres, layoutName));
 
             try
             {
@@ -557,6 +557,29 @@ public class SlideCommands : ISlideCommands
         }
     }
 
+    /// <summary>
+    /// Canonical English names of the 11 layouts every Office theme ships, mapped to their
+    /// fixed 1-based position in the master. PowerPoint localizes CustomLayout.Name and
+    /// CustomLayout.MatchingName (on a German install "Blank" is reported as "Leer") and the
+    /// COM API exposes no locale-independent identifier, so position is the only stable
+    /// bridge from an English name to a localized layout.
+    /// </summary>
+    private static readonly Dictionary<string, int> CanonicalLayoutPositions =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Title Slide"] = 1,
+            ["Title and Content"] = 2,
+            ["Section Header"] = 3,
+            ["Two Content"] = 4,
+            ["Comparison"] = 5,
+            ["Title Only"] = 6,
+            ["Blank"] = 7,
+            ["Content with Caption"] = 8,
+            ["Picture with Caption"] = 9,
+            ["Title and Vertical Text"] = 10,
+            ["Vertical Title and Text"] = 11,
+        };
+
     private static dynamic? FindLayout(dynamic pres, string layoutName)
     {
         // PowerPoint COM: Presentation.Designs → Design.SlideMaster.CustomLayouts
@@ -564,6 +587,13 @@ public class SlideCommands : ISlideCommands
         try
         {
             int designCount = (int)designs.Count;
+
+            bool wantsPosition = CanonicalLayoutPositions.TryGetValue(layoutName, out int canonicalPosition);
+            bool wantsIndex = int.TryParse(layoutName, out int requestedIndex) && requestedIndex >= 1;
+
+            dynamic? nameMatch = null;
+            dynamic? matchingNameMatch = null;
+            dynamic? positionMatch = null;
 
             for (int d = 1; d <= designCount; d++)
             {
@@ -577,11 +607,34 @@ public class SlideCommands : ISlideCommands
                     for (int l = 1; l <= layoutCount; l++)
                     {
                         dynamic layout = layouts.Item(l);
+
                         string name = layout.Name?.ToString() ?? "";
-                        if (string.Equals(name, layoutName, StringComparison.OrdinalIgnoreCase))
+                        if (nameMatch == null && string.Equals(name, layoutName, StringComparison.OrdinalIgnoreCase))
                         {
-                            return layout;
+                            nameMatch = layout;
+                            continue;
                         }
+
+                        string matchingName = TryGetMatchingName(layout);
+                        if (matchingNameMatch == null && matchingName.Length > 0
+                            && string.Equals(matchingName, layoutName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            matchingNameMatch = layout;
+                            continue;
+                        }
+
+                        // Positional fallbacks only apply to the first design, where the
+                        // standard Office layout order is meaningful.
+                        bool positionalHit = d == 1
+                            && positionMatch == null
+                            && ((wantsPosition && l == canonicalPosition) || (wantsIndex && l == requestedIndex));
+
+                        if (positionalHit)
+                        {
+                            positionMatch = layout;
+                            continue;
+                        }
+
                         ComUtilities.Release(ref layout!);
                     }
                 }
@@ -593,12 +646,110 @@ public class SlideCommands : ISlideCommands
                 }
             }
 
-            return null;
+            // An exact name always wins over a localized positional guess.
+            if (nameMatch != null)
+            {
+                ReleaseIfNotNull(ref matchingNameMatch);
+                ReleaseIfNotNull(ref positionMatch);
+                return nameMatch;
+            }
+
+            if (matchingNameMatch != null)
+            {
+                ReleaseIfNotNull(ref positionMatch);
+                return matchingNameMatch;
+            }
+
+            return positionMatch;
         }
         finally
         {
             ComUtilities.Release(ref designs!);
         }
+    }
+
+    /// <summary>
+    /// CustomLayout.MatchingName is not present on every layout object PowerPoint hands back,
+    /// so probe it defensively. Only late-binding and COM failures are tolerated here.
+    /// </summary>
+    private static string TryGetMatchingName(dynamic layout)
+    {
+        try
+        {
+            return layout.MatchingName?.ToString() ?? "";
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+        {
+            return "";
+        }
+        catch (System.Runtime.InteropServices.COMException)
+        {
+            return "";
+        }
+    }
+
+    private static void ReleaseIfNotNull(ref dynamic? comObject)
+    {
+        if (comObject != null)
+        {
+            ComUtilities.Release(ref comObject!);
+            comObject = null;
+        }
+    }
+
+    /// <summary>
+    /// Builds an error message that lists the layouts PowerPoint actually reports, so a
+    /// caller on a localized install can see the real names instead of guessing.
+    /// </summary>
+    private static string BuildLayoutNotFoundMessage(dynamic pres, string layoutName)
+    {
+        var available = new List<string>();
+
+        dynamic designs = pres.Designs;
+        try
+        {
+            int designCount = (int)designs.Count;
+            for (int d = 1; d <= designCount; d++)
+            {
+                dynamic design = designs.Item(d);
+                dynamic master = design.SlideMaster;
+                dynamic layouts = master.CustomLayouts;
+                try
+                {
+                    int layoutCount = (int)layouts.Count;
+                    for (int l = 1; l <= layoutCount; l++)
+                    {
+                        dynamic layout = layouts.Item(l);
+                        try
+                        {
+                            string name = ComUtilities.SafeGetString(layout, "Name");
+                            if (name.Length == 0)
+                                name = $"Layout {l}";
+                            available.Add($"{l}. {name.Replace("\r", "").Replace("\n", " ")}");
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref layout!);
+                        }
+                    }
+                }
+                finally
+                {
+                    ComUtilities.Release(ref layouts!);
+                    ComUtilities.Release(ref master!);
+                    ComUtilities.Release(ref design!);
+                }
+            }
+        }
+        finally
+        {
+            ComUtilities.Release(ref designs!);
+        }
+
+        return $"Layout '{layoutName}' not found in this presentation. " +
+            $"Available layouts: {string.Join(", ", available)}. " +
+            "Layout names are localized by PowerPoint; canonical English names " +
+            "(for example 'Blank' or 'Title Slide') and 1-based indexes are also accepted.";
     }
 
     public OperationResult CopyToClipboard(IPptBatch batch, int slideIndex)

@@ -63,8 +63,18 @@ jobs:
             VERSION="${{ inputs.custom_version }}"
             echo "Using custom version: ${VERSION}"
           else
-            # Get the latest tag
-            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            # Get the latest tag.
+            # Note: `git describe` only finds tags that are ancestors of HEAD.
+            # This repository has release tags that sit outside the current
+            # main history, so describe fails and would silently fall back to
+            # v0.0.0 - producing a version *below* what is already published.
+            # Sort all semver tags instead, which is independent of ancestry.
+            LATEST_TAG=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
+
+            if [ -z "${LATEST_TAG}" ]; then
+              echo "No existing semver tag found, starting from v0.0.0"
+              LATEST_TAG="v0.0.0"
+            fi
             echo "Latest tag: ${LATEST_TAG}"
 
             # Remove 'v' prefix if present
@@ -73,6 +83,17 @@ jobs:
 
             # Parse version components
             IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+            # Fail loudly rather than emit a bogus version from arithmetic on
+            # non-numeric input.
+            for component in "${MAJOR}" "${MINOR}" "${PATCH}"; do
+              case "${component}" in
+                ''|*[!0-9]*)
+                  echo "::error::Could not parse '${LATEST_TAG}' as a semver tag"
+                  exit 1
+                  ;;
+              esac
+            done
 
             # Increment based on bump type
             case "${{ inputs.version_bump }}" in
