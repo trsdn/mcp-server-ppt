@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Scriban bumped 6.6.0 → 7.2.6**: resolves NU1904 (critical) and four NU1902 (moderate) NuGet audit advisories that broke `dotnet restore` and caused the scheduled CodeQL workflow to fail on `main` since July
 - **StreamJsonRpc bumped 2.24.84 → 2.25.29**: clears the transitive `MessagePack` 2.5.198 (2 high, 9 moderate) and `Nerdbank.MessagePack` 1.0.2 (1 high, 2 moderate) advisories. `dotnet list package --vulnerable --include-transitive` is now empty
+- **All 33 open npm advisories resolved** (17 high, 14 moderate, 2 low): transitive dependencies were refreshed in `vscode-extension`, `src/PptMcp.Agent` and `eval`, clearing advisories in `undici`, `form-data`, `tmp`, `lodash`, `js-yaml`, `brace-expansion`, `picomatch`, `fast-uri`, `linkify-it`, `markdown-it`, `qs`, `uuid`, `@azure/identity` and `@azure/msal-node`. Only lock files changed — no declared dependency version was altered, and all affected packages are build-time only, so nothing shipped in the extension package was affected. `npm audit` now reports 0 vulnerabilities in all three manifests
 
 ### Fixed
 
