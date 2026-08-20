@@ -72,7 +72,12 @@ Discovered while debugging a slide shape that referenced an embedded object
 
 ## Quick Reference (Grouped by Context)
 
-**Note:** Rules below are grouped by when you need them, not by number. Detailed rules follow in numeric order (1-21).
+**Note:** Rules below are grouped by when you need them, not by number. Detailed rules follow in numeric order (1-31).
+
+**Before ANY GitHub Operation:**
+| Rule | Action | Why Critical |
+|------|--------|--------------|
+| 31. Fork-only | This repo is `trsdn/mcp-server-ppt`. NEVER touch `sbroenne/mcp-server-excel` | Nearly closed issues in someone else's repository |
 
 **Every Edit:**
 | Rule | Action | Why Critical |
@@ -477,6 +482,7 @@ Delete commented-out code (use git history). Exception: Documentation files only
 | 28. COM API naming | Match COM param names when clear in flat schema | Always |
 | 29. TDD | Write test FIRST → RED → implement → GREEN | Always |
 | 30. Integration tests | NEVER write unit tests — integration tests only | Always |
+| 31. Fork-only | Repo is `trsdn/mcp-server-ppt`; never touch upstream | Before every `gh` command |
 
 
 
@@ -1126,4 +1132,62 @@ public void AddShape_ReportsProgress_DuringExecution()
 - The only acceptable non-integration tests are for pure algorithmic utilities with zero COM dependency (e.g., string parsing, enum mapping validation)
 
 **Historical Lesson:** 10 unit tests were written for the MCP progress feature (McpProgressAdapter mapping, ProgressContext AsyncLocal). All 10 passed. Zero of them would have caught the real bugs: STA thread affinity issues, COM callback re-entrancy during shape operations, or progress notifications not flowing through the generated code pipeline. The unit tests tested the unit tests.
+
+---
+
+## Rule 31: This Repository Is `trsdn/mcp-server-ppt` — Never Touch Upstream (CRITICAL)
+
+**Every repository operation targets `trsdn/mcp-server-ppt`. Never read from, write to, report on, or close anything in `sbroenne/mcp-server-excel`.**
+
+This project began as a port of a spreadsheet automation tool, but the histories have **completely diverged** — they do not even share a root commit. Upstream is unrelated code owned by someone else.
+
+### Never do this
+
+- ❌ Open, close, comment on, or modify **any** issue or PR in `sbroenne/mcp-server-excel`
+- ❌ Add an `upstream` remote, or any remote pointing at another owner's repository
+- ❌ Merge, rebase, or cherry-pick from upstream
+- ❌ Fetch upstream tags into this clone
+- ❌ Report upstream issues/PRs as if they belonged to this project
+
+### Always do this
+
+- ✅ Verify the target before **any** `gh` command that reads or writes repository state
+- ✅ Keep exactly one remote: `origin` → `https://github.com/trsdn/mcp-server-ppt.git`
+
+### Verification
+
+```powershell
+# Must print exactly one remote pair, both trsdn/mcp-server-ppt
+git remote -v
+
+# Must print trsdn/mcp-server-ppt
+gh repo set-default --view
+
+# Must list only this fork's tags (v1.0.0 - v1.0.3 as of this writing)
+git tag
+```
+
+If any check disagrees, repair it before continuing:
+
+```powershell
+git remote remove upstream
+gh repo set-default trsdn/mcp-server-ppt
+```
+
+### Why Critical
+
+`gh` resolves the target repository from git remotes. With an `upstream` remote present it silently prefers the **parent** repository, so `gh issue list` and `gh pr list` return upstream's data with no warning that you are looking at someone else's project.
+
+**This caused a real incident.** An agent reported upstream issues #777 and #750 and PR #751 as belonging to this project, and was moments away from closing issues in a repository it had no business touching. The correct answer was that this fork had zero open issues and zero open PRs.
+
+A stale `upstream` remote is also a live hazard: it carried a **push** URL, so a mistyped `git push upstream` would have written directly into another maintainer's repository.
+
+### Note on fork status
+
+`trsdn/mcp-server-ppt` is still a GitHub fork of `sbroenne/mcp-server-excel`, but this is metadata only. Detaching is **not** currently possible via self-service because the repository has child forks, and detaching would discard all stars, watchers, issues, PRs and child forks. The fork relationship is therefore expected to persist — which is exactly why the remote and `gh` default must stay pinned to this repository.
+
+### Note on release tags
+
+Only tags reachable on `origin` are meaningful here (`v1.0.0` - `v1.0.3`). No release tag is an ancestor of `main`, so `git describe --tags` **fails** in this repository. Any tooling that needs the latest version must sort semver tags directly rather than rely on ancestry. See `.github/workflows/release.yml`.
+
 

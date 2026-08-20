@@ -2,10 +2,25 @@
 
 > **🎯 Optimized for AI Coding Agents** - Modular, path-specific instructions
 
+## ⛔ Repository identity — read before any GitHub operation
+
+**This repository is `trsdn/mcp-server-ppt`. NEVER touch `sbroenne/mcp-server-excel`.**
+
+The project is registered as a fork of that upstream, but the histories have completely diverged (no shared root commit) and upstream belongs to someone else. Never open, close, or comment on upstream issues or PRs; never add an `upstream` remote; never merge or fetch from it.
+
+`gh` derives its target from the git remotes and silently prefers the **parent** repository when an `upstream` remote exists. Verify before acting:
+
+```powershell
+git remote -v              # exactly one remote pair, both trsdn/mcp-server-ppt
+gh repo set-default --view # trsdn/mcp-server-ppt
+```
+
+Full rationale and the incident that prompted this: [Rule 31](instructions/critical-rules.instructions.md) and [AGENTS.md](../AGENTS.md).
+
 ## 📋 Critical Files (Read These First)
 
 **ALWAYS read when working on code:**
-- [CRITICAL-RULES.md](instructions/critical-rules.instructions.md) - 27 mandatory rules (Success flag, COM cleanup, tests, etc.)
+- [CRITICAL-RULES.md](instructions/critical-rules.instructions.md) - 31 mandatory rules (repository identity, Success flag, COM cleanup, tests, etc.)
 - [Architecture Patterns](instructions/architecture-patterns.instructions.md) - Batch API, command pattern, resource management
 
 **Read based on task type:**
