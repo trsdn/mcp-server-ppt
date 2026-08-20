@@ -11,6 +11,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Scriban bumped 6.6.0 → 7.2.6**: resolves NU1904 (critical) and four NU1902 (moderate) NuGet audit advisories that broke `dotnet restore` and caused the scheduled CodeQL workflow to fail on `main` since July
 - **StreamJsonRpc bumped 2.24.84 → 2.25.29**: clears the transitive `MessagePack` 2.5.198 (2 high, 9 moderate) and `Nerdbank.MessagePack` 1.0.2 (1 high, 2 moderate) advisories. `dotnet list package --vulnerable --include-transitive` is now empty
 
+### Fixed
+
+- **`master` tool threw `RuntimeBinderException` on every action**: `list`, `list-shapes`, `edit-shape-text` and `list-layouts` all read `Presentation.SlideMasters`, which does not exist in the PowerPoint COM API.
+  - ROOT CAUSE: property carried over from a spreadsheet-oriented code base; PowerPoint exposes masters through `Presentation.Designs.Item(i).SlideMaster` (one master per design)
+  - FIX: added a shared `GetMaster(presentation, masterIndex)` helper that resolves masters through `Designs`, and routed all four actions through it
+- **Layout lookup failed on non-English Office installations**: `slide create --layout Blank` and `slide apply-layout` raised "layout not found" because `CustomLayout.Name` and `CustomLayout.MatchingName` are both localized (for example `Leer`, `Titelfolie`, `Zwei Inhalte` on a German install).
+  - ROOT CAUSE: lookup compared only against the localized `Name`, and the COM API exposes no locale-independent layout identifier
+  - FIX: `FindLayout` now resolves in stages — exact `Name`, then `MatchingName`, then position within the first design using the canonical Office layout order (which is identical across locales). Canonical English names and numeric indices both work; the not-found message now lists the layouts that are actually available
+
 ### Added
 
 - Official source-side Copilot SDK agent client under `src\PptMcp.Agent`, including local planner tests and documentation for the agent architecture
