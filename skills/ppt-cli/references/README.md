@@ -9,13 +9,8 @@ This folder contains behavioral guidance and quirks documentation for the PowerP
 ## Contents (populated by build)
 
 - `behavioral-rules.md` - Core execution rules
-- `anti-patterns.md` - Common mistakes to avoid  
-- `workflows.md` - Production workflow patterns
-- `powerquery.md` - Power Query quirks
-- `datamodel.md` - Data Model/DAX quirks
-- `table.md` - Table operations
-- `range.md` - Range operations
-- `worksheet.md` - Slide operations
-- `chart.md` - Chart operations
-- `slicer.md` - Slicer operations
-- `conditionalformat.md` - Conditional formatting
+- `cli-commands.md` - Generated command and action reference
+- `generation-pipeline.md` - Deck generation pipeline guidance
+- `ppt_agent_mode.md` - Agent mode (watch PowerPoint work live)
+- `slide-design-principles.md` - Slide design principles
+- `slide-design-review.md` - Slide design review checklist

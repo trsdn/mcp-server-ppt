@@ -45,14 +45,13 @@ PptMcp command2 "test.pptx" "param"
 
 If YES, verify all steps completed:
 
-- [ ] Added method to Core Commands interface (e.g., `IPowerQueryCommands.NewMethodAsync()`)
-- [ ] Implemented method in Core Commands class (e.g., `PowerQueryCommands.NewMethodAsync()`)
-- [ ] Added enum value to `ToolActions.cs` (e.g., `PowerQueryAction.NewMethod`)
-- [ ] Added `ToActionString` mapping to `ActionExtensions.cs` (e.g., `PowerQueryAction.NewMethod => "new-method"`)
-- [ ] Added switch case to appropriate MCP Tool (e.g., `PptPowerQueryTool.cs`)
-- [ ] Implemented MCP method that calls Core method
+- [ ] Added method to Core Commands interface (e.g., `ISlideCommands.NewMethod()`)
+- [ ] Implemented method in Core Commands class (e.g., `SlideCommands.NewMethod()`)
+- [ ] Added the action to the category's action enum in Core (the source generators derive the CLI command and MCP tool from it)
+- [ ] Verified the generated MCP tool exposes the action (`src/PptMcp.McpServer/obj/**/McpTool.*.g.cs`)
+- [ ] Verified the generated CLI command exposes the action (`pptcli <command> --help`)
 - [ ] Build succeeds with 0 warnings (CS8524 compiler enforcement verified)
-- [ ] Updated `CORE-COMMANDS-AUDIT.md` (if significant addition)
+- [ ] Updated `FEATURES.md` operation counts (regenerate rather than editing by hand)
 - [ ] Added integration tests for new action
 - [ ] Updated MCP Server prompts documentation
 - [ ] Updated CLI commands documentation (if applicable)

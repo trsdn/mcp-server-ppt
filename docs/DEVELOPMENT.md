@@ -146,8 +146,8 @@ tests/
 **During Development (Fast Feedback):**
 ```powershell
 # Quick validation - run tests for specific feature
-dotnet test --filter "Feature=PowerQuery&RunType!=OnDemand"
-dotnet test --filter "Feature=DataModel&RunType!=OnDemand"
+dotnet test --filter "Feature=Slide&RunType!=OnDemand"
+dotnet test --filter "Feature=Shape&RunType!=OnDemand"
 ```
 
 **Before Commit (Comprehensive):**
@@ -193,9 +193,9 @@ public class CommandLogicTests
 // Integration Test Example  
 [Trait("Category", "Integration")]
 [Trait("Speed", "Medium")]
-[Trait("Feature", "PowerQuery")]
+[Trait("Feature", "Slide")]
 [Trait("RequiresPowerPoint", "true")]
-public class PowerQueryCommandsTests
+public class SlideCommandsTests
 {
     // Tests single PowerPoint operations
 }
@@ -278,7 +278,7 @@ Program.cs calls CliCommandRegistration.RegisterCommands(config)
 - Constants: `CliCommandName`, `ValidActions`, `RequiresSession`
 
 **2. CLI Generator** (`CliSettingsGenerator.cs`):
-- Hard-coded list of 22 categories (Sheet, Range, PowerQuery, etc.)
+- Hard-coded list of 33 categories (Slide, Shape, Text, etc.)
 - For each category, generates command class:
   ```csharp
   internal sealed class SheetCommand : ServiceCommandBase<ServiceRegistry.Sheet.CliSettings>
@@ -294,9 +294,9 @@ Program.cs calls CliCommandRegistration.RegisterCommands(config)
   ```csharp
   public static void RegisterCommands(IConfigurator config)
   {
-      config.AddCommand<SheetCommand>("worksheet")
+      config.AddCommand<SlideCommand>("slide")
           .WithDescription(...);
-      // ... 21 more commands
+      // ... 32 more commands
   }
   ```
 
@@ -446,14 +446,14 @@ When creating a PR, verify:
 ### Commit Messages
 
 ```text
-✅ Good: "Add PowerQuery batch refresh command with error handling"
+✅ Good: "Add slide transition batch command with error handling"
 ❌ Bad: "fix stuff"
 ```
 
 ### PR Titles
 
 ```text  
-✅ Good: "Add batch operations for Power Query refresh"
+✅ Good: "Add batch operations for slide transitions"
 ❌ Bad: "Update code"
 ```
 

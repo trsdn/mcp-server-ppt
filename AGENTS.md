@@ -75,7 +75,6 @@ The authoritative list lives in [`.github/instructions/critical-rules.instructio
 | 1 | Never set `Success = true` alongside an `ErrorMessage` |
 | 1b | Never wrap `batch.Execute()` in a catch that returns an error result — let exceptions propagate |
 | 16 | Test **only** the feature you touched; the full suite takes 45+ minutes |
-| 21 | **Never commit, push, or merge without explicit user approval** |
 | 22 | COM cleanup belongs in `finally`, never in a swallowing `catch` |
 | 24 | After changing a tool or action, sync **all** touchpoints (CLI, MCP, skills, READMEs, counts) |
 | 26 | No confidential customer or project names in commits, PRs, or issues |

@@ -100,7 +100,7 @@ public class MyCommands : IMyCommands
 
 1. **Always use batch API** - Never manage PowerPoint lifecycle manually
 2. **PowerPoint uses 1-based indexing** - `collection.Item(1)` is the first element
-3. **Use `QueryTables.Add()` not `ListObjects.Add()`** - For loading Power Query data
+3. **Release COM objects in `finally`** - Every `dynamic` COM object needs `ComUtilities.Release(ref obj!)`
 4. **Escape user input** - Always use `.EscapeMarkup()` with Spectre.Console
 5. **Return 0 for success, 1+ for errors** - Consistent exit codes
 
@@ -255,7 +255,6 @@ Great feature requests include:
 ## 📚 Learning Resources
 
 - [PowerPoint VBA Object Model Reference](https://docs.microsoft.com/en-us/office/vba/api/overview/powerpoint)
-- [Power Query M Language Reference](https://docs.microsoft.com/en-us/powerquery-m/)
 - [Spectre.Console Documentation](https://spectreconsole.net/)
 - [.NET COM Interop Guide](https://docs.microsoft.com/en-us/dotnet/framework/interop/interoperating-with-unmanaged-code)
 
@@ -271,7 +270,7 @@ Great feature requests include:
 - `good first issue` - Good for newcomers
 - `help wanted` - Extra attention needed  
 - `ppt-com` - PowerPoint COM automation issues
-- `power-query` - Power Query specific
+- `vba` - VBA automation specific
 - `coding-agent` - Coding agent related
 
 ---

@@ -8,7 +8,7 @@
 
 > **Published as its own .NET tool** - Install `PptMcp.CLI` to get the `pptcli` command. Install `PptMcp.McpServer` separately when you also need the MCP server (`mcp-ppt`).
 
-The CLI provides 17 command categories with 225 operations matching the MCP Server. Uses **64% fewer tokens** than MCP Server because it wraps all operations in a single tool with skill-based guidance instead of loading 25 tool schemas into context.
+The CLI provides 33 command categories with 223 operations matching the MCP Server. Uses **64% fewer tokens** than MCP Server because it wraps all operations in a single tool with skill-based guidance instead of loading 33 tool schemas into context.
 
 | Interface | Best For | Why |
 |-----------|----------|-----|
@@ -78,18 +78,18 @@ Descriptions are kept in sync with the CLI source so the help output always refl
 
 ## ✨ Key Features
 
-### 🔧 PowerPoint Development Automation
-- **Power Query Management** - Export, import, update, and version control M code
+### 🔧 PowerPoint Deck Automation
+- **Slide Management** - Create, duplicate, move, delete, apply layouts, hide/unhide
+- **Shape Manipulation** - Geometry, fill, gradient, line, shadow, glow, 3D, grouping, connectors
+- **Text & Typography** - Get/set text, find/replace, formatting, spacing, bullets, symbols
 - **VBA Development** - Manage VBA modules, run macros, automated testing
-- **Data Model & DAX** - Create measures, manage relationships, Power Pivot operations
-- **PivotTable Automation** - Create, configure, and manage PivotTables programmatically
-- **Conditional Formatting** - Add rules (cell value, expression-based), clear formatting
+- **Design Systems** - Themes, palettes, archetypes, layout grids, style profiles
 
-### 📊 Data Operations
-- **Slide Management** - Create, rename, copy, delete sheets with tab colors and visibility
-- **Range Operations** - Read/write values, formulas, formatting, validation
-- **PowerPoint Tables** - Lifecycle management, filtering, sorting, structured references
-- **Connection Management** - OLEDB, ODBC, Text, Web connections with testing
+### 📊 Content Operations
+- **Slide Tables** - Cells, rows, columns, merging, formatting, borders
+- **Charts** - Create, set data, titles, types, legends, axes
+- **Images & Media** - Insert, crop, adjust, audio/video with playback settings
+- **SmartArt** - Nodes, layouts, styles, level changes
 
 ### 🛡️ Production Ready
 - **Zero Corruption Risk** - Uses PowerPoint's native COM API (not file manipulation)
@@ -101,7 +101,7 @@ Descriptions are kept in sync with the CLI source so the help output always refl
 
 ## 📋 Command Categories
 
-PptMcp.CLI provides **225 operations** across 17 command categories:
+PptMcp.CLI provides **223 operations** across 33 command categories:
 
 📚 **[Complete Feature Reference →](../../FEATURES.md)** - Full documentation with all operations
 
@@ -109,22 +109,39 @@ PptMcp.CLI provides **225 operations** across 17 command categories:
 
 | Category | Operations | Examples |
 |----------|-----------|----------|
-| **File & Session** | 6 | `session create`, `session open` (IRM/AIP auto-detected), `session close`, `session list` |
-| **Worksheets** | 16 | `sheet list`, `sheet create`, `sheet rename`, `sheet copy`, `sheet move`, `sheet copy-to-file` |
-| **Power Query** | 10 | `powerquery list`, `powerquery create`, `powerquery refresh`, `powerquery update` |
-| **Ranges** | 42 | `range get-values`, `range set-values`, `range copy`, `range find`, `range merge-cells` |
-| **Conditional Formatting** | 2 | `conditionalformat add-rule`, `conditionalformat clear-rules` |
-| **PowerPoint Tables** | 27 | `table create`, `table apply-filter`, `table get-data`, `table sort`, `table add-column` |
-| **Charts** | 14 | `chart create-from-range`, `chart list`, `chart delete`, `chart move`, `chart fit-to-range` |
-| **Chart Config** | 14 | `chartconfig set-title`, `chartconfig add-series`, `chartconfig set-style`, `chartconfig data-labels` |
-| **PivotTables** | 30 | `pivottable create-from-range`, `pivottable add-row-field`, `pivottable refresh` |
-| **Slicers** | 8 | `slicer create-slicer`, `slicer list-slicers`, `slicer set-slicer-selection` |
-| **Data Model** | 19 | `datamodel create-measure`, `datamodel create-relationship`, `datamodel evaluate` |
-| **Connections** | 9 | `connection list`, `connection refresh`, `connection test` |
-| **Named Ranges** | 6 | `namedrange create`, `namedrange read`, `namedrange write`, `namedrange update` |
-| **VBA** | 6 | `vba list`, `vba import`, `vba run`, `vba update` |
-| **Calculation Mode** | 3 | `calculation get-mode`, `calculation set-mode`, `calculation calculate` |
-| **Screenshot** | 2 | `screenshot capture`, `screenshot capture-sheet` |
+| **File & Session** | 6 | `session create`, `session open` (IRM/AIP auto-detected), `session close --save`, `session list`, `file test` |
+| **Slide** | 15 | `slide list`, `slide create`, `slide duplicate`, `slide apply-layout` |
+| **Shape** | 35 | `shape add-shape`, `shape move-resize`, `shape set-fill`, `shape group` |
+| **Text** | 18 | `text set`, `text replace`, `text format`, `text set-bullets` |
+| **Slide Table** | 13 | `slidetable create`, `slidetable write-cell`, `slidetable merge-cells` |
+| **Chart** | 10 | `chart create`, `chart set-data`, `chart set-title`, `chart set-legend` |
+| **Design** | 19 | `design apply-theme`, `design get-colors`, `design list-palettes` |
+| **Export** | 9 | `export to-pdf`, `export slide-to-image`, `export to-video` |
+| **Window** | 7 | `window get-info`, `window maximize`, `window set-zoom` |
+| **Animation** | 6 | `animation add`, `animation set-timing`, `animation reorder` |
+| **SmartArt** | 6 | `smartart add-node`, `smartart set-layout`, `smartart set-style` |
+| **Background** | 5 | `background set-color`, `background set-image`, `background reset` |
+| **Master & Layout** | 5 | `master list`, `master list-layouts`, `master edit-shape-text` |
+| **Notes** | 5 | `notes get`, `notes set`, `notes append`, `notes read-all` |
+| **Hyperlink** | 5 | `hyperlink add`, `hyperlink list`, `hyperlink validate` |
+| **Slideshow** | 5 | `slideshow start`, `slideshow goto-slide`, `slideshow configure` |
+| **VBA** | 5 | `vba list`, `vba import`, `vba run`, `vba delete` |
+| **Image** | 4 | `image insert`, `image crop`, `image set-brightness-contrast` |
+| **Media** | 4 | `media insert-audio`, `media insert-video`, `media set-playback` |
+| **Comment** | 4 | `comment add`, `comment list`, `comment delete` |
+| **Section** | 4 | `section add`, `section rename`, `section delete` |
+| **Transition** | 4 | `transition set`, `transition remove`, `transition copy-to-all` |
+| **Document Property** | 4 | `docproperty get`, `docproperty set`, `docproperty set-custom` |
+| **Accessibility** | 3 | `accessibility audit`, `accessibility set-reading-order` |
+| **Proofing** | 3 | `proofing check-spelling`, `proofing set-language` |
+| **Placeholder** | 3 | `placeholder list`, `placeholder set-text`, `placeholder set-image` |
+| **Page Setup** | 3 | `pagesetup set-size`, `pagesetup set-first-number` |
+| **Custom Show** | 3 | `customshow create`, `customshow list`, `customshow delete` |
+| **Tag** | 3 | `tag set`, `tag get`, `tag delete` |
+| **Header & Footer** | 2 | `headerfooter get`, `headerfooter set` |
+| **Shape Alignment** | 2 | `shapealign align`, `shapealign distribute` |
+| **Print Options** | 2 | `printoptions get`, `printoptions set` |
+| **Slide Import** | 1 | `slideimport import` |
 
 **Note:** CLI uses session commands for multi-operation workflows.
 
@@ -143,8 +160,8 @@ pptcli session open data.pptx
 pptcli session list
 
 # 3. Use the session ID with any commands
-pptcli sheet create --session 550e8400-e29b-41d4-a716-446655440000 --sheet "NewSheet"
-pptcli powerquery list --session 550e8400-e29b-41d4-a716-446655440000
+pptcli slide list --session 550e8400-e29b-41d4-a716-446655440000
+pptcli shape list --session 550e8400-e29b-41d4-a716-446655440000 --slide-index 1
 
 # 4. Close and save changes
 pptcli session close 550e8400-e29b-41d4-a716-446655440000 --save
@@ -187,12 +204,13 @@ The service auto-stops after 10 minutes of inactivity (no active sessions).
 
 ```powershell
 pptcli --help              # List all commands
-pptcli session --help      # Session lifecycle (open, close, save, list)
-pptcli powerquery --help   # Power Query operations
-pptcli range --help        # Cell/range operations
-pptcli table --help        # PowerPoint Table operations
-pptcli pivottable --help   # PivotTable operations
-pptcli datamodel --help    # Data Model & DAX
+pptcli session --help      # Session lifecycle (create, open, close, save, list)
+pptcli slide --help        # Slide operations
+pptcli shape --help        # Shape operations
+pptcli text --help         # Text operations
+pptcli chart --help        # Chart operations
+pptcli design --help       # Themes and design systems
+pptcli export --help       # PDF, images, video export
 pptcli vba --help          # VBA module management
 ```
 
@@ -201,28 +219,35 @@ pptcli vba --help          # VBA module management
 **Session-based automation (recommended):**
 ```powershell
 pptcli -q session open report.pptx           # Returns session ID
-pptcli -q sheet create --session 1 --sheet "Summary"
-pptcli -q range set-values --session 1 --sheet Summary --range A1 --values '[["Hello"]]'
+pptcli -q slide create --session 1 --layout-name "Title and Content"
+pptcli -q text set --session 1 --slide-index 1 --shape-name "Title 1" --text "Q1 Review"
 pptcli -q session close --session 1 --save   # Persist changes
 ```
 
-**Power Query ETL:**
+**Build a chart slide:**
 ```powershell
-pptcli powerquery create --session 1 --query "CleanData" --mcode-file transform.pq
-pptcli powerquery refresh --session 1 --query "CleanData"
+pptcli -q slide create --session 1
+pptcli -q chart create --session 1 --slide-index 2 --chart-type ColumnClustered
+pptcli -q chart set-title --session 1 --slide-index 2 --shape-name "Chart 1" --title "Sales by Region"
 ```
 
-**PivotTable from Data Model:**
+**Apply design and transitions:**
 ```powershell
-pptcli pivottable create-from-datamodel --session 1 --table Sales --dest-sheet Analysis --dest-cell A1 --pivot-table SalesPivot
-pptcli pivottable add-row-field --session 1 --pivot-table SalesPivot --field Region
-pptcli pivottable add-value-field --session 1 --pivot-table SalesPivot --field Amount --function Sum
+pptcli -q design list --session 1
+pptcli -q transition set --session 1 --slide-index 1 --transition-type Fade
+pptcli -q transition copy-to-all --session 1 --slide-index 1
+```
+
+**Export a finished deck:**
+```powershell
+pptcli -q export to-pdf --session 1 --destination-path C:\out\deck.pdf
+pptcli -q export all-slides-to-images --session 1 --destination-directory C:\out\slides
 ```
 
 **VBA automation:**
 ```powershell
-pptcli vba import --session 1 --module "Helpers" --code-file helpers.vba
-pptcli vba run --session 1 --macro "Helpers.ProcessData"
+pptcli vba import --session 1 --module-name "Helpers" --code "Sub ProcessData()`nEnd Sub"
+pptcli vba run --session 1 --macro-name "Helpers.ProcessData"
 ```
 
 ---
@@ -315,8 +340,8 @@ dotnet tool list --global
 $files = Get-ChildItem *.pptx
 foreach ($file in $files) {
     $session = pptcli session open $file.Name | Select-String "Session ID: (.+)" | ForEach-Object { $_.Matches.Groups[1].Value }
-    pptcli powerquery refresh --session $session --query "Sales Data"
-    pptcli datamodel refresh --session $session
+    pptcli slide list --session $session
+    pptcli export pdf --session $session --destination-path "$($file.BaseName).pdf"
     pptcli session close $session --save
 }
 ```
@@ -329,11 +354,12 @@ foreach ($file in $files) {
   run: dotnet tool install --global PptMcp.CLI
 
 - name: Process PowerPoint Files
+  shell: pwsh
   run: |
-    SESSION=$(pptcli session open data.pptx | grep "Session ID:" | cut -d' ' -f3)
-    pptcli powerquery create --session $SESSION --query "Query1" --mcode-file queries/query1.pq
-    pptcli powerquery refresh --session $SESSION --query "Query1"
-    pptcli session close $SESSION --save
+    $session = pptcli session open deck.pptx | Select-String "Session ID: (.+)" | ForEach-Object { $_.Matches.Groups[1].Value }
+    pptcli slide list --session $session
+    pptcli export pdf --session $session --destination-path deck.pdf
+    pptcli session close $session --save
 ```
 
 

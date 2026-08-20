@@ -22,6 +22,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Release workflow would have published a version below the current release**: the next release was calculated as `v0.1.0` even though `v1.0.3` is already published.
   - ROOT CAUSE: `git describe --tags` only finds tags that are ancestors of `HEAD`. No release tag is an ancestor of `main` in this repository, so the command failed and the `|| echo "v0.0.0"` fallback silently swallowed the error
   - FIX: the workflow now selects the highest semver tag with `git tag -l --sort=-v:refname`, which is independent of ancestry, and fails loudly if the tag cannot be parsed instead of emitting a bogus version
+- **MCP resources advertised tools that do not exist**: `ppt://help/resources` and `ppt://help/quickref` told LLMs to call `powerquery`, `datamodel`, `namedrange`, `connection` and `range`, none of which are registered by this server, and documented `presentationPath`/`sessionId` parameters instead of the actual `path`/`session_id`.
+  - ROOT CAUSE: the resource provider was carried over unchanged from the spreadsheet-oriented code base and never validated against the generated tool surface
+  - FIX: both resources now describe the real tools (`slide`, `shape`, `text`, `notes`, `slidetable`, `comment`, `section`, `design`, `vba`, `export`, `file`) with the parameter names the generated tools actually expose
+- **Agent skill CLI reference was never regenerated and shipped spreadsheet commands**: `skills/ppt-cli/references/cli-commands.md` listed `pivottable`, `slicer`, `powerquery` and `worksheetstyle`, and contained no parameters or actions at all.
+  - ROOT CAUSE: three independent defects in `scripts/Build-AgentSkills.ps1` — it looked for `pptcli.exe` under a hardcoded, wrong target framework and silently skipped generation; it parsed the English section headers `COMMANDS:`/`OPTIONS:`, which Spectre.Console localizes, yielding zero commands on a non-English host; and it expected an `Actions:` prefix that the command descriptions do not contain
+  - FIX: the target framework is now read from the csproj, section headers are matched locale-independently, actions are taken from the generated `ServiceRegistry` files, and every failure mode now throws instead of emitting an empty or stale reference
+
+### Changed
+
+- **Documentation corrected against the generated tool surface**: published tool and operation counts were wrong in every location that stated them (`FEATURES.md` claimed 204 operations in its header while its own table summed to 104 and omitted three tools; `mcpb/README.md` claimed 25 tools with 225 operations). All counts now state the verified **33 tools / 223 operations**, and `FEATURES.md` is generated from the tool surface rather than maintained by hand
+- **Spreadsheet content removed from user-facing documentation**: tool lists, example prompts, workflows and prerequisites across the main, MCP server, CLI, VS Code extension, skill and package READMEs still described Power Query, DAX, PivotTables, ranges and slicers. `docs/SECURITY.md` documented a `--privacy-level` parameter and `docs/INSTALLATION.md` required an MSOLAP provider for DAX — neither exists in this code base (0 references in source)
 
 ### Added
 
@@ -30,7 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Official source-side Copilot SDK agent client under `src\PptMcp.Agent`, including local planner tests and documentation for the agent architecture
 - Dedicated documentation for the evaluation framework and the archetype/reference pipeline
-- **33 PowerPoint MCP tools with 204 operations** for comprehensive PowerPoint automation via COM interop
+- **33 PowerPoint MCP tools with 223 operations** for comprehensive PowerPoint automation via COM interop
 - **Slide management** (7 ops) — list, read, create, duplicate, move, delete, apply-layout
 - **Shape operations** (17 ops) — add, move, resize, fill, line, shadow, rotation, z-order, grouping, copy between slides, connectors, merge shapes (union/combine/fragment/intersect/subtract)
 - **Text editing** (6 ops) — get/set text, find, replace, format (font, size, bold, italic, color, alignment)

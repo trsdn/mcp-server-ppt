@@ -65,16 +65,11 @@ ppt-cli/
 ├── README.md          # This file
 └── references/        # Detailed domain-specific guidance
     ├── behavioral-rules.md
-    ├── anti-patterns.md
-    ├── workflows.md
-    ├── range.md
-    ├── table.md
-    ├── worksheet.md
-    ├── chart.md
-    ├── slicer.md
-    ├── powerquery.md
-    ├── datamodel.md
-    └── conditionalformat.md
+    ├── cli-commands.md
+    ├── generation-pipeline.md
+    ├── ppt_agent_mode.md
+    ├── slide-design-principles.md
+    └── slide-design-review.md
 ```
 
 ## CLI Installation

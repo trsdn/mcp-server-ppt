@@ -16,23 +16,23 @@
 
 ## Features
 
-The PowerPoint MCP Server (ppt-mcp) provides **25 specialized tools with 225 operations** for comprehensive PowerPoint automation:
+The PowerPoint MCP Server (ppt-mcp) provides **33 specialized tools with 223 operations** for comprehensive PowerPoint automation:
 
-- 🔄 **Power Query** (1 tool, 11 ops) - Atomic workflows, M code management, load destinations
-- 📊 **Data Model/DAX** (2 tools, 18 ops) - Measures, relationships, model structure
-- 🎨 **PowerPoint Tables** (2 tools, 27 ops) - Lifecycle, filtering, sorting, structured references
-- 📈 **PivotTables** (3 tools, 30 ops) - Creation, fields, aggregations, calculated members/fields
-- 📉 **Charts** (2 tools, 26 ops) - Create, configure, series, formatting, data labels, trendlines
-- 📝 **VBA** (1 tool, 6 ops) - Modules, execution, version control
-- 📋 **Ranges** (4 tools, 42 ops) - Values, formulas, formatting, validation, protection
-- 📄 **Slides** (2 tools, 16 ops) - Lifecycle, colors, visibility, cross-presentation moves
-- 🔌 **Connections** (1 tool, 9 ops) - OLEDB/ODBC management and refresh
-- 🏷️ **Named Ranges** (1 tool, 6 ops) - Parameters and configuration
 - 📁 **Files** (1 tool, 6 ops) - Session management, presentation creation, IRM/AIP-protected file support
-- 🎚️ **Slicers** (1 tool, 8 ops) - Interactive filtering for PivotTables and Tables
-- 🎨 **Conditional Formatting** (1 tool, 2 ops) - Rules and clearing
-- 📸 **Screenshot** (1 tool, 2 ops) - Capture ranges/sheets as PNG for visual verification
-- 🪧 **Window Management** (1 tool, 9 ops) - Show/hide PowerPoint, arrange, position, status bar feedback
+- 📄 **Slides** (1 tool, 15 ops) - Lifecycle, layouts, hide/unhide, thumbnails
+- 🔷 **Shapes** (1 tool, 35 ops) - Geometry, fill, line, effects, grouping, connectors, merge
+- ✏️ **Text** (1 tool, 18 ops) - Get/set, find/replace, formatting, spacing, bullets
+- 📋 **Slide Tables** (1 tool, 13 ops) - Cells, rows, columns, merge, formatting
+- 📊 **Charts** (1 tool, 10 ops) - Create, data, title, type, legend, axes
+- 🎨 **Design/Themes** (1 tool, 19 ops) - Themes, colors, fonts, archetypes, palettes
+- 🎭 **Masters & Layouts** (1 tool, 5 ops) - Masters, layouts, master shape editing
+- 🎬 **Animations & Transitions** (2 tools, 10 ops) - Effects, timing, reorder, deck-wide transitions
+- 🖼️ **Images & Media** (2 tools, 8 ops) - Insert, crop, adjust, audio/video
+- 🧩 **SmartArt** (1 tool, 6 ops) - Nodes, layout, style, level changes
+- 📤 **Export** (1 tool, 9 ops) - PDF, images, video, print, extract text/images
+- ♿ **Accessibility & Proofing** (2 tools, 6 ops) - Alt-text audit, reading order, spell check
+- ⚙️ **VBA** (1 tool, 5 ops) - Modules, import, execution
+- 🪧 **Window Management** (1 tool, 7 ops) - Show/hide PowerPoint, arrange, zoom, view mode
 
 📚 **[Complete Feature Reference →](https://github.com/trsdn/mcp-server-ppt/blob/main/FEATURES.md)**
 
@@ -47,19 +47,19 @@ This extension includes an **Agent Skill** following the [agentskills.io](https:
 
 ## 💬 Example Prompts
 
-**Create & Populate Data:**
-- *"Create a new PowerPoint file called SalesTracker.pptx with slides for Date, Product, Quantity, Unit Price, and Total"*
-- *"Put this data in A1:C4 - Name, Age, City / Alice, 30, Seattle / Bob, 25, Portland"*
-- *"Add sample data and a formula column for Quantity times Unit Price"*
+**Create & Build Decks:**
+- *"Create a new PowerPoint file called SalesReview.pptx with a title slide and three content slides"*
+- *"Add a slide with the title 'Q1 Results' and three bullet points summarizing the quarter"*
+- *"Duplicate slide 3 and replace the product name with 'Contoso Pro'"*
 
-**Analysis & Visualization:**
-- *"Create a PivotTable from this data showing total sales by Product, then add a bar chart"*
-- *"Import products.csv with Power Query, load to Data Model, create a measure for Total Revenue"*
-- *"Create a slicer for the Region field so I can filter the PivotTable interactively"*
+**Visualization & Layout:**
+- *"Add a bar chart to slide 4 comparing total sales by region"*
+- *"Insert a table with product sales data on a new slide and merge the header cells"*
+- *"Add a SmartArt process diagram with four steps to slide 2"*
 
 **Formatting & Automation:**
-- *"Format the Price column as currency and highlight values over $500 in green"*
-- *"Export all Power Query M code to files for version control"*
+- *"Apply the corporate theme and add a fade transition to every slide"*
+- *"Audit the deck for missing alt text and fix the shapes you find"*
 - *"Show me PowerPoint while you work"* - watch changes in real-time
 
 
@@ -67,9 +67,9 @@ This extension includes an **Agent Skill** following the [agentskills.io](https:
 
 1. **Install this extension** (you just did!)
 2. **Ask Copilot** in the chat panel:
-   - "List all Power Query queries in presentation.pptx"
-   - "Create a DAX measure for year-over-year revenue growth"
-   - "Export all Power Queries and VBA modules to .vba files for version control"
+   - "List all slides in presentation.pptx"
+   - "Add a closing slide with a thank-you message"
+   - "Export the deck to PDF and save each slide as a PNG"
 
 **That's it!** The extension includes a self-contained MCP server - no .NET runtime or SDK needed.
 
