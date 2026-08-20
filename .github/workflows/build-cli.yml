@@ -17,20 +17,12 @@ on:
       - 'Directory.Build.props'
       - 'Directory.Packages.props'
       - '.github/workflows/build-cli.yml'
+  # No paths filter on pull_request: build-cli is a required status check on
+  # main, and a required check that is skipped never reports, which leaves
+  # documentation-, lock-file- and workflow-only pull requests permanently
+  # unmergeable. Running it on every pull request keeps the gate meaningful.
   pull_request:
     branches: [ main ]
-    paths:
-      - 'src/PptMcp.CLI/**'
-      - 'src/PptMcp.Core/**'
-      - 'src/PptMcp.ComInterop/**'
-      - 'tests/PptMcp.CLI.Tests/**'
-      - 'tests/PptMcp.Core.Tests/**'
-      - 'tests/PptMcp.Diagnostics.Tests/**'
-      - 'tests/PptMcp.ComInterop.Tests/**'
-      - 'global.json'
-      - 'Directory.Build.props'
-      - 'Directory.Packages.props'
-      - '.github/workflows/build-cli.yml'
 
 jobs:
   build-cli:

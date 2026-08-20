@@ -4,17 +4,11 @@ permissions:
   contents: read
 
 on:
+  # No paths filter on pull_request: integration-runner-disabled is a required
+  # status check on main, and a required check that is skipped never reports,
+  # which leaves documentation-only pull requests permanently unmergeable.
   pull_request:
     branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'scripts/**'
-      - 'llm-tests/**'
-      - 'global.json'
-      - 'Directory.Build.props'
-      - 'Directory.Packages.props'
-      - '.github/workflows/integration-tests.yml'
   push:
     branches: [ main, develop ]
     paths:
