@@ -52,15 +52,18 @@ function Generate-CliReference {
         [string]$pptcliPath = $null
     )
 
-    # Find pptcli binary
+    # Find pptcli binary (derive TFM from the csproj so this never drifts)
     if (-not $pptcliPath) {
-        $pptcliPath = Join-Path $RepoRoot "src/PptMcp.CLI/bin/Release/net10.0-windows/pptcli.exe"
+        $cliProject = Join-Path $RepoRoot "src/PptMcp.CLI/PptMcp.CLI.csproj"
+        $tfm = ([regex]::Match((Get-Content $cliProject -Raw), '<TargetFramework>([^<]+)</TargetFramework>')).Groups[1].Value
+        if (-not $tfm) {
+            throw "Could not determine TargetFramework from $cliProject"
+        }
+        $pptcliPath = Join-Path $RepoRoot "src/PptMcp.CLI/bin/Release/$tfm/pptcli.exe"
     }
 
     if (-not (Test-Path $pptcliPath)) {
-        Write-Warning "pptcli not found at $pptcliPath - skipping CLI reference generation"
-        Write-Warning "Build the CLI first: dotnet build src/PptMcp.CLI -c Release"
-        return
+        throw "pptcli not found at $pptcliPath. Build the CLI first: dotnet build src/PptMcp.CLI -c Release"
     }
 
     Write-Host "  Generating CLI command reference from pptcli..." -ForegroundColor Cyan
@@ -77,25 +80,51 @@ function Generate-CliReference {
     $Content += "> Auto-generated from \`pptcli --help\`. Do not edit manually."
     $Content += ""
 
+    # Actions are NOT reliably derivable from help text (descriptions are prose, and
+    # Spectre localizes headers). Take them from the generated ServiceRegistry files,
+    # which are the same build output the tools themselves are generated from.
+    $actionMap = @{}
+    $genDir = Join-Path $RepoRoot "src/PptMcp.Core/obj/GeneratedFiles/PptMcp.Generators/PptMcp.Generators.ServiceRegistryGenerator"
+    if (-not (Test-Path $genDir)) {
+        throw "Generated ServiceRegistry files not found at $genDir. Build Core first: dotnet build src/PptMcp.Core -c Release"
+    }
+    foreach ($f in Get-ChildItem -Path $genDir -Filter "ServiceRegistry.*.g.cs") {
+        $toolName = ($f.BaseName -replace '^ServiceRegistry\.', '' -replace '\.g$', '').ToLowerInvariant()
+        $actions = [regex]::Matches((Get-Content $f.FullName -Raw), 'JsonStringEnumMemberName\("([^"]+)"\)') |
+            ForEach-Object { $_.Groups[1].Value }
+        if ($actions) {
+            $actionMap[$toolName] = @($actions)
+        }
+    }
+    if ($actionMap.Count -eq 0) {
+        throw "No actions parsed from ServiceRegistry files in $genDir"
+    }
+
     # Get main help to extract commands
     $MainHelp = & $pptcliPath --help 2>&1 | Out-String
 
-    # Parse commands from main help (look for lines with command names)
+    # Parse commands from main help. Spectre.Console localizes section headers, so match
+    # the known variants rather than assuming an English runtime.
     $Commands = @()
     $InCommands = $false
     foreach ($line in ($MainHelp -split "`r?`n")) {
-        if ($line -match "^COMMANDS:") {
+        if ($line -match "^(COMMANDS|KOMMANDOS|COMMANDES|COMANDOS|COMANDI):") {
             $InCommands = $true
             continue
         }
-        if ($InCommands -and $line -match "^\s{4}(\w+)\s") {
+        if ($InCommands -and $line -match "^\s{4}(\w[\w-]*)(\s|$)") {
             $Commands += $Matches[1]
         }
+    }
+
+    if ($Commands.Count -eq 0) {
+        throw "Parsed 0 commands from 'pptcli --help'. The help layout or its localization changed - update the parser in Build-AgentSkills.ps1."
     }
 
     # Skip 'session' as it's documented separately
     $Commands = $Commands | Where-Object { $_ -ne "session" }
 
+    $documented = 0
     foreach ($cmd in $Commands) {
         $Content += "## $cmd"
         $Content += ""
@@ -103,53 +132,65 @@ function Generate-CliReference {
         # Get command help
         $CmdHelp = & $pptcliPath $cmd --help 2>&1 | Out-String
 
-        # Extract actions from the description line
-        if ($CmdHelp -match "Actions:\s*(.+?)(?:\r?\n|$)") {
-            $ActionsStr = $Matches[1] -replace "\s+", " "
-            $Actions = ($ActionsStr -split ",\s*") | ForEach-Object { $_.Trim().TrimEnd('.') } | Where-Object { $_ -ne "" }
-
-            # Extract options section
-            $Options = @()
-            $InOptions = $false
-            foreach ($line in ($CmdHelp -split "`r?`n")) {
-                if ($line -match "^OPTIONS:") {
-                    $InOptions = $true
-                    continue
-                }
-                if ($InOptions -and $line -match "^\s+--(\S+)\s+<[^>]+>\s+(.+)$") {
-                    $Options += @{
-                        Name = $Matches[1]
-                        Desc = $Matches[2].Trim()
-                    }
-                }
-                elseif ($InOptions -and $line -match "^\s+-\w\|--(\S+)\s+<[^>]+>\s+(.+)$") {
-                    $Options += @{
-                        Name = $Matches[1]
-                        Desc = $Matches[2].Trim()
-                    }
-                }
-            }
-
-            # Output actions
-            $ActionsList = $Actions | ForEach-Object { "``$_``" }
-            $Content += "**Actions:** $($ActionsList -join ', ')"
-            $Content += ""
-
-            # Output parameters table if any
-            if ($Options.Count -gt 0) {
-                $Content += "| Parameter | Description |"
-                $Content += "|-----------|-------------|"
-                foreach ($opt in $Options) {
-                    $Content += "| ``--$($opt.Name)`` | $($opt.Desc) |"
-                }
-                $Content += ""
+        # Description is the first non-empty line after the description header
+        $lines = $CmdHelp -split "`r?`n"
+        $desc = $null
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match "^(DESCRIPTION|BESCHREIBUNG|DESCRIPCION|DESCRIZIONE):") {
+                $desc = ($lines[$i + 1]).Trim()
+                break
             }
         }
+        if ($desc) {
+            $Content += $desc
+            $Content += ""
+        }
+
+        # Actions from the generated registry
+        if ($actionMap.ContainsKey($cmd)) {
+            $ActionsList = $actionMap[$cmd] | ForEach-Object { "``$_``" }
+            $Content += "**Actions:** $($ActionsList -join ', ')"
+            $Content += ""
+        }
+
+        # Extract options section (header is localized, same as above)
+        $Options = @()
+        $InOptions = $false
+        foreach ($line in $lines) {
+            if ($line -match "^(OPTIONS|OPTIONEN|OPCIONES|OPZIONI):") {
+                $InOptions = $true
+                continue
+            }
+            if ($InOptions -and $line -match "^\s+(?:-\w,\s+)?--(\S+)\s+<[^>]+>\s+(.+)$") {
+                $Options += @{
+                    Name = $Matches[1]
+                    Desc = $Matches[2].Trim()
+                }
+            }
+        }
+
+        # Output parameters table if any
+        if ($Options.Count -gt 0) {
+            $Content += "| Parameter | Description |"
+            $Content += "|-----------|-------------|"
+            foreach ($opt in $Options) {
+                $Content += "| ``--$($opt.Name)`` | $($opt.Desc) |"
+            }
+            $Content += ""
+        }
+
+        if ($actionMap.ContainsKey($cmd) -or $Options.Count -gt 0) {
+            $documented++
+        }
+    }
+
+    if ($documented -eq 0) {
+        throw "Generated a CLI reference with no actions and no parameters for any command - the parser is broken."
     }
 
     # Write the file
     $Content -join "`n" | Set-Content -Path $OutputFile -Encoding UTF8 -NoNewline
-    Write-Host "  Generated: cli-commands.md" -ForegroundColor Green
+    Write-Host "  Generated: cli-commands.md ($documented commands)" -ForegroundColor Green
 }
 
 # Function to copy shared references to a skill's references folder
@@ -170,22 +211,18 @@ function Copy-SharedReferences {
     $SkillReferences = @{
         "ppt-cli" = @(
             "behavioral-rules.md"
-            "anti-patterns.md"
-            "workflows.md"
+            "generation-pipeline.md"
+            "ppt_agent_mode.md"
+            "slide-design-principles.md"
+            "slide-design-review.md"
             # cli-commands.md is generated dynamically by Generate-CliReference
         )
         "ppt-mcp" = @(
             "behavioral-rules.md"
-            "anti-patterns.md"
-            "workflows.md"
-            "chart.md"
-            "conditionalformat.md"
-            "datamodel.md"
-            "powerquery.md"
-            "range.md"
-            "slicer.md"
-            "table.md"
-            "worksheet.md"
+            "generation-pipeline.md"
+            "ppt_agent_mode.md"
+            "slide-design-principles.md"
+            "slide-design-review.md"
         )
     }
 
@@ -199,18 +236,23 @@ function Copy-SharedReferences {
     # Copy only the files this skill needs
     if (Test-Path $SharedDir) {
         $CopiedCount = 0
+        $missing = @()
         foreach ($fileName in $FilesToCopy) {
             $sourceFile = Join-Path $SharedDir $fileName
             if (Test-Path $sourceFile) {
                 Copy-Item -Path $sourceFile -Destination $RefsDir -Force
                 $CopiedCount++
             } else {
-                Write-Warning "Reference file not found in shared: $fileName"
+                $missing += $fileName
             }
+        }
+        # Fail loudly: a silently-skipped reference means the skill ships incomplete guidance.
+        if ($missing.Count -gt 0) {
+            throw "Missing shared reference file(s) for '$SkillName': $($missing -join ', '). Update `$SkillReferences in this script or add the file to skills/shared/."
         }
         Write-Host "  Copied $CopiedCount shared references to $SkillName/references/" -ForegroundColor Green
     } else {
-        Write-Warning "Shared directory not found: $SharedDir"
+        throw "Shared directory not found: $SharedDir"
     }
 }
 

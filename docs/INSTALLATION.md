@@ -10,9 +10,6 @@ Complete installation instructions for the PptMcp MCP Server and CLI tool.
 - **.NET 10 Runtime or SDK** (not required for VS Code Extension or MCPB - they bundle it)
 
 ### Optional (for specific features)
-- **Microsoft Analysis Services OLE DB Provider (MSOLAP)** - Required for DAX query execution (`evaluate`, `execute-dmv` actions)
-  - Easiest: Install [Power BI Desktop](https://powerbi.microsoft.com/desktop) (includes MSOLAP)
-  - Alternative: [Microsoft OLE DB Driver for Analysis Services](https://learn.microsoft.com/analysis-services/client-libraries)
 - **Node.js** - Required for `npx` commands (`add-mcp` auto-configuration, agent skills) and the official source-side agent client in `src\PptMcp.Agent`. Install with `winget install OpenJS.NodeJS.LTS` or from [nodejs.org](https://nodejs.org/)
 
 ### Recommended

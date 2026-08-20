@@ -52,7 +52,7 @@ llm-tests/                          # LLM tool behavior validation (Manual)
 Diagnostics tests are research/exploratory tests in `PptMcp.Diagnostics.Tests` that document the actual behavior of PowerPoint's COM APIs without our abstraction layer. These tests are **excluded from CI** to keep automation focused on core functionality.
 
 **Purpose:**
-- Understand PowerPoint COM API behavior for Power Query, Data Model, PivotTables, etc.
+- Understand PowerPoint COM API behavior for slides, shapes, layouts, masters, etc.
 - Document findings and edge cases for future implementation decisions
 - Test alternative approaches to complex PowerPoint operations
 
@@ -66,7 +66,7 @@ Diagnostics tests are research/exploratory tests in `PptMcp.Diagnostics.Tests` t
 dotnet test tests/PptMcp.Diagnostics.Tests/ --filter "RunType=OnDemand&Layer=Diagnostics"
 
 # Specific diagnostic tests
-dotnet test tests/PptMcp.Diagnostics.Tests/ --filter "Feature=PowerQuery&RunType=OnDemand"
+dotnet test tests/PptMcp.Diagnostics.Tests/ --filter "Feature=Design&RunType=OnDemand"
 ```
 
 **CI Behavior:**
@@ -78,12 +78,12 @@ dotnet test tests/PptMcp.Diagnostics.Tests/ --filter "Feature=PowerQuery&RunType
 
 ```powershell
 # Test specific feature only
-dotnet test --filter "Feature=PowerQuery&RunType!=OnDemand"
-dotnet test --filter "Feature=DataModel&RunType!=OnDemand"
-dotnet test --filter "Feature=Tables&RunType!=OnDemand"
-dotnet test --filter "Feature=PivotTables&RunType!=OnDemand"
-dotnet test --filter "Feature=Ranges&RunType!=OnDemand"
-dotnet test --filter "Feature=Connections&RunType!=OnDemand"
+dotnet test --filter "Feature=Slide&RunType!=OnDemand"
+dotnet test --filter "Feature=Design&RunType!=OnDemand"
+dotnet test --filter "Feature=Master&RunType!=OnDemand"
+dotnet test --filter "Feature=File&RunType!=OnDemand"
+dotnet test --filter "Feature=SessionManager&RunType!=OnDemand"
+dotnet test --filter "Feature=Batch&RunType!=OnDemand"
 ```
 
 ## When to Run Which Tests

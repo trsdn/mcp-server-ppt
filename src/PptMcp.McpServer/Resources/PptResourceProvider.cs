@@ -37,51 +37,57 @@ public static class PptResourceProvider
             {
                 new
                 {
-                    type = "Power Queries",
-                    toolAction = "Use powerquery tool with action='list' to see all queries",
-                    example = "powerquery(action: 'list', presentationPath: 'presentation.pptx')"
-                },
-                new
-                {
                     type = "Slides",
                     toolAction = "Use slide tool with action='list' to see all slides",
-                    example = "slide(action: 'list', presentationPath: 'presentation.pptx')"
+                    example = "slide(action: 'list', session_id: '1')"
                 },
                 new
                 {
-                    type = "Parameters (Named Ranges)",
-                    toolAction = "Use namedrange tool with action='list' to see all parameters",
-                    example = "namedrange(action: 'list', presentationPath: 'presentation.pptx')"
+                    type = "Shapes",
+                    toolAction = "Use shape tool with action='list' to see all shapes on a slide",
+                    example = "shape(action: 'list', session_id: '1', slide_index: 1)"
                 },
                 new
                 {
-                    type = "Data Model Tables",
-                    toolAction = "Use datamodel tool with action='list-tables'",
-                    example = "datamodel(action: 'list-tables', presentationPath: 'presentation.pptx')"
+                    type = "Text",
+                    toolAction = "Use text tool with action='get' to read shape text",
+                    example = "text(action: 'get', session_id: '1', slide_index: 1, shape_name: 'Title 1')"
                 },
                 new
                 {
-                    type = "DAX Measures",
-                    toolAction = "Use datamodel tool with action='list-measures'",
-                    example = "datamodel(action: 'list-measures', presentationPath: 'presentation.pptx')"
-                },
-                new
-                {
-                    type = "VBA Modules",
-                    toolAction = "Use vba tool with action='list'",
-                    example = "vba(action: 'list', presentationPath: 'presentation.pptm')"
+                    type = "Speaker Notes",
+                    toolAction = "Use notes tool with action='get'",
+                    example = "notes(action: 'get', session_id: '1', slide_index: 1)"
                 },
                 new
                 {
                     type = "Slide Tables",
-                    toolAction = "Use table tool with action='list'",
-                    example = "table(action: 'list', presentationPath: 'presentation.pptx')"
+                    toolAction = "Use slidetable tool with action='list'",
+                    example = "slidetable(action: 'list', session_id: '1', slide_index: 1)"
                 },
                 new
                 {
-                    type = "Connections",
-                    toolAction = "Use connection tool with action='list'",
-                    example = "connection(action: 'list', presentationPath: 'presentation.pptx')"
+                    type = "Comments",
+                    toolAction = "Use comment tool with action='list'",
+                    example = "comment(action: 'list', session_id: '1', slide_index: 0)"
+                },
+                new
+                {
+                    type = "Sections",
+                    toolAction = "Use section tool with action='list'",
+                    example = "section(action: 'list', session_id: '1')"
+                },
+                new
+                {
+                    type = "Themes and Design",
+                    toolAction = "Use design tool with action='list'",
+                    example = "design(action: 'list', session_id: '1')"
+                },
+                new
+                {
+                    type = "VBA Modules",
+                    toolAction = "Use vba tool with action='list' (.pptm files only)",
+                    example = "vba(action: 'list', session_id: '1')"
                 }
             },
             usage = new
@@ -110,59 +116,66 @@ public static class PptResourceProvider
             {
                 new
                 {
-                    task = "List all Power Queries",
-                    tool = "powerquery",
-                    action = "list",
-                    example = "powerquery(action: 'list', presentationPath: 'presentation.pptx')"
-                },
-                new
-                {
-                    task = "View Power Query M code",
-                    tool = "powerquery",
-                    action = "view",
-                    example = "powerquery(action: 'view', presentationPath: 'presentation.pptx', queryName: 'SalesData')"
-                },
-                new
-                {
-                    task = "Import query to Data Model",
-                    tool = "powerquery",
-                    action = "import",
-                    example = "powerquery(action: 'import', presentationPath: 'presentation.pptx', queryName: 'Sales', sourcePath: 'sales.pq', loadDestination: 'data-model')"
+                    task = "Open a presentation and start a session",
+                    tool = "file",
+                    action = "open",
+                    example = "file(action: 'open', path: 'C:\\\\Decks\\\\presentation.pptx')"
                 },
                 new
                 {
                     task = "List all slides",
                     tool = "slide",
                     action = "list",
-                    example = "slide(action: 'list', presentationPath: 'presentation.pptx')"
+                    example = "slide(action: 'list', session_id: '1')"
                 },
                 new
                 {
-                    task = "List all DAX measures",
-                    tool = "datamodel",
-                    action = "list-measures",
-                    example = "datamodel(action: 'list-measures', presentationPath: 'presentation.pptx')"
+                    task = "Add a slide",
+                    tool = "slide",
+                    action = "create",
+                    example = "slide(action: 'create', session_id: '1', slide_index: 1)"
                 },
                 new
                 {
-                    task = "Get cell values",
-                    tool = "range",
-                    action = "get-values",
-                    example = "range(action: 'get-values', presentationPath: 'presentation.pptx', sheetName: 'Data', rangeAddress: 'A1:D10')"
+                    task = "List shapes on a slide",
+                    tool = "shape",
+                    action = "list",
+                    example = "shape(action: 'list', session_id: '1', slide_index: 1)"
+                },
+                new
+                {
+                    task = "Set shape text",
+                    tool = "text",
+                    action = "set",
+                    example = "text(action: 'set', session_id: '1', slide_index: 1, shape_name: 'Title 1', text: 'Q4 Results')"
+                },
+                new
+                {
+                    task = "Render a slide as an image",
+                    tool = "slide",
+                    action = "get-thumbnail",
+                    example = "slide(action: 'get-thumbnail', session_id: '1', slide_index: 1)"
+                },
+                new
+                {
+                    task = "Export the deck",
+                    tool = "export",
+                    action = "pdf",
+                    example = "export(action: 'pdf', session_id: '1', destination_path: 'C:\\\\Decks\\\\out.pdf')"
                 },
                 new
                 {
                     task = "Work with sessions",
                     tool = "file",
                     action = "open/close",
-                    example = "file(action: 'open') → operations with sessionId → file(action: 'close', save: true)"
+                    example = "file(action: 'open', path: '...') → operations with session_id → file(action: 'close', session_id: '1', save: true)"
                 }
             },
             sessionWorkflow = new[]
             {
-                "Open session: file(action: 'open', presentationPath: '...')",
-                "Use sessionId with all subsequent operations",
-                "Close session: file(action: 'close', sessionId: '...', save: true)"
+                "Open session: file(action: 'open', path: 'C:\\\\Decks\\\\deck.pptx')",
+                "Use session_id with all subsequent operations",
+                "Close session: file(action: 'close', session_id: '1', save: true)"
             }
         };
 

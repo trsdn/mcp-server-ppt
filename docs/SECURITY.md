@@ -54,16 +54,6 @@ PptMcp uses PowerPoint COM automation with security safeguards:
 - **PowerPoint Instance**: Creates temporary PowerPoint instances that are properly cleaned up
 - **Input Sanitization**: All arguments validated for length and content
 
-### Power Query Privacy Levels
-
-PptMcp implements security-first privacy level handling:
-
-- **Explicit Consent**: Privacy levels must be specified explicitly via `--privacy-level` parameter or `PPT_DEFAULT_PRIVACY_LEVEL` environment variable
-- **No Auto-Application**: Privacy levels are never applied automatically without user consent
-- **Privacy Detection**: Analyzes existing queries to recommend appropriate privacy levels
-- **Clear Guidance**: Provides detailed explanations of privacy level implications
-- **Security Options**: Supports None, Private (most secure), Organizational, and Public levels
-
 ### VBA Security Considerations
 
 - **Macro Content**: VBA scripts imported via script-import will be executed when called
@@ -81,8 +71,6 @@ PptMcp implements security-first privacy level handling:
 5. **Backup**: Always backup important PowerPoint files before processing
 6. **VBA Trust**: Only enable VBA trust in PowerPoint settings on systems where it's needed (manual one-time setup)
 7. **Code Review**: Review VBA scripts before execution, especially from external sources
-8. **Privacy Levels**: Choose appropriate Power Query privacy levels based on data sensitivity (Private for sensitive data, Organizational for internal data, Public for public APIs)
-9. **Environment Variables**: Use `PPT_DEFAULT_PRIVACY_LEVEL` environment variable for consistent automation security
 
 ### Known Limitations
 

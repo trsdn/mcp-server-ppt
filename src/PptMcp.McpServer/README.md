@@ -55,32 +55,49 @@ dotnet tool install --global PptMcp.CLI
 
 ## 🛠️ What You Can Do
 
-**25 specialized tools with 225 operations:**
+**33 specialized tools with 223 operations:**
 
-- 🔄 **Power Query** (1 tool, 11 ops) - Atomic workflows, M code management, load destinations
-- 📊 **Data Model/DAX** (2 tools, 18 ops) - Measures, relationships, model structure
-- 🎨 **PowerPoint Tables** (2 tools, 27 ops) - Lifecycle, filtering, sorting, structured references
-- 📈 **PivotTables** (3 tools, 30 ops) - Creation, fields, aggregations, calculated members/fields
-- 📉 **Charts** (2 tools, 26 ops) - Create, configure, series, formatting, data labels, trendlines
-- 📝 **VBA** (1 tool, 6 ops) - Modules, execution, version control
-- 📋 **Ranges** (4 tools, 42 ops) - Values, formulas, formatting, validation, protection
-- 📄 **Slides** (2 tools, 16 ops) - Lifecycle, colors, visibility, cross-presentation moves
-- 🔌 **Connections** (1 tool, 9 ops) - OLEDB/ODBC management and refresh
-- 🏷️ **Named Ranges** (1 tool, 6 ops) - Parameters and configuration
-- 📁 **Files** (1 tool, 6 ops) - Session management, presentation creation, IRM/AIP-protected file support
-- 🧮 **Calculation Mode** (1 tool, 3 ops) - Get/set calculation mode and trigger recalculation
-- 🎚️ **Slicers** (1 tool, 8 ops) - Interactive filtering for PivotTables and Tables
-- 🎨 **Conditional Formatting** (1 tool, 2 ops) - Rules and clearing
-- 📸 **Screenshot** (1 tool, 2 ops) - Capture ranges/sheets as PNG for visual verification
-- 🪧 **Window Management** (1 tool, 9 ops) - Show/hide PowerPoint, arrange, position, status bar feedback
+- 📁 **Files** (1 tool, 6 ops) - Session management, open/create/save/close presentations
+- 📄 **Slides** (1 tool, 15 ops) - Lifecycle, layouts, hide/unhide, thumbnails, clone-with-replace
+- 🔷 **Shapes** (1 tool, 35 ops) - Geometry, fill, gradient, line, shadow, glow, reflection, 3D, grouping, connectors, merge
+- ✏️ **Text** (1 tool, 18 ops) - Get/set, find/replace, formatting, spacing, bullets, symbols, audits
+- 📋 **Slide Tables** (1 tool, 13 ops) - Cells, rows, columns, merge, formatting, borders
+- 📊 **Charts** (1 tool, 10 ops) - Create, data, title, type, legend, axes, data table
+- 🖼️ **Images** (1 tool, 4 ops) - Insert, crop, brightness/contrast, transparent color
+- 🎥 **Media** (1 tool, 4 ops) - Audio/video insertion, info, playback settings
+- 🧩 **SmartArt** (1 tool, 6 ops) - Nodes, layout, style, level changes
+- 🎨 **Design/Themes** (1 tool, 19 ops) - Themes, colors, fonts, archetypes, palettes, layout grids
+- 🖌️ **Background** (1 tool, 5 ops) - Solid, gradient, image, reset to master
+- 🎭 **Masters & Layouts** (1 tool, 5 ops) - Masters, layouts, master shape editing, cleanup
+- 📌 **Placeholders** (1 tool, 3 ops) - List, set text, set image
+- 📃 **Headers & Footers** (1 tool, 2 ops) - Footer text, slide numbers, date
+- 📐 **Page Setup** (1 tool, 3 ops) - Slide size, orientation, first slide number
+- ↔️ **Shape Alignment** (1 tool, 2 ops) - Align and distribute
+- 🎬 **Animations** (1 tool, 6 ops) - Add, remove, timing, reorder
+- 🔀 **Transitions** (1 tool, 4 ops) - Get, set, remove, apply to all
+- 📺 **Slideshow** (1 tool, 5 ops) - Start, stop, navigate, status, configure
+- 🎞️ **Custom Shows** (1 tool, 3 ops) - Create, list, delete
+- 📂 **Sections** (1 tool, 4 ops) - List, add, rename, delete
+- 📥 **Slide Import** (1 tool, 1 op) - Import slides from another presentation
+- 📝 **Notes** (1 tool, 5 ops) - Speaker notes management
+- 💬 **Comments** (1 tool, 4 ops) - Add, list, delete, clear
+- 🔗 **Hyperlinks** (1 tool, 5 ops) - Add, get, list, remove, validate
+- 🏷️ **Tags** (1 tool, 3 ops) - Custom metadata on slides and shapes
+- 🗂️ **Document Properties** (1 tool, 4 ops) - Built-in and custom properties
+- ♿ **Accessibility** (1 tool, 3 ops) - Audit and reading order
+- 🔤 **Proofing** (1 tool, 3 ops) - Spell check and language
+- 📤 **Export** (1 tool, 9 ops) - PDF, images, video, print, save-as, extract text/images
+- 🖨️ **Print Options** (1 tool, 2 ops) - Print configuration
+- ⚙️ **VBA** (1 tool, 5 ops) - Modules, import, execution
+- 🪟 **Window Management** (1 tool, 7 ops) - Show/arrange PowerPoint, zoom, view mode
 
-📚 **[Complete Feature Reference →](../../FEATURES.md)** - Detailed documentation of all 225 operations
+📚 **[Complete Feature Reference →](../../FEATURES.md)** - Detailed documentation of all 223 operations
 
 **AI-Powered Workflows:**
 - 💬 Natural language PowerPoint commands through GitHub Copilot, Claude, or ChatGPT
-- 🔄 Optimize Power Query M code for performance and readability  
-- 📊 Build complex DAX measures with AI guidance
-- 📋 Automate repetitive data transformations and formatting
+- 🎨 Apply consistent themes, layouts, and formatting across a deck
+- 📊 Build data-driven slides with charts, tables, and SmartArt
+- 📋 Automate repetitive slide creation and cleanup
 - 👀 **Show PowerPoint Mode** - Say "Show me PowerPoint while you work" to watch changes live
 
 
@@ -88,20 +105,20 @@ dotnet tool install --global PptMcp.CLI
 
 ## 💡 Example Use Cases
 
-**"Create a sales tracker with Date, Product, Quantity, Unit Price, and Total columns"**  
-→ AI creates the presentation, adds headers, enters sample data, and builds formulas
+**"Create a 10-slide investor pitch deck with a title slide, agenda, and a closing slide"**  
+→ AI creates the presentation, applies a layout to each slide, and fills in placeholder content
 
-**"Create a PivotTable from this data showing total sales by Product, then add a chart"**  
-→ AI creates PivotTable, configures fields, and adds a linked visualization
+**"Add a slide with a bar chart comparing quarterly sales by region"**  
+→ AI adds the slide, creates the chart, sets its data and title, and positions it
 
-**"Import products.csv with Power Query, load to Data Model, create a Total Revenue measure"**  
-→ AI imports data, adds to Power Pivot, and creates DAX measures for analysis
+**"Apply the corporate theme and add a fade transition to every slide"**  
+→ AI applies the design, then sets the transition across the whole deck
 
-**"Create a slicer for the Region field so I can filter interactively"**  
-→ AI adds slicers connected to PivotTables or Tables for point-and-click filtering
+**"Find every slide missing alt text and list the shapes"**  
+→ AI runs the accessibility audit and reports shapes that need alt text
 
-**"Put this data in A1: Name, Age / Alice, 30 / Bob, 25"**  
-→ AI writes data directly to cells using natural delimiters you provide
+**"Export the deck to PDF and save each slide as a PNG"**  
+→ AI exports the presentation and writes per-slide images to disk
 
 ---
 

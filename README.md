@@ -30,40 +30,43 @@ For multi-phase build / verify / repair workflows from source, the repo also inc
 
 ## 🎯 What You Can Do
 
-**33 specialized tools with 204 operations:**
+**33 specialized tools with 223 operations:**
 
-- 📄 **Slides** (1 tool, 8 ops) — Create, duplicate, move, delete, apply layouts, set name
-- 🔷 **Shapes** (1 tool, 19 ops) — Add, move, resize, fill, line, shadow, rotation, z-order, grouping, copy, connectors, merge, flip, duplicate
-- 📝 **Text** (1 tool, 5 ops) — Get/set text, find, replace, format
-- 📊 **Charts** (1 tool, 5 ops) — Create charts, set title, type, get info, delete
-- 📋 **Slide Tables** (1 tool, 8 ops) — Create, read, write cells, add/delete rows and columns, merge cells
-- 🎬 **Animations** (1 tool, 4 ops) — List, add, remove, clear animation effects
-- 🔄 **Transitions** (1 tool, 4 ops) — Get, set, remove, copy to all slides
-- 🎨 **Design/Themes** (1 tool, 4 ops) — List designs, apply themes, get theme colors, list color schemes
-- 🖼️ **Images** (1 tool, 1 op) — Insert images with position and size control
-- 📝 **Notes** (1 tool, 4 ops) — Get, set, clear, append speaker notes
-- 🏷️ **Sections** (1 tool, 4 ops) — List, add, rename, delete presentation sections
-- 🔗 **Hyperlinks** (1 tool, 4 ops) — Add, read, list, remove hyperlinks
-- 📺 **Slideshow** (1 tool, 4 ops) — Start, stop, navigate, get status
-- 🎭 **Slide Masters** (1 tool, 1 op) — List masters and layouts
-- 📤 **Export** (1 tool, 5 ops) — PDF, slide images, video (MP4), print, save-as (7 formats)
-- 📝 **VBA** (1 tool, 5 ops) — List, view, import, delete, run macros
-- 🎥 **Media** (1 tool, 3 ops) — Insert audio/video, get media info
-- 🪟 **Window** (1 tool, 5 ops) — Get info, minimize, restore, maximize, set zoom
-- 📁 **Files** (1 tool, 1 op) — File validation and info
-- 📑 **Document Properties** (1 tool, 2 ops) — Get/set title, author, subject, etc.
-- 💬 **Comments** (1 tool, 4 ops) — Add, list, delete, clear slide comments
-- 📌 **Placeholders** (1 tool, 2 ops) — List placeholders, set placeholder text
-- 🎨 **Slide Background** (1 tool, 4 ops) — Get info, set solid color, set image, reset to master
-- 📋 **Headers & Footers** (1 tool, 2 ops) — Get/set footer text, slide numbers, date
-- 🧩 **SmartArt** (1 tool, 2 ops) — Get diagram info, add nodes
-- 📐 **Shape Alignment** (1 tool, 2 ops) — Align and distribute shapes on slides
-- 🎪 **Custom Shows** (1 tool, 3 ops) — Create, list, delete custom slide shows
-- 📏 **Page Setup** (1 tool, 2 ops) — Get/set slide size and orientation
+- 📁 **Files** (1 tool, 6 ops) — Open, close, create, save, list, validate presentations
+- 📄 **Slides** (1 tool, 15 ops) — Create, duplicate, move, delete, apply layouts, hide/unhide, thumbnails, clone-with-replace
+- 🔷 **Shapes** (1 tool, 35 ops) — Add, move, resize, fill, gradient, line, shadow, glow, reflection, opacity, 3D, rotation, z-order, grouping, connectors, merge, flip, scale
+- ✏️ **Text** (1 tool, 18 ops) — Get/set text, find, replace, format, spacing, bullets, case, symbols, alt-text audit
+- 📋 **Slide Tables** (1 tool, 13 ops) — Create, read/write cells and rows, add/delete rows and columns, merge, format, borders
+- 📊 **Charts** (1 tool, 10 ops) — Create, set data, title, type, legend, axis titles, data table
+- 🖼️ **Images** (1 tool, 4 ops) — Insert, crop, brightness/contrast, transparent color
+- 🎥 **Media** (1 tool, 4 ops) — Insert audio/video, media info, playback settings
+- 🧩 **SmartArt** (1 tool, 6 ops) — Diagram info, add/delete nodes, layout, style, level changes
+- 🎨 **Design/Themes** (1 tool, 19 ops) — Themes, color schemes, fonts, archetypes, palettes, layout grids, style profiles
+- 🖌️ **Slide Background** (1 tool, 5 ops) — Get, solid color, gradient, image, reset to master
+- 🎭 **Masters & Layouts** (1 tool, 5 ops) — List masters and layouts, edit master shapes, delete unused
+- 📌 **Placeholders** (1 tool, 3 ops) — List placeholders, set text, set image
+- 📃 **Headers & Footers** (1 tool, 2 ops) — Get/set footer text, slide numbers, date
+- 📐 **Page Setup** (1 tool, 3 ops) — Slide size, orientation, first slide number
+- ↔️ **Shape Alignment** (1 tool, 2 ops) — Align and distribute shapes on slides
+- 🎬 **Animations** (1 tool, 6 ops) — List, add, remove, clear, timing, reorder
+- 🔀 **Transitions** (1 tool, 4 ops) — Get, set, remove, copy to all slides
+- 📺 **Slideshow** (1 tool, 5 ops) — Start, stop, navigate, status, configure
+- 🎞️ **Custom Shows** (1 tool, 3 ops) — Create, list, delete custom slide shows
+- 📂 **Sections** (1 tool, 4 ops) — List, add, rename, delete presentation sections
 - 📥 **Slide Import** (1 tool, 1 op) — Import slides from another .pptx file
+- 📝 **Notes** (1 tool, 5 ops) — Get, set, clear, append, read all speaker notes
+- 💬 **Comments** (1 tool, 4 ops) — Add, list, delete, clear slide comments
+- 🔗 **Hyperlinks** (1 tool, 5 ops) — Add, get, list, remove, validate hyperlinks
 - 🏷️ **Tags** (1 tool, 3 ops) — Custom metadata on slides and shapes
+- 🗂️ **Document Properties** (1 tool, 4 ops) — Get/set built-in and custom properties
+- ♿ **Accessibility** (1 tool, 3 ops) — Audit, get/set reading order
+- 🔤 **Proofing** (1 tool, 3 ops) — Spell check, get/set language
+- 📤 **Export** (1 tool, 9 ops) — PDF, slide images, video (MP4), print, save-as, extract text/images
+- 🖨️ **Print Options** (1 tool, 2 ops) — Get/set print configuration
+- ⚙️ **VBA** (1 tool, 5 ops) — List, view, import, delete, run macros
+- 🪟 **Window** (1 tool, 7 ops) — Info, minimize, restore, maximize, zoom, view mode
 
-📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 156 operations
+📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 223 operations
 
 
 ## 💬 Example Prompts

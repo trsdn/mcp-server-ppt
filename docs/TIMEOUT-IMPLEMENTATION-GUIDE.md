@@ -111,16 +111,16 @@ public abstract class ResultBase
 
 ### Pattern 1: Core Commands (Heavy Operations)
 
-For operations that typically take longer (refresh, data loading), Core commands can pass custom timeout:
+For operations that typically take longer (export, slide import), Core commands can pass custom timeout:
 
 ```csharp
-// In PowerQueryCommands.cs
-public async Task<PowerQueryRefreshResult> RefreshAsync(IPptBatch batch, string queryName)
+// In ExportCommands.cs
+public ExportResult ExportPdf(IPptBatch batch, string destinationPath)
 {
     // Heavy operation: request extended timeout (5 minutes)
-    return await batch.Execute<PowerQueryRefreshResult>(
+    return batch.Execute<ExportResult>(
         (ctx, ct) => {
-            // Refresh logic...
+            // Export logic...
             return result;
         },
         timeout: TimeSpan.FromMinutes(5)  // ← Request 5 min (will be clamped to max)
@@ -133,8 +133,8 @@ public async Task<PowerQueryRefreshResult> RefreshAsync(IPptBatch batch, string 
 MCP tools should catch `TimeoutException` and enrich with operation-specific guidance:
 
 ```csharp
-// In PptPowerQueryTool.cs
-private static async Task<string> RefreshPowerQueryAsync(...)
+// In PptExportTool.cs
+private static async Task<string> ExportPdfAsync(...)
 {
     try
     {
@@ -142,14 +142,14 @@ private static async Task<string> RefreshPowerQueryAsync(...)
             batchId,
             presentationPath,
             save: true,
-            async (batch) => await commands.RefreshAsync(batch, queryName));
+            async (batch) => await commands.ExportPdfAsync(batch, destinationPath));
 
         return JsonSerializer.Serialize(result, PptToolsBase.JsonOptions);
     }
     catch (TimeoutException ex)
     {
         // Enrich with operation-specific guidance
-        var result = new PowerQueryRefreshResult
+        var result = new ExportResult
         {
             Success = false,
             ErrorMessage = ex.Message,
@@ -167,8 +167,8 @@ private static async Task<string> RefreshPowerQueryAsync(...)
             
             OperationContext = new Dictionary<string, object>
             {
-                { "OperationType", "PowerQuery.Refresh" },
-                { "QueryName", queryName },
+                { "OperationType", "Export.Pdf" },
+                { "DestinationPath", destinationPath },
                 { "TimeoutReached", true },
                 { "UsedMaxTimeout", ex.Message.Contains("maximum timeout") }
             },
@@ -190,11 +190,11 @@ private static async Task<string> RefreshPowerQueryAsync(...)
 For quick operations (list, get, create), use default 2-minute timeout:
 
 ```csharp
-// In PowerQueryCommands.cs
-public async Task<PowerQueryListResult> ListAsync(IPptBatch batch)
+// In ExportCommands.cs
+public async Task<ExportListResult> ListFormatsAsync(IPptBatch batch)
 {
     // Light operation: use default timeout (no parameter needed)
-    return await batch.Execute<PowerQueryListResult>((ctx, ct) =>
+    return await batch.Execute<ExportListResult>((ctx, ct) =>
     {
         // List logic...
         return result;
@@ -267,20 +267,20 @@ Or on timeout:
 ## Example: Complete Timeout-Aware Implementation
 
 ```csharp
-// Core Command (PowerQueryCommands.Refresh.cs)
-public async Task<PowerQueryRefreshResult> RefreshAsync(IPptBatch batch, string queryName)
+// Core Command (ExportCommands.Pdf.cs)
+public async Task<ExportResult> ExportPdfAsync(IPptBatch batch, string destinationPath)
 {
-    var result = new PowerQueryRefreshResult
+    var result = new ExportResult
     {
         FilePath = batch.PresentationPath,
-        QueryName = queryName,
-        RefreshTime = DateTime.Now
+        DestinationPath = destinationPath,
+        ExportTime = DateTime.Now
     };
 
-    return await batch.Execute<PowerQueryRefreshResult>(
+    return await batch.Execute<ExportResult>(
         (ctx, ct) =>
         {
-            // Refresh logic (omitted for brevity)
+            // Export logic (omitted for brevity)
             result.Success = true;
             return result;
         },
@@ -288,15 +288,15 @@ public async Task<PowerQueryRefreshResult> RefreshAsync(IPptBatch batch, string 
     );
 }
 
-// MCP Tool (PptPowerQueryTool.cs)
-private static async Task<string> RefreshPowerQueryAsync(
-    PowerQueryCommands commands, 
+// MCP Tool (PptExportTool.cs)
+private static async Task<string> ExportPdfAsync(
+    ExportCommands commands,
     string presentationPath, 
-    string? queryName, 
+    string? destinationPath,
     string? batchId)
 {
-    if (string.IsNullOrEmpty(queryName))
-        throw new ModelContextProtocol.McpException("queryName is required for refresh action");
+    if (string.IsNullOrEmpty(destinationPath))
+        throw new ModelContextProtocol.McpException("destinationPath is required for pdf action");
 
     try
     {
@@ -304,32 +304,32 @@ private static async Task<string> RefreshPowerQueryAsync(
             batchId,
             presentationPath,
             save: true,
-            async (batch) => await commands.RefreshAsync(batch, queryName));
+            async (batch) => await commands.ExportPdfAsync(batch, destinationPath));
 
         return JsonSerializer.Serialize(result, PptToolsBase.JsonOptions);
     }
     catch (TimeoutException ex)
     {
-        var result = new PowerQueryRefreshResult
+        var result = new ExportResult
         {
             Success = false,
             ErrorMessage = ex.Message,
-            QueryName = queryName,
+            DestinationPath = destinationPath,
             FilePath = presentationPath,
-            RefreshTime = DateTime.Now,
+            ExportTime = DateTime.Now,
             
             SuggestedNextActions = new List<string>
             {
-                "Check if PowerPoint is showing a 'Privacy Level' dialog",
-                "Verify the data source is accessible",
-                "Consider using smaller data ranges if processing large datasets",
+                "Check if PowerPoint is showing a modal dialog",
+                "Verify the destination path is writable",
+                "Consider exporting a slide range instead of the whole deck",
                 "Use batch mode (begin_ppt_batch) if not already"
             },
             
             OperationContext = new Dictionary<string, object>
             {
-                { "OperationType", "PowerQuery.Refresh" },
-                { "QueryName", queryName },
+                { "OperationType", "Export.Pdf" },
+                { "DestinationPath", destinationPath },
                 { "TimeoutReached", true },
                 { "UsedMaxTimeout", ex.Message.Contains("maximum timeout") }
             },
@@ -407,7 +407,7 @@ public async Task Execute_ExceedsTimeout_ThrowsTimeoutException()
 **Solution:**
 1. Break operation into smaller chunks (filter data, process in batches)
 2. Optimize data source (add indexes, reduce query complexity)
-3. Consider Power Query query folding to push processing to source
+3. Reduce the number of shapes or slides touched in a single operation
 
 ### Symptom: Timeout too aggressive (legitimate operations failing)
 

@@ -50,7 +50,7 @@ public async Task Import_QueryReferencingAnotherQuery_LoadsDataSuccessfully()
 public async Task Refresh_WithConnectionError_ReturnsErrorMessage()
 
 [Fact]
-public async Task CreateFromRange_ValidDataWithHeaders_CreatesPivotTable()
+public async Task CreateFromLayout_ValidPlaceholder_CreatesShape()
 
 // Edge Cases
 [Fact]
@@ -127,14 +127,14 @@ public async Task ListAsync_EmptyPresentation_ReturnsEmptyList()  // ❌ Remove 
 
 ## Feature-Specific Guidelines
 
-### DataModel Tests
+### Master and Layout Tests
 - **Fixture-based**: `<Method>_<FixtureState>_<Outcome>`
-- Example: `ListMeasures_RealisticDataModel_ReturnsMeasuresWithFormulas`
+- Example: `ListLayouts_DefaultDesign_ReturnsAllLayouts`
 
-### PowerQuery Tests
-- **Fixture-based**: `<Method>_<FixtureQuery>_<Outcome>` or `<Method>_<UniqueQuery>_<Outcome>`
-- Example: `View_BasicQuery_ReturnsMCode`
-- Example: `Import_NewQuery_AddsToPresentation`
+### Design Tests
+- **Fixture-based**: `<Method>_<FixtureTheme>_<Outcome>`
+- Example: `GetColors_DefaultTheme_ReturnsColorScheme`
+- Example: `ApplyTheme_ValidThemePath_UpdatesPresentation`
 
 ### VBA Tests
 - **Trust required**: `<Method>_WithTrustEnabled_<Outcome>`
@@ -145,10 +145,10 @@ public async Task ListAsync_EmptyPresentation_ReturnsEmptyList()  // ❌ Remove 
 - Example: `ClearContents_FormattedRange_PreservesFormatting`
 - Example: `ClearAll_UsedRange_RemovesEverything`
 
-### PivotTable Tests
-- **Creation source**: `CreateFrom<Source>_<Input>_<Outcome>`
-- Example: `CreateFromRange_ValidDataWithHeaders_CreatesPivotTable`
-- Example: `CreateFromTable_ExistingTable_CreatesPivotTable`
+### Shape Tests
+- **Creation source**: `AddFrom<Source>_<Input>_<Outcome>`
+- Example: `AddFromLayout_ValidPlaceholder_CreatesShape`
+- Example: `AddFromTemplate_ExistingShape_CreatesShape`
 
 ## Validation Checklist
 

@@ -1,10 +1,13 @@
 # PptMcp - Complete Feature Reference
 
-**33 specialized tools with 204 operations for comprehensive PowerPoint automation**
+**33 specialized tools with 223 operations for comprehensive PowerPoint automation**
+
+> Generated from the source of truth: the action enums emitted by the source generators
+> (`ServiceRegistry.*.g.cs`) plus the hand-written `file` tool. Do not edit counts by hand.
 
 ## Official Automation Layers
 
-In addition to the PowerPoint tool surface, the repository now documents three official automation layers:
+In addition to the PowerPoint tool surface, the repository documents three official automation layers:
 
 - **MCP Server** — conversational tool surface for rich tool discovery
 - **CLI** (`pptcli`) — compact scripting and coding-agent surface
@@ -19,304 +22,498 @@ Related docs:
 
 ---
 
-## 📄 Slide Operations (7 operations)
+## 📁 File Operations (6 operations)
 
-- **List:** List all slides in the presentation with summary info
-- **Read:** Get detailed information about a specific slide
-- **Create:** Create a new blank slide
-- **Duplicate:** Duplicate an existing slide
-- **Move:** Move a slide to a different position
-- **Delete:** Delete a slide from the presentation
-- **Apply Layout:** Apply a slide layout to an existing slide
+MCP tool / CLI command: `file`
 
----
-
-## 🔷 Shape Operations (17 operations)
-
-- **List:** List all shapes on a slide
-- **Read:** Get detailed information about a specific shape
-- **Add Textbox:** Add a new textbox shape to a slide
-- **Add Shape:** Add an auto-shape (rectangle, oval, arrow, etc.) to a slide
-- **Move/Resize:** Move and/or resize a shape (position, width, height)
-- **Delete:** Delete a shape from a slide
-- **Z-Order:** Change shape stacking order (bring to front, send to back, etc.)
-- **Set Fill:** Set shape fill color or style
-- **Set Line:** Set shape outline/border properties
-- **Set Rotation:** Set shape rotation angle
-- **Group:** Group multiple shapes together
-- **Ungroup:** Ungroup a grouped shape
-- **Set Alt Text:** Set accessibility alt text on a shape
-- **Copy to Slide:** Copy a shape to another slide
-- **Set Shadow:** Apply or modify shadow effects on a shape
-- **Add Connector:** Add a connector line between two shapes
-- **Merge:** Merge multiple shapes (union, intersect, subtract, etc.)
+- `open`
+- `close`
+- `create`
+- `list`
+- `test`
+- `save`
 
 ---
 
-## ✏️ Text Operations (5 operations)
+## 📄 Slide Operations (15 operations)
 
-- **Get:** Get text content from a shape
-- **Set:** Set text content in a shape
-- **Find:** Find text across slides
-- **Replace:** Find and replace text across slides
-- **Format:** Apply text formatting (font, size, color, bold, italic, etc.)
+MCP tool / CLI command: `slide`
 
----
-
-## 📊 Chart Operations (5 operations)
-
-- **Create:** Create a new chart on a slide
-- **Get Info:** Get chart details (type, data range, series)
-- **Set Title:** Set or update the chart title
-- **Set Type:** Change the chart type
-- **Delete:** Delete a chart from a slide
-
----
-
-## 📋 Table Operations (8 operations)
-
-- **Create:** Create a new table on a slide
-- **Read:** Read table contents and structure
-- **Write Cell:** Write a value to a specific table cell
-- **Add Row:** Add a row to an existing table
-- **Add Column:** Add a column to an existing table
-- **Delete Row:** Delete a row from a table
-- **Delete Column:** Delete a column from a table
-- **Merge Cells:** Merge a range of table cells
+- `list`
+- `read`
+- `create`
+- `duplicate`
+- `move`
+- `delete`
+- `apply-layout`
+- `set-name`
+- `clone-with-replace`
+- `hide`
+- `unhide`
+- `get-thumbnail`
+- `summary`
+- `set-display-master`
+- `copy`
 
 ---
 
-## 🎬 Animation Operations (4 operations)
+## 🔷 Shape Operations (35 operations)
 
-- **List:** List all animations on a slide
-- **Add:** Add an animation effect to a shape
-- **Remove:** Remove a specific animation from a shape
-- **Clear:** Remove all animations from a slide
+MCP tool / CLI command: `shape`
 
----
-
-## 🔀 Transition Operations (3 operations)
-
-- **Get:** Get the current transition settings for a slide
-- **Set:** Set or change the slide transition effect
-- **Remove:** Remove the transition from a slide
-
----
-
-## 🎨 Design Operations (4 operations)
-
-- **List:** List available themes
-- **Apply Theme:** Apply a theme to the presentation
-- **Get Colors:** Get the current theme color palette
-- **List Color Schemes:** List available color schemes
-
----
-
-## 🖼️ Image Operations (1 operation)
-
-- **Insert:** Insert an image onto a slide from a file path
-
----
-
-## 📝 Notes Operations (3 operations)
-
-- **Get:** Get speaker notes for a slide
-- **Set:** Set or update speaker notes for a slide
-- **Clear:** Remove speaker notes from a slide
-
----
-
-## 📂 Section Operations (4 operations)
-
-- **List:** List all sections in the presentation
-- **Add:** Add a new section
-- **Rename:** Rename an existing section
-- **Delete:** Delete a section
+- `list`
+- `read`
+- `add-textbox`
+- `add-shape`
+- `move-resize`
+- `delete`
+- `z-order`
+- `set-fill`
+- `set-line`
+- `set-rotation`
+- `group`
+- `ungroup`
+- `set-alt-text`
+- `copy-to-slide`
+- `set-shadow`
+- `add-connector`
+- `merge`
+- `duplicate`
+- `flip`
+- `set-text-frame`
+- `set-gradient-fill`
+- `set-glow`
+- `set-reflection`
+- `set-opacity`
+- `read-fill`
+- `read-line`
+- `find-by-type`
+- `copy-formatting`
+- `set-action-settings`
+- `scale`
+- `lock-aspect-ratio`
+- `set-soft-edge`
+- `read-shadow`
+- `add-text-effect`
+- `set-3d`
 
 ---
 
-## 🔗 Hyperlink Operations (4 operations)
+## ✏️ Text Operations (18 operations)
 
-- **Add:** Add a hyperlink to a shape or text
-- **Read:** Get hyperlink details from a shape
-- **Remove:** Remove a hyperlink from a shape
-- **List:** List all hyperlinks in the presentation
+MCP tool / CLI command: `text`
 
----
-
-## ▶️ Slideshow Operations (4 operations)
-
-- **Start:** Start the slideshow presentation
-- **Stop:** End the slideshow
-- **Goto Slide:** Navigate to a specific slide during the slideshow
-- **Get Status:** Get the current slideshow status (running, slide number, etc.)
-
----
-
-## 🎭 Slide Master Operations (1 operation)
-
-- **List:** List all slide masters and their layouts
-
----
-
-## 📤 Export Operations (4 operations)
-
-- **To PDF:** Export the presentation to PDF
-- **Slide to Image:** Export a specific slide as an image (PNG/JPEG)
-- **To Video:** Export the presentation to video format
-- **Print:** Print the presentation
+- `get`
+- `set`
+- `find`
+- `replace`
+- `format`
+- `format-advanced`
+- `word-count`
+- `alt-text-audit`
+- `empty-placeholder-audit`
+- `set-spacing`
+- `set-bullets`
+- `insert-link`
+- `change-case`
+- `read-spacing`
+- `read-bullets`
+- `insert-symbol`
+- `insert-datetime`
+- `insert-slide-number`
 
 ---
 
-## 📝 VBA Macros (5 operations)
+## 📋 Table Operations (13 operations)
 
-- **List:** List all VBA modules and procedures
-- **View:** Display module code
-- **Import:** Add VBA module from file
-- **Delete:** Remove VBA module
-- **Run:** Execute a macro with optional parameters
+MCP tool / CLI command: `slidetable`
 
----
-
-## 🎵 Media Operations (3 operations)
-
-- **Insert Audio:** Insert an audio file onto a slide
-- **Insert Video:** Insert a video file onto a slide
-- **Get Info:** Get media object details (type, duration, file path)
-
----
-
-## 🪟 Window Operations (4 operations)
-
-- **Get Info:** Get current window state (position, size, view type)
-- **Minimize:** Minimize the PowerPoint window
-- **Restore:** Restore the PowerPoint window to normal size
-- **Maximize:** Maximize the PowerPoint window
+- `create`
+- `read`
+- `write-cell`
+- `add-row`
+- `add-column`
+- `delete-row`
+- `delete-column`
+- `merge-cells`
+- `read-cell`
+- `format-cell`
+- `write-row`
+- `read-row`
+- `set-cell-border`
 
 ---
 
-## 📁 File Operations (1 operation)
+## 📊 Chart Operations (10 operations)
 
-- **Test:** Verify a presentation file can be opened and is accessible
+MCP tool / CLI command: `chart`
 
----
-
-## 🏷️ Document Property Operations (2 operations)
-
-- **Get All:** Get all document properties (title, author, subject, etc.)
-- **Set All:** Set document properties
-
----
-
-## 💬 Comment Operations (4 operations)
-
-- **List:** List all comments in the presentation
-- **Add:** Add a new comment to a slide
-- **Delete:** Delete a specific comment
-- **Clear:** Remove all comments from the presentation
+- `create`
+- `get-info`
+- `set-title`
+- `set-type`
+- `delete`
+- `set-data`
+- `set-legend`
+- `read-data`
+- `set-axis-title`
+- `toggle-data-table`
 
 ---
 
-## 📌 Placeholder Operations (2 operations)
+## 🖼️ Image Operations (4 operations)
 
-- **List:** List all placeholders on a slide (title, subtitle, content, etc.)
-- **Set Text:** Set text content in a placeholder
+MCP tool / CLI command: `image`
+
+- `insert`
+- `crop`
+- `set-brightness-contrast`
+- `set-transparent-color`
 
 ---
 
-## 🖌️ Background Operations (3 operations)
+## 🎵 Media Operations (4 operations)
 
-- **Get Info:** Get the current slide background settings
-- **Set Color:** Set a solid color background on a slide
-- **Reset:** Reset the slide background to the default theme background
+MCP tool / CLI command: `media`
+
+- `insert-audio`
+- `insert-video`
+- `get-info`
+- `set-playback`
+
+---
+
+## 🧩 SmartArt Operations (6 operations)
+
+MCP tool / CLI command: `smartart`
+
+- `get-info`
+- `add-node`
+- `set-layout`
+- `set-style`
+- `delete-node`
+- `change-level`
+
+---
+
+## 🎨 Design Operations (19 operations)
+
+MCP tool / CLI command: `design`
+
+- `list`
+- `apply-theme`
+- `get-colors`
+- `list-color-schemes`
+- `get-fonts`
+- `list-archetypes`
+- `get-archetype`
+- `list-palettes`
+- `get-palette`
+- `list-style-profiles`
+- `get-style-profile`
+- `list-layout-grids`
+- `get-layout-grid`
+- `list-density-profiles`
+- `get-density-profile`
+- `get-context-model`
+- `get-deck-sequence`
+- `get-slide-patterns`
+- `get-icon-shapes`
+
+---
+
+## 🖌️ Background Operations (5 operations)
+
+MCP tool / CLI command: `background`
+
+- `get`
+- `set-color`
+- `reset`
+- `set-image`
+- `set-gradient`
+
+---
+
+## 🎭 Master & Layout Operations (5 operations)
+
+MCP tool / CLI command: `master`
+
+- `list`
+- `list-shapes`
+- `edit-shape-text`
+- `list-layouts`
+- `delete-unused`
+
+---
+
+## 📌 Placeholder Operations (3 operations)
+
+MCP tool / CLI command: `placeholder`
+
+- `list`
+- `set-text`
+- `set-image`
 
 ---
 
 ## 📃 Header & Footer Operations (2 operations)
 
-- **Get Info:** Get header and footer settings (date, slide number, footer text)
-- **Update:** Update header and footer settings
+MCP tool / CLI command: `headerfooter`
+
+- `get`
+- `set`
 
 ---
 
-## 🧩 SmartArt Operations (2 operations)
+## 📐 Page Setup Operations (3 operations)
 
-- **Get Info:** Get SmartArt graphic details (type, nodes, layout)
-- **Add Node:** Add a new node to an existing SmartArt graphic
+MCP tool / CLI command: `pagesetup`
+
+- `get`
+- `set-size`
+- `set-first-number`
 
 ---
 
 ## ↔️ Shape Alignment Operations (2 operations)
 
-- **Align:** Align shapes (left, center, right, top, middle, bottom)
-- **Distribute:** Distribute shapes evenly (horizontally or vertically)
+MCP tool / CLI command: `shapealign`
+
+- `align`
+- `distribute`
+
+---
+
+## 🎬 Animation Operations (6 operations)
+
+MCP tool / CLI command: `animation`
+
+- `list`
+- `add`
+- `remove`
+- `clear`
+- `set-timing`
+- `reorder`
+
+---
+
+## 🔀 Transition Operations (4 operations)
+
+MCP tool / CLI command: `transition`
+
+- `get`
+- `set`
+- `remove`
+- `copy-to-all`
+
+---
+
+## ▶️ Slideshow Operations (5 operations)
+
+MCP tool / CLI command: `slideshow`
+
+- `start`
+- `stop`
+- `goto-slide`
+- `get-status`
+- `configure`
 
 ---
 
 ## 🎞️ Custom Show Operations (3 operations)
 
-- **List:** List all custom slide shows
-- **Create:** Create a new custom slide show from selected slides
-- **Delete:** Delete a custom slide show
+MCP tool / CLI command: `customshow`
+
+- `list`
+- `create`
+- `delete`
 
 ---
 
-## 📐 Page Setup Operations (2 operations)
+## 📂 Section Operations (4 operations)
 
-- **Get Info:** Get slide size and orientation settings
-- **Set Size:** Set slide dimensions and orientation
+MCP tool / CLI command: `section`
+
+- `list`
+- `add`
+- `rename`
+- `delete`
 
 ---
 
 ## 📥 Slide Import Operations (1 operation)
 
-- **Import:** Import slides from another PowerPoint presentation
+MCP tool / CLI command: `slideimport`
+
+- `import`
+
+---
+
+## 📝 Notes Operations (5 operations)
+
+MCP tool / CLI command: `notes`
+
+- `get`
+- `set`
+- `clear`
+- `append`
+- `read-all`
+
+---
+
+## 💬 Comment Operations (4 operations)
+
+MCP tool / CLI command: `comment`
+
+- `list`
+- `add`
+- `delete`
+- `clear`
+
+---
+
+## 🔗 Hyperlink Operations (5 operations)
+
+MCP tool / CLI command: `hyperlink`
+
+- `add`
+- `get`
+- `remove`
+- `list`
+- `validate`
 
 ---
 
 ## 🏷️ Tag Operations (3 operations)
 
-- **List:** List all tags on a slide or shape
-- **Set:** Add or update a tag value
-- **Delete:** Remove a tag
+MCP tool / CLI command: `tag`
+
+- `list`
+- `set`
+- `delete`
+
+---
+
+## 🗂️ Document Property Operations (4 operations)
+
+MCP tool / CLI command: `docproperty`
+
+- `get`
+- `set`
+- `get-custom`
+- `set-custom`
+
+---
+
+## ♿ Accessibility Operations (3 operations)
+
+MCP tool / CLI command: `accessibility`
+
+- `audit`
+- `get-reading-order`
+- `set-reading-order`
+
+---
+
+## 🔤 Proofing Operations (3 operations)
+
+MCP tool / CLI command: `proofing`
+
+- `check-spelling`
+- `set-language`
+- `get-language`
+
+---
+
+## 📤 Export Operations (9 operations)
+
+MCP tool / CLI command: `export`
+
+- `to-pdf`
+- `slide-to-image`
+- `to-video`
+- `print`
+- `save-as`
+- `all-slides-to-images`
+- `extract-text`
+- `extract-images`
+- `save-copy`
+
+---
+
+## 🖨️ Print Options Operations (2 operations)
+
+MCP tool / CLI command: `printoptions`
+
+- `get`
+- `set`
+
+---
+
+## ⚙️ VBA Macros Operations (5 operations)
+
+MCP tool / CLI command: `vba`
+
+- `list`
+- `view`
+- `import`
+- `delete`
+- `run`
+
+---
+
+## 🪟 Window Operations (7 operations)
+
+MCP tool / CLI command: `window`
+
+- `get-info`
+- `minimize`
+- `restore`
+- `maximize`
+- `set-zoom`
+- `set-view`
+- `get-view`
 
 ---
 
 ## 📊 Total Operations Summary
 
-| Category | Operations |
-|----------|-----------|
-| Slide | 7 |
-| Shape | 17 |
-| Text | 5 |
-| Chart | 5 |
-| Table | 8 |
-| Animation | 4 |
-| Transition | 3 |
-| Design | 4 |
-| Image | 1 |
-| Notes | 3 |
-| Section | 4 |
-| Hyperlink | 4 |
-| Slideshow | 4 |
-| Master | 1 |
-| Export | 4 |
-| VBA | 5 |
-| Media | 3 |
-| Window | 4 |
-| File | 1 |
-| Document Property | 2 |
-| Comment | 4 |
-| Placeholder | 2 |
-| Background | 3 |
-| Header & Footer | 2 |
-| SmartArt | 2 |
-| Shape Alignment | 2 |
-| Custom Show | 3 |
-| Page Setup | 2 |
-| Slide Import | 1 |
-| Tag | 3 |
-| **Total** | **104** |
+| Tool | Operations |
+|------|-----------|
+| `file` | 6 |
+| `slide` | 15 |
+| `shape` | 35 |
+| `text` | 18 |
+| `slidetable` | 13 |
+| `chart` | 10 |
+| `image` | 4 |
+| `media` | 4 |
+| `smartart` | 6 |
+| `design` | 19 |
+| `background` | 5 |
+| `master` | 5 |
+| `placeholder` | 3 |
+| `headerfooter` | 2 |
+| `pagesetup` | 3 |
+| `shapealign` | 2 |
+| `animation` | 6 |
+| `transition` | 4 |
+| `slideshow` | 5 |
+| `customshow` | 3 |
+| `section` | 4 |
+| `slideimport` | 1 |
+| `notes` | 5 |
+| `comment` | 4 |
+| `hyperlink` | 5 |
+| `tag` | 3 |
+| `docproperty` | 4 |
+| `accessibility` | 3 |
+| `proofing` | 3 |
+| `export` | 9 |
+| `printoptions` | 2 |
+| `vba` | 5 |
+| `window` | 7 |
+| **Total (33 tools)** | **223** |
 
 ---
 
@@ -363,24 +560,35 @@ Related docs:
 
 ---
 
+---
+
 ## 🔧 Tool Selection Quick Reference
 
 | Task | Tool |
 |------|------|
+| Open/save/create files | `file` |
 | Add/manage slides | `slide` |
 | Add/modify shapes | `shape` |
 | Edit text content | `text` or `placeholder` |
+| Create tables | `slidetable` |
 | Create charts | `chart` |
-| Create tables | `table` |
+| Insert images | `image` |
+| Insert audio/video | `media` |
+| Build diagrams | `smartart` |
+| Change theme/colors | `design` |
+| Set slide background | `background` |
+| Edit masters/layouts | `master` |
+| Align/distribute shapes | `shapealign` |
 | Add animations | `animation` |
 | Set transitions | `transition` |
-| Change theme/colors | `design` |
-| Insert images | `image` |
-| Insert media | `media` |
-| Manage speaker notes | `notes` |
-| Export presentation | `export` |
 | Run slideshow | `slideshow` |
-| Script automation | `vba` |
-| Align/distribute shapes | `shapealign` |
-| Manage comments | `comment` |
+| Organize sections | `section` |
 | Import slides | `slideimport` |
+| Manage speaker notes | `notes` |
+| Manage comments | `comment` |
+| Check alt text/accessibility | `accessibility` |
+| Spell check / language | `proofing` |
+| Export presentation | `export` |
+| Configure printing | `printoptions` |
+| Script automation | `vba` |
+| Control PowerPoint windows | `window` |
