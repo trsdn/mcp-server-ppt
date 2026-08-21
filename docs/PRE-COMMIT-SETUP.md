@@ -126,15 +126,14 @@ chmod +x .git/hooks/pre-commit
 
 These same checks run in CI/CD pipelines:
 - `check-com-leaks.ps1` runs in build workflow
-- `audit-core-coverage.ps1` runs **after every build** in:
+- `check-documented-counts.ps1` runs **after every build** in:
   - `build-mcp-server.yml` - MCP Server builds
-  - `build-cli.yml` - CLI builds  
-  - `integration-tests.yml` - PowerPoint integration runs when `ENABLE_POWERPOINT_INTEGRATION_CI=true`
+  - `build-cli.yml` - CLI builds
 
 **Pipeline enforcement ensures:**
 - Pre-commit hook provides **instant local feedback**
 - CI/CD provides **safety net** if hook bypassed with `--no-verify`
-- **Double protection** against coverage regression
+- **Double protection** against documentation drift
 
 `integration-tests.yml` is intentionally gated behind a self-hosted PowerPoint runner. See `docs/AZURE_SELFHOSTED_RUNNER_SETUP.md` for activation steps.
 

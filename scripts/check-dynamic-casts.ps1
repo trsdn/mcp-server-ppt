@@ -9,12 +9,12 @@
     that weren't investigated.
 
     Valid comment prefixes (on the line immediately before the cast):
-      // PIA gap: ...    — Type not in v16 Microsoft.Office.Interop.PowerPoint PIA
-      // TODO: ...       — Type IS in PIA but migration not yet done (tracked for removal)
-      // Reason: ...     — Other documented reason for dynamic cast
+      // PIA gap: ...    - Type not in v16 Microsoft.Office.Interop.PowerPoint PIA
+      // TODO: ...       - Type IS in PIA but migration not yet done (tracked for removal)
+      // Reason: ...     - Other documented reason for dynamic cast
 
     False positives are excluded:
-      - PptBatch.cs / PptSession.cs / PptShutdownService.cs (infrastructure — uses `dynamic excel`)
+      - PptBatch.cs / PptSession.cs / PptShutdownService.cs (infrastructure - uses `dynamic powerpoint`)
       - Lines inside comments
 
 .EXAMPLE
@@ -27,11 +27,14 @@
 #>
 
 param(
-    [switch]$Verbose
+    [switch]$Verbose,
+    # Rewrites the baseline to the current findings. Use only when the count drops.
+    [switch]$UpdateBaseline
 )
 
 $ErrorActionPreference = "Stop"
 $rootDir = Split-Path -Parent $PSScriptRoot
+$baselinePath = Join-Path $PSScriptRoot "dynamic-casts-baseline.txt"
 
 $searchDirs = @(
     (Join-Path $rootDir "src\PptMcp.Core"),
@@ -42,7 +45,6 @@ $searchDirs = @(
 $excludeFiles = @(
     "PptBatch.cs",
     "PptSession.cs",
-    "PptShutdownService.cs",
     "PptShutdownService.cs"
 )
 
@@ -100,23 +102,66 @@ foreach ($dir in $searchDirs) {
 
 Write-Host "Checked $checkedFiles C# files for undocumented ((dynamic)) casts" -ForegroundColor Cyan
 
-if ($violations.Count -eq 0) {
-    Write-Host "All ((dynamic)) casts are documented" -ForegroundColor Green
+if ($checkedFiles -eq 0) {
+    # A check that inspected nothing has not passed.
+    Write-Host "No C# files were inspected - the search paths are wrong." -ForegroundColor Red
+    exit 1
+}
+
+# Per-file baseline. The 140 casts that predate this gate are tolerated so the hook
+# stays installable, but the count may never rise: a new undocumented cast in any
+# file, or a cast in a file that had none, fails the check.
+$current = @{}
+foreach ($v in $violations) {
+    if ($current.ContainsKey($v.File)) { $current[$v.File]++ } else { $current[$v.File] = 1 }
+}
+
+if ($UpdateBaseline) {
+    $lines = $current.Keys | Sort-Object | ForEach-Object { "$_=$($current[$_])" }
+    Set-Content -Path $baselinePath -Value $lines -Encoding UTF8
+    Write-Host "Baseline updated: $($violations.Count) casts across $($current.Count) files" -ForegroundColor Green
+    exit 0
+}
+
+$baseline = @{}
+if (Test-Path $baselinePath) {
+    foreach ($line in Get-Content $baselinePath) {
+        if ($line -match '^(?<f>.+)=(?<c>\d+)$') { $baseline[$Matches.f] = [int]$Matches.c }
+    }
+}
+
+$regressions = @()
+foreach ($file in $current.Keys) {
+    $allowed = if ($baseline.ContainsKey($file)) { $baseline[$file] } else { 0 }
+    if ($current[$file] -gt $allowed) {
+        $regressions += [PSCustomObject]@{ File = $file; Was = $allowed; Now = $current[$file] }
+    }
+}
+
+if ($regressions.Count -eq 0) {
+    $total = $violations.Count
+    $baselineTotal = ($baseline.Values | Measure-Object -Sum).Sum
+    Write-Host "No new undocumented casts ($total tolerated by baseline)" -ForegroundColor Green
+    if ($total -lt $baselineTotal) {
+        Write-Host "Casts dropped from $baselineTotal to $total - lower the baseline with -UpdateBaseline" -ForegroundColor Yellow
+    }
     exit 0
 }
 
 Write-Host ""
-Write-Host "UNDOCUMENTED ((dynamic)) CASTS FOUND: $($violations.Count)" -ForegroundColor Red
+Write-Host "NEW UNDOCUMENTED ((dynamic)) CASTS: $($regressions.Count) file(s)" -ForegroundColor Red
 Write-Host ""
-Write-Host "Every ((dynamic)) cast must have a comment on the preceding line explaining why:" -ForegroundColor Yellow
+Write-Host "Every new ((dynamic)) cast needs a comment on the preceding line explaining why:" -ForegroundColor Yellow
 Write-Host "  // PIA gap: <type> not in Microsoft.Office.Interop.PowerPoint v16 PIA because..." -ForegroundColor Gray
-Write-Host "  // TODO: <type> IS in PIA, migration tracked — left as dynamic temporarily" -ForegroundColor Gray
+Write-Host "  // TODO: <type> IS in PIA, migration tracked - left as dynamic temporarily" -ForegroundColor Gray
 Write-Host "  // Reason: <explanation>" -ForegroundColor Gray
 Write-Host ""
 
-foreach ($v in $violations) {
-    Write-Host "  $($v.File):$($v.Line)" -ForegroundColor Yellow
-    Write-Host "    $($v.Code)" -ForegroundColor Gray
+foreach ($r in $regressions) {
+    Write-Host "  $($r.File): $($r.Was) -> $($r.Now)" -ForegroundColor Yellow
+    foreach ($v in $violations | Where-Object { $_.File -eq $r.File }) {
+        Write-Host "    line $($v.Line): $($v.Code)" -ForegroundColor Gray
+    }
 }
 
 Write-Host ""
