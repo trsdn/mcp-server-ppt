@@ -17,15 +17,9 @@ on:
       - '.github/codeql/**'
   pull_request:
     branches: [ "main" ]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - '**.csproj'
-      - '**.sln'
-      - 'Directory.Build.props'
-      - 'Directory.Packages.props'
-      - '.github/workflows/codeql.yml'
-      - '.github/codeql/**'
+    # No paths filter: this is a required status check, and GitHub cannot tell a
+    # skipped check from one that never reported. A paths filter here makes every
+    # pull request outside those paths permanently unmergeable.
   schedule:
     # Run CodeQL analysis every Monday at 10:00 AM UTC
     - cron: '0 10 * * 1'
