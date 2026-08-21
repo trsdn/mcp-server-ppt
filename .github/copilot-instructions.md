@@ -167,7 +167,7 @@ Modular approach = relevant context without overload.
 
 ---
 
-## 🔒 Pre-Commit Hooks (10 Automated Checks)
+## 🔒 Pre-Commit Hooks (8 Automated Checks)
 
 Pre-commit runs `scripts/pre-commit.ps1` which blocks commits if any check fails:
 
@@ -175,14 +175,35 @@ Pre-commit runs `scripts/pre-commit.ps1` which blocks commits if any check fails
 |---|-------|--------|-------------------|
 | 1 | Branch | (inline) | Never commit to `main` directly (Rule 6) |
 | 2 | COM Leaks | `check-com-leaks.ps1` | All `dynamic` COM objects have `ComUtilities.Release()` in finally |
-| 3 | Coverage Audit | `audit-core-coverage.ps1` | 100% Core methods exposed via MCP Server |
-| 4 | MCP-Core Implementation | `check-mcp-core-implementations.ps1` | All enum actions have Core method implementations |
-| 5 | Success Flag | `check-success-flag.ps1` | Rule 0: Never `Success=true` with `ErrorMessage` |
-| 6 | CLI Coverage | `check-cli-coverage.ps1` | All action enums have CLI commands |
-| 7 | CLI Action Switch | `check-cli-action-coverage.ps1` | Actions requiring args have explicit switch cases |
-| 8 | CLI Settings Usage | `check-cli-settings-usage.ps1` | All Settings properties used in args |
-| 9 | CLI Workflow Test | `Test-CliWorkflow.ps1` | E2E CLI workflow smoke test |
-| 10 | MCP Smoke Test | `dotnet test --filter "...SmokeTest..."` | All MCP tools functional |
+| 3 | Documented Counts | `check-documented-counts.ps1` | Tool and operation counts in the docs match the generated tool surface |
+| 4 | Success Flag | `check-success-flag.ps1` | Rule 0: Never `Success=true` with `ErrorMessage` |
+| 5 | CLI Settings Usage | `check-cli-settings-usage.ps1` | All Settings properties forwarded to the daemon in args |
+| 6 | CLI Workflow Test | `Test-CliWorkflow.ps1` | E2E CLI workflow smoke test |
+| 7 | MCP Smoke Test | `dotnet test --filter "...SmokeTest..."` | All MCP tools functional |
+| 8 | Dynamic Casts | `check-dynamic-casts.ps1` | No *new* undocumented `((dynamic))` casts (per-file baseline) |
+
+> **Removed gates.** `audit-core-coverage.ps1`, `check-mcp-core-implementations.ps1`,
+> `check-cli-coverage.ps1`, `check-cli-action-coverage.ps1` and `audit-cli-actions.ps1`
+> were written against a hand-maintained `ToolActions.cs` / `ActionExtensions.cs`.
+> The source generator architecture removed both files, so those scripts either
+> aborted or — worse — reported "100% coverage maintained" while detecting zero
+> methods. CLI/MCP parity is now structural, because both entry points are generated
+> from the same Core interfaces, so the gate that was actually missing is a check
+> that the *published counts* still match the generated surface.
+>
+> **A gate that finds nothing must fail.** `check-documented-counts.ps1`,
+> `check-cli-settings-usage.ps1` and `check-dynamic-casts.ps1` all exit non-zero
+> when they inspect nothing. Never write a check that can report success without
+> evidence, and never let `pre-commit.ps1` swallow a gate's error and continue.
+>
+> **Keep gate scripts ASCII.** `check-dynamic-casts.ps1` carried an em dash inside a
+> string. Windows PowerShell reads these files as cp1252, which turned the last byte
+> into a typographic quote and silently made the whole script a parse error - so the
+> gate never ran at all.
+>
+> **The 140 undocumented casts predate the gate** and are frozen in
+> `scripts/dynamic-casts-baseline.txt`. New casts fail; when the count drops, lower
+> the baseline with `check-dynamic-casts.ps1 -UpdateBaseline`.
 
 **Install hook:**
 ```powershell

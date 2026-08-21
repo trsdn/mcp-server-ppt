@@ -2,199 +2,78 @@
 applyTo: "src/PptMcp.Core/Commands/**/*.cs,src/PptMcp.McpServer/**/*.cs"
 ---
 
-# Core Commands Coverage - Mandatory Workflow
+# Exposing Core Commands
 
-> **⚠️ CRITICAL**: When adding Core Commands methods, you MUST expose them in MCP Server
+> Adding a Core method is enough. The CLI command, the MCP tool and the action
+> enum are generated from the interface — do not hand-write them.
 
-## Quick Reference
+## How the tool surface is produced
 
-| Task | Command | Time |
-|------|---------|------|
-| Check coverage before commit | `.\scripts\audit-core-coverage.ps1` | 30s |
-| Add new Core method | Follow 8-step workflow below | 5-10 min |
-| Fix pre-commit hook failure | Add missing enum values + mappings | 2-3 min |
-| Verify build | `dotnet build -c Release` | 1-2 min |
+Three attributes on a Core interface drive everything:
 
----
+| Attribute | Where | Produces |
+|---|---|---|
+| `[ServiceCategory("section")]` | interface | The service registry entry and the CLI command name |
+| `[McpTool("section", Title = ..., Description = ...)]` | interface | The MCP tool, its title and the description sent to LLMs |
+| `[ServiceAction("add")]` | method | One action on both entry points, plus the enum member |
 
-## Mandatory Workflow: Adding New Core Method
+The generators emit:
 
-**ALWAYS follow these 8 steps in order:**
+- `ServiceRegistry.<Tool>.g.cs` in `PptMcp.Core` — the action enum and dispatch
+- `McpTool.<Tool>.g.cs` in `PptMcp.McpServer` — the MCP tool
 
-```markdown
-1. ✅ Add method to Core Commands interface
-   File: src/PptMcp.Core/Commands/[Feature]/I[Feature]Commands.cs
-   Example: Task<OperationResult> NewMethodAsync(IPptBatch batch);
+Because the CLI and the MCP server are generated from the *same* interface, they
+cannot drift apart. There is no `ToolActions.cs` and no `ActionExtensions.cs` to
+keep in sync; both were removed with the hand-maintained architecture.
 
-2. ✅ Implement in Core Commands class  
-   File: src/PptMcp.Core/Commands/[Feature]/[Feature]Commands.cs
-
-3. ✅ Add enum value to ToolActions.cs
-   File: src/PptMcp.McpServer/Models/ToolActions.cs
-   Example: SlideAction.NewMethod
-   ⚠️ Build will show CS8524 error until steps 4-6 complete
-
-4. ✅ Add ToActionString mapping
-   File: src/PptMcp.McpServer/Models/ActionExtensions.cs
-   Example: SlideAction.NewMethod => "new-method",
-   ⚠️ CS8524 error persists
-
-5. ✅ Add switch case in MCP Tool
-   File: src/PptMcp.McpServer/Tools/Ppt[Feature]Tool.cs
-   Example: SlideAction.NewMethod => await NewMethodAsync(...),
-   ⚠️ CS8524 error persists
-
-6. ✅ Implement MCP method
-   File: src/PptMcp.McpServer/Tools/Ppt[Feature]Tool.cs
-   Example: private static async Task<string> NewMethodAsync(...)
-   ✅ CS8524 errors resolved
-
-7. ✅ Build and verify
-   Command: dotnet build -c Release
-   Expected: 0 warnings, 0 errors
-
-8. ✅ Update documentation
-   Files: skill references (`skills/shared/`), tool descriptions, README (if needed)
-```
-
-**Why This Order**: Compiler (CS8524) enforces steps 3-6, preventing you from shipping unexposed Core methods.
-
----
-
-## Compiler Enforcement (CS8524)
-
-**The compiler FORCES you to expose Core methods** through enum-based switches:
+## Adding an operation
 
 ```csharp
-// Step 3: Add enum value (compiler checks this)
-public enum SlideAction
-{
-    List,
-    Get,
-    NewMethod  // ⚠️ Forget this → CS8524 error in ActionExtensions.cs
-}
+// 1. Declare it on the interface, with an action name and XML documentation.
+//    The XML docs become the descriptions an LLM sees, so write them for a
+//    reader who cannot see the implementation.
+[ServiceAction("duplicate")]
+OperationResult Duplicate(IPptBatch batch, int slideIndex);
 
-// Step 4: Add ToActionString mapping (compiler checks this)
-public static string ToActionString(this SlideAction action) => action switch
-{
-    SlideAction.List => "list",
-    SlideAction.Get => "get",
-    SlideAction.NewMethod => "new-method",  // ⚠️ Forget this → CS8524 error
-};
-
-// Step 5: Add switch case in Tool (compiler checks this)
-return action switch
-{
-    SlideAction.List => await ListAsync(...),
-    SlideAction.Get => await GetAsync(...),
-    SlideAction.NewMethod => await NewMethodAsync(...),  // ⚠️ Forget this → CS8524 error
-};
+// 2. Implement it in the Commands class. Let exceptions propagate - batch.Execute()
+//    converts them into OperationResult { Success = false } (Rule 1b).
+public OperationResult Duplicate(IPptBatch batch, int slideIndex) =>
+    batch.Execute((ctx, ct) => { /* ... */ });
 ```
-
-**Result**: **Impossible to compile** until all 3 enum mappings are added!
-
----
-
-## Pre-Commit Hook (Automatic Check)
-
-**Before every commit**, the pre-commit hook runs `audit-core-coverage.ps1` to verify Core methods match enum values.
-
-**Setup** (one-time):
-```powershell
-.\scripts\pre-commit.ps1
-```
-
-**On failure, you see**:
-```
-❌ Coverage gaps detected! All Core methods must be exposed via MCP Server.
-
-The following interfaces have fewer enum values than Core methods:
-  - IRangeCommands: Core has 42 methods, RangeAction has 40 values (missing 2)
-
-Action Required:
-  1. Review Core interface for new methods
-  2. Add missing enum values to ToolActions.cs
-  3. Add ToActionString mappings to ActionExtensions.cs
-  4. Add switch cases to appropriate MCP Tools
-```
-
-**Fix**: Follow 8-step workflow above.
-
-**Emergency bypass** (use only for non-Core changes):
-```bash
-git commit --no-verify -m "Message"
-```
-
-⚠️ **Never use `--no-verify`** for Core Commands changes - fix the gaps instead!
-
----
-
-## Manual Coverage Check
-
-**Run anytime** to verify coverage:
 
 ```powershell
-# Check coverage (shows gaps if any)
-.\scripts\audit-core-coverage.ps1
+# 3. Build, so the generators run.
+dotnet build
 
-# Check coverage and fail if gaps found (useful in CI/CD)
-.\scripts\audit-core-coverage.ps1 -FailOnGaps
-
-# Verbose output with detailed counts
-.\scripts\audit-core-coverage.ps1 -Verbose
+# 4. Write an integration test (Rule 29: the test comes first and must fail
+#    before the implementation exists; Rule 30: never a unit test).
+dotnet test --filter "Feature=Slide&RunType!=OnDemand"
 ```
 
-**Expected output when 100% coverage**:
+Then update the counts and the feature reference (Rule 24). `FEATURES.md` is
+generated, not hand-edited.
+
+## Parameter naming
+
+The MCP parameter name is derived from the C# parameter name via
+`StringHelper.ToSnakeCase()`, so **never use underscores in C# parameter names**.
+Choose a camelCase name that produces the wanted snake_case result
+(`sourceRangeAddress` → `source_range_address`), or use
+`[FromString("desiredName")]` when it cannot.
+
+Names are judged as they appear in a *flat* tool schema, without the surrounding
+class name (Rule 28): `rotation` is self-describing, but a bare `name` or `index`
+is not — use `shapeName` and `slideIndex`.
+
+## What is actually verified before commit
+
+`scripts/check-documented-counts.ps1` derives the tool surface from the generated
+registry and fails when a documented count disagrees with it. It also fails when
+it detects nothing, because a coverage check that reports success without
+inspecting anything is worse than no check at all — the gate it replaced reported
+"100% coverage maintained" while detecting zero methods.
+
+```powershell
+# Requires a build first: the generated registry is the source of truth.
+.\scripts\check-documented-counts.ps1
 ```
-Interface           CoreMethods EnumValues Gap Status
----------           ----------- ---------- --- ------
-ISlideCommands               15         15   0 ✅
-IShapeCommands               20         20   0 ✅
-ITableCommands               12         12   0 ✅
-IChartCommands               18         18   0 ✅
-
-Summary: 100% coverage ✅ (65 Core methods, 65 enum values)
-```
-
-**When gaps detected**:
-```
-Interface           CoreMethods EnumValues Gap Status
----------           ----------- ---------- --- ------
-IRangeCommands               42         40   2 ❌
-
-Summary: 98.7% coverage (65 Core methods, 63 enum values, 2 gaps)
-```
-
-**Fix**: Follow 8-step workflow.
-
----
-
-## Troubleshooting
-
-### CS8524 Error: "Switch expression does not handle all possible values"
-
-**Cause**: Added enum value but forgot to add it to switch expression.
-
-**Fix**: Add the missing case to the switch expression in the file mentioned in error.
-
-### Pre-Commit Hook Fails with "Coverage gaps detected"
-
-**Cause**: Core interface has more methods than corresponding enum has values.
-
-**Fix**: Follow 8-step workflow (steps 3-6).
-
-### Build Succeeds but Pre-Commit Hook Still Fails
-
-**Cause**: Added Core method but forgot to add enum value.
-
-**Fix**: Add to ToolActions.cs, then mappings in ActionExtensions.cs, then Tool switch case.
-
----
-
-## Key Takeaways
-
-✅ **Compiler enforces coverage** - CS8524 prevents incomplete implementations  
-✅ **Pre-commit hook verifies** - Catches gaps before commit  
-✅ **8-step workflow is mandatory** - No shortcuts  
-✅ **100% coverage is required** - No exceptions
-

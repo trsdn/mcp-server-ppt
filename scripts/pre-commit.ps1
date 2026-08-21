@@ -89,53 +89,57 @@ try {
     Write-Host "COM leak check passed" -ForegroundColor Green
 }
 catch {
-    Write-Host "Error running COM leak check: $($_.Exception.Message)" -ForegroundColor Yellow
-    Write-Host "   Continuing with coverage audit..." -ForegroundColor Gray
-}
-
-Write-Host ""
-Write-Host "Checking Core Commands coverage and naming..." -ForegroundColor Cyan
-
-try {
-    $auditScript = Join-Path $rootDir "scripts\audit-core-coverage.ps1"
-    & $auditScript -CheckNaming -FailOnGaps
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host ""
-        Write-Host "Coverage or naming issues detected!" -ForegroundColor Red
-        Write-Host "   All Core methods must be exposed via MCP Server with matching names." -ForegroundColor Red
-        Write-Host "   Fix the issues before committing (add/rename enum values and mappings)." -ForegroundColor Red
-        exit 1
-    }
-
-    Write-Host "Coverage and naming checks passed - 100% coverage with consistent names" -ForegroundColor Green
-}
-catch {
-    Write-Host ""
-    Write-Host "Error running coverage audit: $($_.Exception.Message)" -ForegroundColor Red
+    # A check that cannot run has not passed. Swallowing the error here would let
+    # a broken gate look like a green one, which is exactly how the removed
+    # coverage audit stayed unnoticed for so long.
+    Write-Host "Error running COM leak check: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
 
 Write-Host ""
-Write-Host "Checking MCP actions have Core implementations..." -ForegroundColor Cyan
+Write-Host "Checking documented tool and operation counts..." -ForegroundColor Cyan
 
+# Replaces the former audit-core-coverage.ps1 and check-mcp-core-implementations.ps1.
+# Both were written against a hand-maintained ToolActions.cs/ActionExtensions.cs that
+# the source generator architecture removed, so one crashed and the other reported
+# "100% coverage" while detecting zero methods. Parity between the CLI and the MCP
+# server is now structural - both are generated from the same Core interfaces - so
+# what actually needs guarding is that the published counts still match the
+# generated tool surface.
 try {
-    $mcpCoreScript = Join-Path $rootDir "scripts\check-mcp-core-implementations.ps1"
-    & $mcpCoreScript
+    $countsScript = Join-Path $rootDir "scripts\check-documented-counts.ps1"
+    & $countsScript
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host ""
-        Write-Host "MCP actions without Core implementations detected!" -ForegroundColor Red
-        Write-Host "   All enum actions must have matching Core Command methods." -ForegroundColor Red
-        Write-Host "   Fix the issues before committing (remove enum or implement method)." -ForegroundColor Red
+        Write-Host "Documented counts do not match the generated tool surface!" -ForegroundColor Red
+        Write-Host "   Update the affected documents, or regenerate FEATURES.md." -ForegroundColor Red
         exit 1
     }
-
-    Write-Host "MCP-Core implementation check passed" -ForegroundColor Green
 }
 catch {
     Write-Host ""
-    Write-Host "Error running MCP-Core implementation check: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Error running documented count check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
+Write-Host "Checking CLI Settings properties are forwarded to the daemon..." -ForegroundColor Cyan
+
+try {
+    $settingsScript = Join-Path $rootDir "scripts\check-cli-settings-usage.ps1"
+    & $settingsScript
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "CLI Settings properties are defined but never forwarded!" -ForegroundColor Red
+        Write-Host "   User-supplied values would be silently ignored." -ForegroundColor Red
+        exit 1
+    }
+}
+catch {
+    Write-Host ""
+    Write-Host "Error running CLI Settings usage check: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
 
@@ -199,8 +203,10 @@ try {
     }
 }
 catch {
-    Write-Host "Error auto-staging SKILL.md files: $($_.Exception.Message)" -ForegroundColor Yellow
-    Write-Host "   Continuing with remaining checks..." -ForegroundColor Gray
+    # Not swallowed: if regenerated SKILL.md files fail to stage, the commit ships
+    # documentation that no longer matches the build output.
+    Write-Host "Error auto-staging SKILL.md files: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
 }
 
 Write-Host ""
@@ -295,8 +301,9 @@ try {
     Write-Host "Dynamic cast check passed - all casts are documented" -ForegroundColor Green
 }
 catch {
-    Write-Host "Error running dynamic cast check: $($_.Exception.Message)" -ForegroundColor Yellow
-    Write-Host "   Continuing..." -ForegroundColor Gray
+    # A check that cannot run has not passed.
+    Write-Host "Error running dynamic cast check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
 }
 
 Write-Host ""

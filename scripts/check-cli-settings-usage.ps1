@@ -63,13 +63,29 @@ function Get-SettingsProperties {
     param([string]$content)
 
     $properties = @()
-    # Match properties in Settings class: public string? PropertyName { get; init; }
-    $settingsMatch = $content -match '(?s)internal sealed class Settings[^{]*\{(.+)$'
-    if ($settingsMatch) {
-        $settingsBlock = $Matches[1]
-        # Extract property names
-        $propertyMatches = [regex]::Matches($settingsBlock, 'public\s+\w+\??\s+(\w+)\s*\{')
-        foreach ($match in $propertyMatches) {
+    # The Settings class body must be delimited by brace matching. A regex that
+    # captures to end of file also swallows every type declared after Settings,
+    # which made JSON DTOs such as BatchEntry and BatchResult look like unused
+    # settings properties.
+    #
+    # A file may declare several Settings classes (SessionCommands.cs declares
+    # four), so every occurrence is read, not just the first.
+    foreach ($header in [regex]::Matches($content, 'internal sealed class Settings[^{]*\{')) {
+        $start = $header.Index + $header.Length
+        $depth = 1
+        $i = $start
+        while ($i -lt $content.Length -and $depth -gt 0) {
+            $ch = $content[$i]
+            if ($ch -eq '{') { $depth++ }
+            elseif ($ch -eq '}') { $depth-- }
+            $i++
+        }
+        if ($depth -ne 0) {
+            throw "Unbalanced braces while reading a Settings class body."
+        }
+
+        $settingsBlock = $content.Substring($start, $i - $start - 1)
+        foreach ($match in [regex]::Matches($settingsBlock, 'public\s+\w+\??\s+(\w+)\s*\{')) {
             $properties += $match.Groups[1].Value
         }
     }
@@ -91,7 +107,10 @@ function Get-UsedProperties {
 Write-Host "Checking CLI Settings property usage..." -ForegroundColor Cyan
 Write-Host ""
 
-$commandFiles = Get-ChildItem -Path $cliCommandsDir -Filter "*Command.cs" -File
+# Hand-written command files are named both *Command.cs and *Commands.cs, so the
+# previous "*Command.cs" filter silently excluded DiagCommands, ServiceCommands
+# and SessionCommands from the check.
+$commandFiles = Get-ChildItem -Path $cliCommandsDir -Filter "*.cs" -File
 
 foreach ($file in $commandFiles) {
     # Skip ListActionsCommand - it's a meta command
@@ -144,6 +163,12 @@ foreach ($file in $commandFiles) {
     else {
         $totalPassed++
     }
+}
+
+if ($totalChecked -eq 0) {
+    Write-Host "ERROR: no CLI command files with a Settings class were inspected." -ForegroundColor Red
+    Write-Host "       Detecting nothing means this check inspected nothing, so it cannot pass." -ForegroundColor Red
+    exit 1
 }
 
 if ($issues.Count -gt 0) {
