@@ -247,9 +247,19 @@ try {
 
     Write-Host "   dotnet test --filter `"$smokeTestFilter`"" -ForegroundColor Gray
 
-    # Capture output to verify tests actually ran (dotnet test returns 0 even if no tests match!)
-    $testOutput = dotnet test --filter $smokeTestFilter --verbosity minimal 2>&1 | Out-String
-    $testExitCode = $LASTEXITCODE
+    # Force English CLI output. The success check below parses the summary line, and on a
+    # localized machine dotnet prints "Bestanden! ... erfolgreich: 1", which the English
+    # pattern misses - turning the zero-test guard into a false alarm on a passing test.
+    $previousUiLanguage = $env:DOTNET_CLI_UI_LANGUAGE
+    $env:DOTNET_CLI_UI_LANGUAGE = "en"
+    try {
+        # Capture output to verify tests actually ran (dotnet test returns 0 even if no tests match!)
+        $testOutput = dotnet test --filter $smokeTestFilter --verbosity minimal 2>&1 | Out-String
+        $testExitCode = $LASTEXITCODE
+    }
+    finally {
+        $env:DOTNET_CLI_UI_LANGUAGE = $previousUiLanguage
+    }
 
     # Check if any tests actually passed (critical - filter typos cause silent failures!)
     # Note: "No test matches" appears for projects without the test, so we check for "Passed"
@@ -298,7 +308,7 @@ try {
         exit 1
     }
 
-    Write-Host "Dynamic cast check passed - all casts are documented" -ForegroundColor Green
+    Write-Host "Dynamic cast check passed - no new undocumented casts" -ForegroundColor Green
 }
 catch {
     # A check that cannot run has not passed.
