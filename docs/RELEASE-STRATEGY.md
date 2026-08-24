@@ -114,25 +114,61 @@ After workflow completes:
 
 ### Current publishing status
 
-Not every target is live. As of v1.0.3, only NuGet actually received the release:
-
 | Target | Status |
 |---|---|
 | NuGet (`PptMcp.McpServer`, `PptMcp.CLI`) | published |
 | GitHub Release assets (VSIX, MCPB, ZIPs) | published |
+| MCP Registry (`io.github.trsdn/mcp-server-ppt`) | published - 1.0.1, 1.0.2 and 1.0.3 are live |
 | VS Code Marketplace (`trsdn.ppt-mcp`) | **not published** - the `trsdn` publisher does not exist yet |
-| npm (`ppt-mcp-skill`, `ppt-cli-skill`) | **not published** - Trusted Publishing is not configured |
-| MCP Registry | **not published** |
+| npm (`ppt-mcp-skill`, `ppt-cli-skill`) | **not published** - see below |
 
-The v1.0.3 run nevertheless reported every one of those steps as successful, because
-each carried `continue-on-error: true`. That masking is now removed: the npm and MCP
-Registry publishes fail the job, and the Marketplace publish is opt-in via the
-`publish_vscode` input and verified against the Marketplace API afterwards.
+The v1.0.3 run reported all of these as successful because each carried
+`continue-on-error: true`, so a failed publish looked exactly like a successful one.
+That masking is gone. Both remaining gaps now fail loudly, and both are checked in a
+preflight step that runs **before** the NuGet push, because a version pushed to
+NuGet.org cannot be replaced.
 
-To enable the Marketplace, create the `trsdn` publisher at
-<https://marketplace.visualstudio.com/manage>, confirm `VSCE_TOKEN` belongs to it, then
-dispatch a release with `publish_vscode: true`. Until then, users install the `.vsix`
-from the GitHub release.
+Verify status against the registries rather than the job summary:
+
+```powershell
+npm view ppt-mcp-skill version
+dotnet package search PptMcp.McpServer --exact-match
+Invoke-RestMethod "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.trsdn"
+```
+
+### Enabling npm publishing
+
+The workflow publishes with Trusted Publishing (OIDC), which **cannot create a package
+that does not exist yet**: the trusted publisher is configured per package in the npm
+UI, and that page only exists once the package does. Both skill packages are new, so
+every OIDC-only release failed at this step. Breaking the deadlock is a one-time job:
+
+1. Create an npm **automation** token (npmjs.com -> Access Tokens -> Granular Access,
+   with publish permission for `ppt-mcp-skill` and `ppt-cli-skill`).
+2. Add it as the `NPM_TOKEN` repository secret:
+   `gh secret set NPM_TOKEN --repo trsdn/mcp-server-ppt`
+3. Run a release. The preflight detects the missing packages, sees the token and
+   bootstraps both packages.
+4. Optionally switch back to tokenless publishing: configure the trusted publisher for
+   each package (npmjs.com -> Package -> Settings -> Trusted Publisher, repository
+   `trsdn/mcp-server-ppt`, workflow `release.yml`), then delete the `NPM_TOKEN` secret.
+   The workflow drops the token line from `.npmrc` when the secret is absent, so the
+   OIDC path stays clean.
+
+### Enabling the VS Code Marketplace
+
+`trsdn.ppt-mcp` returns 404 because the `trsdn` publisher was never created - the
+`VSCE_TOKEN` secret alone is not enough. This step needs a browser and cannot be
+automated:
+
+1. Create the publisher `trsdn` at <https://marketplace.visualstudio.com/manage>.
+2. Confirm `VSCE_TOKEN` is an Azure DevOps PAT for that publisher's organisation with
+   the **Marketplace: Manage** scope.
+3. Dispatch a release with `publish_vscode: true`.
+
+The preflight refuses to run the release when the publisher is missing, and a
+post-publish check queries the Marketplace API, so a silent failure fails the job.
+Until then, users install the `.vsix` from the GitHub release.
 
 ## Version Management
 
@@ -200,6 +236,7 @@ Configure these GitHub repository secrets:
 |--------|---------|
 | `NUGET_USER` | NuGet.org username (for OIDC trusted publishing) |
 | `VSCE_TOKEN` | VS Code Marketplace PAT |
+| `NPM_TOKEN` | Optional. Only needed to bootstrap npm packages that do not exist yet, or when Trusted Publishing is not configured. See "Enabling npm publishing" |
 
 > **Note:** NuGet uses OIDC trusted publishing (no API key needed). The `NUGET_USER` is just the NuGet.org profile name for OIDC token exchange.
 
@@ -212,8 +249,16 @@ Configure these GitHub repository secrets:
 
 ### VS Code Marketplace Fails
 
-- Verify `VSCE_TOKEN` is valid and not expired
+- Verify the `trsdn` publisher exists at <https://marketplace.visualstudio.com/manage>
+- Verify `VSCE_TOKEN` is valid, not expired, and scoped to that publisher's organisation
 - Check extension ID matches marketplace listing
+
+### npm Publishing Fails
+
+- `ENEEDAUTH` or 404 on a first publish: Trusted Publishing cannot create a new package.
+  Set `NPM_TOKEN` once to bootstrap it (see "Enabling npm publishing")
+- Package exists but publishing is rejected: check the trusted publisher points at
+  `trsdn/mcp-server-ppt` and workflow `release.yml`
 
 ### MCPB Build Fails
 
@@ -222,8 +267,10 @@ Configure these GitHub repository secrets:
 
 ### MCP Registry Update Fails
 
-- MCP Registry update uses GitHub OIDC
-- Failures don't block the release (marked continue-on-error)
+- MCP Registry update uses GitHub OIDC, which authorises the `io.github.trsdn/*`
+  namespace because the repository owner is `trsdn`
+- Failures block the release; `continue-on-error` was removed after it hid real failures
+  elsewhere in this workflow
 - Can be retried manually via MCP publisher tool
 
 ## Legacy Workflows
