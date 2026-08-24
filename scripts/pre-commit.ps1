@@ -317,5 +317,28 @@ catch {
 }
 
 Write-Host ""
+Write-Host "Checking NuGet flat container package ids..." -ForegroundColor Cyan
+
+try {
+    $flatContainerScript = Join-Path $rootDir "scripts\check-nuget-flatcontainer-ids.ps1"
+    & $flatContainerScript
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "Mixed-case NuGet flat container package id detected!" -ForegroundColor Red
+        Write-Host "   The flat container API 404s on any casing other than lowercase," -ForegroundColor Red
+        Write-Host "   and callers swallow that 404, so the failure is silent at runtime." -ForegroundColor Red
+        exit 1
+    }
+
+    Write-Host "Flat container id check passed" -ForegroundColor Green
+}
+catch {
+    # A check that cannot run has not passed.
+    Write-Host "Error running flat container id check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
 Write-Host "All pre-commit checks passed!" -ForegroundColor Green
 exit 0

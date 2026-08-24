@@ -1,6 +1,6 @@
 # ppt-mcp-skill
 
-An [Agent Skill](https://agentskills.io) for automating Microsoft PowerPoint via the [PowerPoint MCP Server](https://PptMcpserver.dev).
+An [Agent Skill](https://agentskills.io) for automating Microsoft PowerPoint via the [PowerPoint MCP Server](https://github.com/trsdn/mcp-server-ppt).
 
 ## What this skill does
 

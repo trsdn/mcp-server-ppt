@@ -476,7 +476,7 @@ jobs:
             @{ name = ".cursorrules"; type = "config"; description = "Cursor project rules" }
           )
           repository = "https://github.com/trsdn/mcp-server-ppt"
-          documentation = "https://PptMcpserver.dev/"
+          documentation = "https://github.com/trsdn/mcp-server-ppt"
           buildDate = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
         }
         $manifest | ConvertTo-Json -Depth 10 | Set-Content -Path "$outputDir/manifest.json" -Encoding UTF8
@@ -919,7 +919,7 @@ jobs:
         - .NET 10 Runtime or SDK (for NuGet installation only; VS Code and MCPB bundle it)
 
         ### Documentation
-        - [Website](https://PptMcpserver.dev/)
+        - [Website](https://github.com/trsdn/mcp-server-ppt)
         - [GitHub Repository](https://github.com/trsdn/mcp-server-ppt)
         - [Changelog](https://github.com/trsdn/mcp-server-ppt/blob/main/CHANGELOG.md)
         NOTES

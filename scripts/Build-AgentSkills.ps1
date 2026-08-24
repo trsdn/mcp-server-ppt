@@ -426,7 +426,7 @@ $Manifest = @{
         @{ name = ".cursorrules"; type = "config"; description = "Cursor project rules" }
     )
     repository = "https://github.com/trsdn/mcp-server-ppt"
-    documentation = "https://PptMcpserver.dev/"
+    documentation = "https://github.com/trsdn/mcp-server-ppt"
     buildDate = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
 }
 

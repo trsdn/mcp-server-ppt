@@ -13,12 +13,12 @@
     "type": "git",
     "url": "https://github.com/trsdn/mcp-server-ppt"
   },
-  "homepage": "https://PptMcpserver.dev/",
-  "documentation": "https://PptMcpserver.dev/",
+  "homepage": "https://github.com/trsdn/mcp-server-ppt",
+  "documentation": "https://github.com/trsdn/mcp-server-ppt",
   "support": "https://github.com/trsdn/mcp-server-ppt/issues",
   "icon": "icon-512.png",
   "license": "MIT",
-  "privacy_policies": ["https://PptMcpserver.dev/privacy/"],
+  "privacy_policies": ["https://github.com/trsdn/mcp-server-ppt/blob/main/docs/PRIVACY.md"],
   "keywords": [
     "powerpoint",
     "office",

@@ -20,7 +20,7 @@
     "orchestrator",
     "slides"
   ],
-  "homepage": "https://PptMcpserver.dev",
+  "homepage": "https://github.com/trsdn/mcp-server-ppt",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/trsdn/mcp-server-ppt.git",

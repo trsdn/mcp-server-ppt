@@ -88,5 +88,5 @@ pptcli --help
 ## Related
 
 - [PowerPoint MCP Skill](https://github.com/trsdn/mcp-server-ppt/releases) - For conversational AI (Claude Desktop, VS Code Chat)
-- [Documentation](https://PptMcpserver.dev/)
+- [Documentation](https://github.com/trsdn/mcp-server-ppt)
 - [GitHub Repository](https://github.com/trsdn/mcp-server-ppt)

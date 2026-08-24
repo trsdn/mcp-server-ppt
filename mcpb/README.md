@@ -107,12 +107,12 @@ PowerPoint MCP Server runs **entirely on your computer**. Your PowerPoint data:
 
 **Need help?**
 - [Report an issue](https://github.com/trsdn/mcp-server-ppt/issues)
-- [Full documentation](https://PptMcpserver.dev/)
+- [Full documentation](https://github.com/trsdn/mcp-server-ppt)
 
 ## Links
 
 - [GitHub Repository](https://github.com/trsdn/mcp-server-ppt)
-- [Feature Reference](https://PptMcpserver.dev/features/)
+- [Feature Reference](https://github.com/trsdn/mcp-server-ppt/blob/main/FEATURES.md)
 - [Agent Skills](https://github.com/trsdn/mcp-server-ppt/blob/main/skills/README.md) - Cross-platform AI guidance
-- [Privacy Policy](https://PptMcpserver.dev/privacy/)
+- [Privacy Policy](https://github.com/trsdn/mcp-server-ppt/blob/main/docs/PRIVACY.md)
 - [License (MIT)](https://github.com/trsdn/mcp-server-ppt/blob/main/LICENSE)

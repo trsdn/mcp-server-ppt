@@ -325,7 +325,7 @@ internal sealed class CliServiceTray : IDisposable
         };
 
         const string githubUrl = "https://github.com/trsdn/mcp-server-ppt";
-        const string docsUrl = "https://PptMcpserver.dev/";
+        const string docsUrl = "https://github.com/trsdn/mcp-server-ppt/tree/main/docs";
 
         var githubLabel = new Label
         {

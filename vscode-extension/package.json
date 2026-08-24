@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/trsdn/mcp-server-ppt/issues"
   },
-  "homepage": "https://PptMcpserver.dev/",
+  "homepage": "https://github.com/trsdn/mcp-server-ppt",
   "license": "MIT",
   "engines": {
     "vscode": "^1.109.0"
