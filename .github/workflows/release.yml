@@ -737,7 +737,20 @@ jobs:
             exit 0
         }
         if ($env:NPM_TOKEN) {
-            Write-Output "First publish for: $($missing -join ', '). NPM_TOKEN is set, proceeding."
+            # Presence is not validity. Everything after this step is irreversible, so
+            # prove the credential works now rather than discovering it is wrong after
+            # NuGet has been pushed.
+            $npmrc = Join-Path $env:USERPROFILE '.npmrc'
+            Set-Content -Path $npmrc -Value "//registry.npmjs.org/:_authToken=$env:NPM_TOKEN"
+            $who = npm whoami --registry https://registry.npmjs.org/ 2>&1
+            if ($LASTEXITCODE -ne 0) {
+                Write-Output "::error::NPM_TOKEN is set but npm rejected it."
+                Write-Output "npm said: $who"
+                Write-Output "Create a granular token at npmjs.com with the default all-packages scope"
+                Write-Output "and 'Bypass two-factor authentication' ticked, then update the secret."
+                exit 1
+            }
+            Write-Output "First publish for: $($missing -join ', '). Authenticated to npm as $who."
             exit 0
         }
         Write-Output "::error::These packages do not exist on npm yet: $($missing -join ', ')."
