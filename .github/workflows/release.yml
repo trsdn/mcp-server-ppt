@@ -493,17 +493,45 @@ jobs:
       run: |
         $version = $env:VERSION
 
-        # Populate ppt-mcp-skill
-        $mcpTarget = "packages/ppt-mcp-skill/skills/ppt-mcp"
-        Get-ChildItem $mcpTarget -Exclude ".gitkeep" -Recurse -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
-        Copy-Item "skills/ppt-mcp/SKILL.md" $mcpTarget
-        Copy-Item "skills/ppt-mcp/references" "$mcpTarget/references" -Recurse -ErrorAction SilentlyContinue
+        # These packages are what npm publishes. A skill shipped without its
+        # references still installs and still looks fine, so a missing copy here
+        # would never be noticed - fail loudly instead.
+        $packages = @(
+          @{ Name = "ppt-mcp"; Source = "skills/ppt-mcp"; Target = "packages/ppt-mcp-skill/skills/ppt-mcp" }
+          @{ Name = "ppt-cli"; Source = "skills/ppt-cli"; Target = "packages/ppt-cli-skill/skills/ppt-cli" }
+        )
 
-        # Populate ppt-cli-skill
-        $cliTarget = "packages/ppt-cli-skill/skills/ppt-cli"
-        Get-ChildItem $cliTarget -Exclude ".gitkeep" -Recurse -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
-        Copy-Item "skills/ppt-cli/SKILL.md" $cliTarget
-        Copy-Item "skills/ppt-cli/references" "$cliTarget/references" -Recurse -ErrorAction SilentlyContinue
+        foreach ($pkg in $packages) {
+          $source = $pkg.Source
+          $target = $pkg.Target
+
+          foreach ($required in @("$source/SKILL.md", "$source/references")) {
+            if (-not (Test-Path $required)) {
+              Write-Error "$required is missing - the build did not generate it, so $($pkg.Name) would ship incomplete."
+              exit 1
+            }
+          }
+
+          $referenceCount = @(Get-ChildItem "$source/references" -File -Recurse).Count
+          if ($referenceCount -eq 0) {
+            Write-Error "$source/references is empty - $($pkg.Name) would ship without reference documentation."
+            exit 1
+          }
+
+          New-Item -ItemType Directory -Path $target -Force | Out-Null
+          Get-ChildItem $target -Exclude ".gitkeep" -Recurse -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
+
+          Copy-Item "$source/SKILL.md" $target
+          Copy-Item "$source/references" "$target/references" -Recurse
+
+          $copied = @(Get-ChildItem "$target/references" -File -Recurse).Count
+          if ($copied -ne $referenceCount) {
+            Write-Error "Copied $copied of $referenceCount reference files for $($pkg.Name)."
+            exit 1
+          }
+
+          Write-Host "$($pkg.Name): SKILL.md + $copied reference file(s)"
+        }
 
         # Update versions in package.json files
         foreach ($pkg in @("packages/ppt-mcp-skill/package.json", "packages/ppt-cli-skill/package.json")) {
