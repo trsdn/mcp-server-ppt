@@ -14,10 +14,14 @@ name: Release All Components
 #
 # Required GitHub Secrets:
 # - NUGET_USER: Your NuGet.org username (profile name, NOT email)
-# - VSCE_TOKEN: VS Code Marketplace PAT
+# - VSCE_TOKEN: VS Code Marketplace PAT (only used when publish_vscode is true)
+# - NPM_TOKEN:  Optional. Needed to bootstrap npm packages that do not exist yet.
 #
-# npm publishing uses Trusted Publishing (OIDC) — no token needed.
-# Configure at npmjs.com → Package Settings → Trusted Publisher.
+# npm publishing prefers Trusted Publishing (OIDC), but OIDC can only publish a package
+# that already exists, because the trusted publisher is configured per package in the
+# npm UI. Set NPM_TOKEN for the first publish, then configure the trusted publisher at
+# npmjs.com -> Package Settings -> Trusted Publisher and remove the secret again.
+# See docs/RELEASE-STRATEGY.md, "Enabling npm publishing".
 
 on:
   workflow_dispatch:
@@ -549,7 +553,10 @@ jobs:
     - name: Wait for NuGet Propagation
       run: |
         $version = $env:VERSION
-        $packageId = "PptMcp.mcpserver"
+        # The v3 flat container requires an all-lowercase package id. This was
+        # "PptMcp.mcpserver", so every request 404'd and the loop always ran its full
+        # three attempts (20 minutes) before falling through.
+        $packageId = "pptmcp.mcpserver"
         $readmeUrl = "https://api.nuget.org/v3-flatcontainer/$packageId/$version/readme"
 
         Write-Output "Waiting for NuGet CDN propagation..."
@@ -583,8 +590,9 @@ jobs:
         tar xf mcp-publisher.tar.gz mcp-publisher.exe
       shell: pwsh
 
-    # No continue-on-error: the v1.0.3 run reported this step as successful, but the
-    # server never appeared in the registry. A publish that cannot fail cannot be trusted.
+    # No continue-on-error: this publish does work (io.github.trsdn/mcp-server-ppt is
+    # live for 1.0.1-1.0.3), but a publish that cannot fail cannot be trusted to keep
+    # working, so a failure must surface instead of being swallowed.
     - name: Publish to MCP Registry
       run: |
         ./mcp-publisher.exe login github-oidc
@@ -672,6 +680,51 @@ jobs:
         name: npm-skill-packages
         path: npm-packages
 
+    # Trusted Publishing (OIDC) can only publish a package that already exists, because
+    # the trusted publisher is configured per package in the npm UI. Both skill packages
+    # are new, so an OIDC-only release can never create them - which is why every release
+    # up to v1.0.3 failed here. This runs before the NuGet push because that step is
+    # irreversible: a version pushed to NuGet.org cannot be replaced.
+    - name: Preflight npm publishing
+      shell: pwsh
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: |
+        $missing = @()
+        foreach ($package in @('ppt-mcp-skill', 'ppt-cli-skill')) {
+            npm view $package version --registry https://registry.npmjs.org/ 2>$null | Out-Null
+            if ($LASTEXITCODE -ne 0) { $missing += $package }
+        }
+        if ($missing.Count -eq 0) {
+            Write-Output "Both packages exist on npm; publishing an update."
+            exit 0
+        }
+        if ($env:NPM_TOKEN) {
+            Write-Output "First publish for: $($missing -join ', '). NPM_TOKEN is set, proceeding."
+            exit 0
+        }
+        Write-Output "::error::These packages do not exist on npm yet: $($missing -join ', ')."
+        Write-Output "Trusted Publishing (OIDC) cannot create a package - it only authorises"
+        Write-Output "publishes for a package that already exists and has a trusted publisher."
+        Write-Output "Add an npm automation token as the NPM_TOKEN repository secret to bootstrap"
+        Write-Output "them. See docs/RELEASE-STRATEGY.md, 'Enabling npm publishing'."
+        exit 1
+
+    - name: Preflight VS Code Marketplace
+      if: ${{ inputs.publish_vscode }}
+      shell: pwsh
+      run: |
+        $body = '{"filters":[{"criteria":[{"filterType":18,"value":"trsdn"}],"pageNumber":1,"pageSize":1}],"flags":914}'
+        $headers = @{ Accept = 'application/json;api-version=7.2-preview.1'; 'Content-Type' = 'application/json' }
+        $response = Invoke-RestMethod -Uri 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' -Method Post -Headers $headers -Body $body
+        if (-not $response.results[0].extensions) {
+            Write-Output "::error::The 'trsdn' Marketplace publisher has no extensions, so it most likely does not exist."
+            Write-Output "Create it at https://marketplace.visualstudio.com/manage and make sure VSCE_TOKEN belongs to it,"
+            Write-Output "or dispatch the release with publish_vscode: false."
+            exit 1
+        }
+        Write-Output "Marketplace publisher 'trsdn' found."
+
     - name: NuGet Login (OIDC)
       uses: NuGet/login@v1
       id: nuget-login
@@ -725,16 +778,37 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        registry-url: https://registry.npmjs.org
+
+    # setup-node's registry-url writes an _authToken line that resolves to an empty
+    # string when NPM_TOKEN is unset, which makes npm report a credentials error instead
+    # of falling back to OIDC. Configuring .npmrc explicitly keeps both paths clean.
+    - name: Configure npm authentication
+      shell: pwsh
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: |
+        $npmrc = Join-Path $env:USERPROFILE '.npmrc'
+        if ($env:NPM_TOKEN) {
+            Set-Content -Path $npmrc -Value "//registry.npmjs.org/:_authToken=$env:NPM_TOKEN"
+            Write-Output "npm authentication: NPM_TOKEN"
+        } else {
+            if (Test-Path $npmrc) { Remove-Item $npmrc }
+            Write-Output "npm authentication: OIDC trusted publishing"
+        }
+        npm config set registry https://registry.npmjs.org/
 
     # No continue-on-error on either publish: both steps reported success during the
     # v1.0.3 release while neither package reached npm.
     - name: Publish ppt-mcp-skill to npm
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
         cd npm-packages/ppt-mcp-skill
         npm publish --provenance --access public
 
     - name: Publish ppt-cli-skill to npm
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
         cd npm-packages/ppt-cli-skill
         npm publish --provenance --access public
@@ -818,7 +892,7 @@ jobs:
 
         **VS Code Extension** (Recommended)
         - Download `PptMcp-${{ env.VERSION }}.vsix` below and run `code --install-extension PptMcp-${{ env.VERSION }}.vsix`
-        - Not on the VS Code Marketplace yet
+        - ${{ inputs.publish_vscode && 'Also available on the VS Code Marketplace' || 'Not on the VS Code Marketplace yet' }}
         - Self-contained: no .NET runtime or SDK required
         - Includes both MCP Server and CLI (`pptcli`)
         - Agent skills (ppt-mcp + ppt-cli) registered automatically via `chatSkills`

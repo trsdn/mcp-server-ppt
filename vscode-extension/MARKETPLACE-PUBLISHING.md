@@ -2,6 +2,12 @@
 
 This document explains how to set up automated publishing to the VS Code Marketplace.
 
+## Current status
+
+`trsdn.ppt-mcp` is **not on the Marketplace**: the `trsdn` publisher was never created,
+so the `VSCE_TOKEN` secret alone cannot publish anything. Step 4 below is the missing
+piece. Until it is done, users install the `.vsix` from the GitHub release.
+
 ## Required GitHub Secret
 
 The release workflow requires the following secret to be configured in your GitHub repository:
@@ -51,46 +57,22 @@ When you run the release workflow (via `workflow_dispatch`):
 
 1. **Calculates version** from latest git tag (or custom version input)
 2. **Updates `package.json`** version for VS Code extension
-2. **Updates CHANGELOG.md** with release date
-3. **Builds the extension** from source
-4. **Packages as VSIX** file
-5. **Publishes to VS Code Marketplace** (if `VSCE_TOKEN` is configured)
-6. **Creates GitHub Release** with all components (MCP Server, CLI, VS Code, MCPB)
+3. **Updates CHANGELOG.md** with release date
+4. **Builds the extension** from source
+5. **Packages as VSIX** file
+6. **Publishes to VS Code Marketplace** — only when the run is dispatched with
+   `publish_vscode: true`
+7. **Creates GitHub Release** with all components (MCP Server, CLI, VS Code, MCPB)
 
-### Publishing is Optional
+### Publishing is opt-in and verified
 
-- If the token is not configured, marketplace publishing will be skipped (uses `continue-on-error: true`)
-- The GitHub release will still be created with the VSIX file
-- Users can always install from the VSIX file manually
-
-### Publishing Status
-
-The GitHub release notes will show:
-```
-### Publishing Status
-
-- ✅ Published to VS Code Marketplace
-```
-
-Or if token is not configured:
-```
-### Publishing Status
-
-- ❌ Not published to VS Code Marketplace
-```
-
-## Testing the Workflow
-
-To test the release workflow:
-
-1. Ensure the `VSCE_TOKEN` secret is configured
-2. Push a test tag (this will trigger release of ALL components):
-   ```powershell
-   git tag v0.0.1-test
-   git push origin v0.0.1-test
-   ```
-3. Go to GitHub Actions and watch the unified workflow run
-4. Check that the release was created and marketplace publishing succeeded
+- Marketplace publishing is off by default, because the publisher does not exist yet.
+- A preflight step checks that the `trsdn` publisher exists **before** anything is
+  pushed to NuGet, and fails the run with instructions if it does not.
+- After publishing, the workflow queries the Marketplace API to confirm the listing
+  really appeared. This replaced `continue-on-error: true`, which made the v1.0.3
+  release report a successful Marketplace publish that never happened.
+- The GitHub release always contains the VSIX, so users can install manually either way.
 
 ## Troubleshooting
 
