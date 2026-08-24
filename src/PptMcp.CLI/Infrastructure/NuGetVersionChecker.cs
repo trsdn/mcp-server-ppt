@@ -8,7 +8,9 @@ namespace PptMcp.CLI.Infrastructure;
 /// </summary>
 internal static class NuGetVersionChecker
 {
-    private const string PackageId = "PptMcp.cli";
+    // The flat container API requires the package ID lowercased (LOWER_ID); any other
+    // casing returns 404. Published ID is "PptMcp.CLI".
+    private const string PackageId = "pptmcp.cli";
     private const string NuGetIndexUrl = $"https://api.nuget.org/v3-flatcontainer/{PackageId}/index.json";
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 

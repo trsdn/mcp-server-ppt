@@ -63,10 +63,10 @@ ppt-mcp/
 
 ## MCP Server Setup
 
-The skill works with the PowerPoint MCP Server. See [Installation Guide](https://PptMcpserver.dev/installation/) for setup instructions.
+The skill works with the PowerPoint MCP Server. See [Installation Guide](https://github.com/trsdn/mcp-server-ppt/blob/main/docs/INSTALLATION.md) for setup instructions.
 
 ## Related
 
 - [PowerPoint CLI Skill](https://github.com/trsdn/mcp-server-ppt/releases) - For coding agents preferring CLI tools
-- [Documentation](https://PptMcpserver.dev/)
+- [Documentation](https://github.com/trsdn/mcp-server-ppt)
 - [GitHub Repository](https://github.com/trsdn/mcp-server-ppt)

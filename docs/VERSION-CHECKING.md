@@ -126,7 +126,8 @@ info: PptMcp.McpServer.Program[0]
 **Components:**
 
 1. **`NuGetVersionChecker.cs`** - NuGet API client
-   - Queries `https://api.nuget.org/v3-flatcontainer/PptMcp.mcpserver/index.json`
+   - Queries `https://api.nuget.org/v3-flatcontainer/pptmcp.mcpserver/index.json`
+     (the flat container API requires the package id lowercased; any other casing returns 404)
    - Returns latest non-prerelease version
    - 5-second timeout (inherited from HttpClient)
 

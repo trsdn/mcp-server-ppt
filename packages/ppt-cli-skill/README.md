@@ -1,6 +1,6 @@
 # ppt-cli-skill
 
-An [Agent Skill](https://agentskills.io) for automating Microsoft PowerPoint via the [pptcli](https://PptMcpserver.dev) command-line tool.
+An [Agent Skill](https://agentskills.io) for automating Microsoft PowerPoint via the [pptcli](https://github.com/trsdn/mcp-server-ppt) command-line tool.
 
 ## What this skill does
 

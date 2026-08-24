@@ -176,7 +176,8 @@ The workflow has `id-token: write` permission enabled for OIDC authentication.
 
 **Manual Solution**:
 - Wait 5-10 minutes after NuGet publication for full CDN propagation
-- Verify README is accessible: `https://api.nuget.org/v3-flatcontainer/PptMcp.mcpserver/{version}/readme`
+- Verify README is accessible: `https://api.nuget.org/v3-flatcontainer/pptmcp.mcpserver/{version}/readme`
+  (the package id must be lowercased - mixed casing returns 404)
 - Manually publish to MCP Registry using the manual publishing process below
 
 **Verification Steps**:
