@@ -25,7 +25,7 @@ pptcli -q session close --session 1 --save
 
 ### GitHub Copilot
 
-The [PowerPoint MCP Server VS Code extension](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp) installs this skill automatically to `~/.copilot/skills/ppt-cli/`.
+The [PowerPoint MCP Server VS Code extension](https://github.com/trsdn/mcp-server-ppt/releases/latest) installs this skill automatically to `~/.copilot/skills/ppt-cli/`.
 
 Enable skills in VS Code settings:
 ```json

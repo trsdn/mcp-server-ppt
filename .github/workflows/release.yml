@@ -35,6 +35,11 @@ on:
         description: 'Custom version (e.g., 1.2.3, overrides version_bump)'
         required: false
         type: string
+      publish_vscode:
+        description: 'Publish the extension to the VS Code Marketplace (requires the trsdn publisher to exist)'
+        required: false
+        type: boolean
+        default: false
 
 env:
   DOTNET_VERSION: '9.0.x'
@@ -578,13 +583,14 @@ jobs:
         tar xf mcp-publisher.tar.gz mcp-publisher.exe
       shell: pwsh
 
+    # No continue-on-error: the v1.0.3 run reported this step as successful, but the
+    # server never appeared in the registry. A publish that cannot fail cannot be trusted.
     - name: Publish to MCP Registry
       run: |
         ./mcp-publisher.exe login github-oidc
         Set-Location src/PptMcp.McpServer/.mcp
         ../../../mcp-publisher.exe publish --verbose
       shell: pwsh
-      continue-on-error: true
 
   # =============================================================================
   # Job 7: Create Git Tag
@@ -688,13 +694,32 @@ jobs:
         Write-Output "Published PptMcp.CLI.$version to NuGet.org"
       shell: pwsh
 
+    # The v1.0.3 release reported this step as successful while the extension never
+    # reached the Marketplace: continue-on-error masked the failure, and the job
+    # summary claimed a publish that had not happened. The step is now opt-in and
+    # its result is verified against the Marketplace API.
     - name: Publish to VS Code Marketplace
+      if: ${{ inputs.publish_vscode }}
       uses: HaaLeo/publish-vscode-extension@v2
       with:
         pat: ${{ secrets.VSCE_TOKEN }}
         registryUrl: https://marketplace.visualstudio.com
         extensionFile: vscode-vsix/PptMcp-${{ env.VERSION }}.vsix
-      continue-on-error: true
+
+    - name: Verify Marketplace listing
+      if: ${{ inputs.publish_vscode }}
+      shell: pwsh
+      run: |
+        $body = '{"filters":[{"criteria":[{"filterType":7,"value":"trsdn.ppt-mcp"}],"pageNumber":1,"pageSize":1}],"flags":914}'
+        $headers = @{ Accept = 'application/json;api-version=7.2-preview.1'; 'Content-Type' = 'application/json' }
+        $response = Invoke-RestMethod -Uri 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' -Method Post -Headers $headers -Body $body
+        $extension = $response.results[0].extensions
+        if (-not $extension) {
+            Write-Output "::error::trsdn.ppt-mcp is not listed on the Marketplace after publishing."
+            Write-Output "Create the 'trsdn' publisher at https://marketplace.visualstudio.com/manage first."
+            exit 1
+        }
+        Write-Output "Marketplace listing confirmed: version $($extension[0].versions[0].version)"
 
     - name: Setup npm registry
       uses: actions/setup-node@v4
@@ -702,17 +727,31 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         registry-url: https://registry.npmjs.org
 
+    # No continue-on-error on either publish: both steps reported success during the
+    # v1.0.3 release while neither package reached npm.
     - name: Publish ppt-mcp-skill to npm
       run: |
         cd npm-packages/ppt-mcp-skill
         npm publish --provenance --access public
-      continue-on-error: true
 
     - name: Publish ppt-cli-skill to npm
       run: |
         cd npm-packages/ppt-cli-skill
         npm publish --provenance --access public
-      continue-on-error: true
+
+    - name: Verify npm packages are listed
+      shell: pwsh
+      run: |
+        $failed = @()
+        foreach ($package in @('ppt-mcp-skill', 'ppt-cli-skill')) {
+            npm view "$package@$env:VERSION" version 2>$null | Out-Null
+            if ($LASTEXITCODE -ne 0) { $failed += $package }
+        }
+        if ($failed.Count -gt 0) {
+            Write-Output "::error::Not on npm after publishing: $($failed -join ', ')"
+            exit 1
+        }
+        Write-Output "npm listings confirmed for version $env:VERSION"
 
   # =============================================================================
   # Job 9: Create Unified GitHub Release
@@ -778,8 +817,8 @@ jobs:
         ### Installation Options
 
         **VS Code Extension** (Recommended)
-        - Search "PptMcp" in VS Code Marketplace and click Install
-        - Or download `PptMcp-${{ env.VERSION }}.vsix` below
+        - Download `PptMcp-${{ env.VERSION }}.vsix` below and run `code --install-extension PptMcp-${{ env.VERSION }}.vsix`
+        - Not on the VS Code Marketplace yet
         - Self-contained: no .NET runtime or SDK required
         - Includes both MCP Server and CLI (`pptcli`)
         - Agent skills (ppt-mcp + ppt-cli) registered automatically via `chatSkills`

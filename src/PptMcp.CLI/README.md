@@ -378,7 +378,7 @@ These tests open actual presentations, issue `session open/list/close`, and call
 ## 🤝 Related Tools
 
 - **[PptMcp.McpServer](https://www.nuget.org/packages/PptMcp.McpServer)** - MCP server for AI assistant integration
-- **[PowerPoint MCP VS Code Extension](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp)** - One-click PowerPoint automation in VS Code
+- **[PowerPoint MCP VS Code Extension](https://github.com/trsdn/mcp-server-ppt/releases/latest)** - PowerPoint automation in VS Code (install the `.vsix` from the release)
 
 
 ---

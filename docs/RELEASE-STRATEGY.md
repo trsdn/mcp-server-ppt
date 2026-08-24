@@ -108,9 +108,31 @@ After workflow completes:
 
 - [ ] GitHub Release created with all artifacts (ZIP, VSIX, MCPB, skills ZIP)
 - [ ] NuGet unified package available (may take 10-30 min for full propagation)
-- [ ] VS Code Marketplace updated (verify self-contained extension works without .NET)
+- [ ] VS Code Marketplace updated (only when the run was dispatched with `publish_vscode: true`)
 - [ ] MCP Registry updated
 - [ ] Auto-PR created for CHANGELOG rename (merge it to update `[Unreleased]` → `[X.Y.Z]`)
+
+### Current publishing status
+
+Not every target is live. As of v1.0.3, only NuGet actually received the release:
+
+| Target | Status |
+|---|---|
+| NuGet (`PptMcp.McpServer`, `PptMcp.CLI`) | published |
+| GitHub Release assets (VSIX, MCPB, ZIPs) | published |
+| VS Code Marketplace (`trsdn.ppt-mcp`) | **not published** - the `trsdn` publisher does not exist yet |
+| npm (`ppt-mcp-skill`, `ppt-cli-skill`) | **not published** - Trusted Publishing is not configured |
+| MCP Registry | **not published** |
+
+The v1.0.3 run nevertheless reported every one of those steps as successful, because
+each carried `continue-on-error: true`. That masking is now removed: the npm and MCP
+Registry publishes fail the job, and the Marketplace publish is opt-in via the
+`publish_vscode` input and verified against the Marketplace API afterwards.
+
+To enable the Marketplace, create the `trsdn` publisher at
+<https://marketplace.visualstudio.com/manage>, confirm `VSCE_TOKEN` belongs to it, then
+dispatch a release with `publish_vscode: true`. Until then, users install the `.vsix`
+from the GitHub release.
 
 ## Version Management
 
