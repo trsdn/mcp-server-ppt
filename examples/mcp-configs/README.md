@@ -115,7 +115,7 @@ Create a PowerPoint file called "test.pptx"
 **Setup Steps:**
 
 **Option A: Use VS Code Extension (Recommended)**
-1. Install the [PowerPoint MCP VS Code Extension](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp)
+1. Install the VS Code extension from the [latest GitHub release](https://github.com/trsdn/mcp-server-ppt/releases/latest) (`code --install-extension PptMcp-<version>.vsix`)
 2. Configuration is automatic!
 
 **Option B: Manual Configuration**

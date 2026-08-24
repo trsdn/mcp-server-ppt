@@ -25,7 +25,7 @@ Unlike third-party libraries that manipulate `.pptx` files (risking corruption),
 
 **Quick Setup Options:**
 
-1. **VS Code Extension** - [One-click install](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp) for GitHub Copilot
+1. **VS Code Extension** - install the `.vsix` from the [latest release](https://github.com/trsdn/mcp-server-ppt/releases/latest) for GitHub Copilot
 2. **Manual Install** - Works with Claude Desktop, Cursor, Cline, Windsurf, and other MCP clients
 3. **MCP Registry** - Find us at [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io/servers/io.github.trsdn/mcp-server-ppt)
 
@@ -126,7 +126,7 @@ dotnet tool install --global PptMcp.CLI
 
 - **[GitHub Repository](https://github.com/trsdn/mcp-server-ppt)** - Source code, issues, discussions
 - **[Installation Guide](https://github.com/trsdn/mcp-server-ppt/blob/main/docs/INSTALLATION.md)** - Detailed setup for all platforms
-- **[VS Code Extension](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp)** - One-click installation
+- **[VS Code Extension](https://github.com/trsdn/mcp-server-ppt/releases/latest)** - install the `.vsix` from the release assets
 - **[CLI Documentation](https://github.com/trsdn/mcp-server-ppt/blob/main/src/PptMcp.CLI/README.md)** - Comprehensive commands for RPA and CI/CD automation
 
 **License:** MIT  

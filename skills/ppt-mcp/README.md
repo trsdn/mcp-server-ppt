@@ -13,7 +13,7 @@ Agent Skill for AI assistants using the PowerPoint MCP Server via the Model Cont
 
 ### GitHub Copilot
 
-The [PowerPoint MCP Server VS Code extension](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp) installs this skill automatically to `~/.copilot/skills/ppt-mcp/`.
+The [PowerPoint MCP Server VS Code extension](https://github.com/trsdn/mcp-server-ppt/releases/latest) installs this skill automatically to `~/.copilot/skills/ppt-mcp/`.
 
 Enable skills in VS Code settings:
 ```json

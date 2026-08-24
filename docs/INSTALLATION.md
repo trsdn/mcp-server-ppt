@@ -47,7 +47,7 @@ Use this order to avoid setup confusion:
    - Registers agent skills (ppt-mcp + ppt-cli) via `chatSkills`
    - Shows quick start guide on first launch
 
-**Marketplace Link:** [PowerPoint MCP VS Code Extension](https://marketplace.visualstudio.com/items?itemName=trsdn.ppt-mcp)
+**Download:** grab `PptMcp-<version>.vsix` from the [latest GitHub release](https://github.com/trsdn/mcp-server-ppt/releases/latest). The extension is not on the VS Code Marketplace yet.
 
 ---
 
