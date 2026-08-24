@@ -119,7 +119,7 @@ After workflow completes:
 | NuGet (`PptMcp.McpServer`, `PptMcp.CLI`) | published |
 | GitHub Release assets (VSIX, MCPB, ZIPs) | published |
 | MCP Registry (`io.github.trsdn/mcp-server-ppt`) | published - 1.0.1, 1.0.2 and 1.0.3 are live |
-| VS Code Marketplace (`trsdn.ppt-mcp`) | **not published** - the `trsdn` publisher does not exist yet |
+| VS Code Marketplace (`trsdn.ppt-mcp`) | **not published** - the `trsdn` publisher now exists, the extension does not. See below |
 | npm (`ppt-mcp-skill`, `ppt-cli-skill`) | **not published** - see below |
 
 The v1.0.3 run reported all of these as successful because each carried
@@ -143,32 +143,69 @@ that does not exist yet**: the trusted publisher is configured per package in th
 UI, and that page only exists once the package does. Both skill packages are new, so
 every OIDC-only release failed at this step. Breaking the deadlock is a one-time job:
 
-1. Create an npm **automation** token (npmjs.com -> Access Tokens -> Granular Access,
-   with publish permission for `ppt-mcp-skill` and `ppt-cli-skill`).
-2. Add it as the `NPM_TOKEN` repository secret:
-   `gh secret set NPM_TOKEN --repo trsdn/mcp-server-ppt`
+1. Create the token at <https://www.npmjs.com/settings/trsdn/tokens> -> **Generate New
+   Token**. Three settings are not obvious and each one breaks the bootstrap if it is
+   wrong:
+   - **Type: granular.** Legacy "automation" tokens were removed in November 2025;
+     granular access tokens are the only kind that still exists.
+   - **Leave "Packages and scopes" at its default (all packages).** The picker only
+     lists packages that already exist, so `ppt-mcp-skill` and `ppt-cli-skill` cannot
+     be selected - that is the very deadlock this step exists to break. A token scoped
+     to specific packages cannot create a new one.
+   - **Tick "Bypass two-factor authentication".** It defaults to off, and a token
+     without it triggers an interactive 2FA challenge on publish, which a CI runner
+     cannot answer. Only skip this if the account has no 2FA at all.
+
+   Give the token a short expiry - it is needed for exactly one release.
+2. Add it as the `NPM_TOKEN` repository secret without printing it:
+   `Get-Clipboard | gh secret set NPM_TOKEN --repo trsdn/mcp-server-ppt`
 3. Run a release. The preflight detects the missing packages, sees the token and
    bootstraps both packages.
-4. Optionally switch back to tokenless publishing: configure the trusted publisher for
-   each package (npmjs.com -> Package -> Settings -> Trusted Publisher, repository
-   `trsdn/mcp-server-ppt`, workflow `release.yml`), then delete the `NPM_TOKEN` secret.
+4. Switch to tokenless publishing and **delete the secret**: configure the trusted
+   publisher for each package (npmjs.com -> Package -> Settings -> Trusted Publisher,
+   repository `trsdn/mcp-server-ppt`, workflow `release.yml`), then delete the
+   `NPM_TOKEN` secret.
    The workflow drops the token line from `.npmrc` when the secret is absent, so the
    OIDC path stays clean.
 
+Do not try to publish from a corporate workstation. `registry.npmjs.org` is not
+reachable here: it fails during the TLS handshake, while the configured mirror
+`packagefeedproxy.microsoft.io` answers normally. Publishing only works from the
+runner. The same mirror also serves `npm view`, so a freshly published version may not
+show up there for a while - confirm a publish on npmjs.com, not through the mirror.
+
 ### Enabling the VS Code Marketplace
 
-`trsdn.ppt-mcp` returns 404 because the `trsdn` publisher was never created - the
-`VSCE_TOKEN` secret alone is not enough. This step needs a browser and cannot be
-automated:
+`trsdn.ppt-mcp` is not listed yet. The `trsdn` publisher was created on 2026-08-24, so
+the remaining step is getting the extension itself onto the Marketplace. There are two
+routes, and the manual one needs no Azure DevOps access at all.
 
-1. Create the publisher `trsdn` at <https://marketplace.visualstudio.com/manage>.
-2. Confirm `VSCE_TOKEN` is an Azure DevOps PAT for that publisher's organisation with
-   the **Marketplace: Manage** scope.
+**Route A - upload the VSIX by hand (no PAT).** The Marketplace runs on Azure DevOps for
+authentication and hosting, which is why `vsce` wants an Azure DevOps PAT. Uploading
+through the web UI skips that entirely and is
+[officially supported](https://code.visualstudio.com/api/working-with-extensions/publishing-extension):
+
+1. Download `PptMcp-<version>.vsix` from the GitHub release.
+2. Go to <https://marketplace.visualstudio.com/manage/publishers/trsdn> and use
+   **New extension -> Visual Studio Code**, then drop the file in.
+
+The released VSIX already carries `"publisher": "trsdn"` and `"name": "ppt-mcp"`, so it
+lands as `trsdn.ppt-mcp` without any repackaging.
+
+**Route B - let the release workflow publish it.** This needs a credential:
+
+1. Create an Azure DevOps PAT: <https://dev.azure.com> -> User settings -> Personal
+   access tokens -> New token, Organization **All accessible organizations**, Scopes
+   **Custom defined** -> *Show all scopes* -> **Marketplace: Manage**.
+2. Store it without printing it:
+   `Get-Clipboard | gh secret set VSCE_TOKEN --repo trsdn/mcp-server-ppt`
+   The existing `VSCE_TOKEN` predates the publisher, so it cannot have been verified
+   against it - treat it as unproven.
 3. Dispatch a release with `publish_vscode: true`.
 
 The preflight refuses to run the release when the publisher is missing, and a
 post-publish check queries the Marketplace API, so a silent failure fails the job.
-Until then, users install the `.vsix` from the GitHub release.
+Until either route is taken, users install the `.vsix` from the GitHub release.
 
 ## Version Management
 
@@ -249,14 +286,24 @@ Configure these GitHub repository secrets:
 
 ### VS Code Marketplace Fails
 
-- Verify the `trsdn` publisher exists at <https://marketplace.visualstudio.com/manage>
+- Verify the `trsdn` publisher exists: <https://marketplace.visualstudio.com/publishers/trsdn>
+  returns 200 when it does and 404 when it does not. Do not use the extension query for
+  this - it returns an empty list for a missing publisher and for a new, empty one alike
 - Verify `VSCE_TOKEN` is valid, not expired, and scoped to that publisher's organisation
 - Check extension ID matches marketplace listing
+- No Azure DevOps access? Upload the VSIX by hand instead, see "Enabling the VS Code
+  Marketplace"
 
 ### npm Publishing Fails
 
 - `ENEEDAUTH` or 404 on a first publish: Trusted Publishing cannot create a new package.
   Set `NPM_TOKEN` once to bootstrap it (see "Enabling npm publishing")
+- `EOTP`, or a prompt for a one-time password: the granular token was created without
+  **Bypass two-factor authentication**, which is off by default. A runner cannot answer
+  the challenge. Recreate the token with that box ticked
+- `E403` with "you do not have permission to publish" on a package that does not exist
+  yet: the token was scoped to specific packages. A package that does not exist cannot
+  be selected, so the bootstrap token has to keep the default all-packages scope
 - Package exists but publishing is rejected: check the trusted publisher points at
   `trsdn/mcp-server-ppt` and workflow `release.yml`
 

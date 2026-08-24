@@ -21,6 +21,9 @@ name: Release All Components
 # that already exists, because the trusted publisher is configured per package in the
 # npm UI. Set NPM_TOKEN for the first publish, then configure the trusted publisher at
 # npmjs.com -> Package Settings -> Trusted Publisher and remove the secret again.
+# The bootstrap token must be granular, keep the default all-packages scope (a package
+# that does not exist cannot be selected) and have "Bypass two-factor authentication"
+# ticked, or the publish stops at a 2FA prompt no runner can answer.
 # See docs/RELEASE-STRATEGY.md, "Enabling npm publishing".
 
 on:
@@ -738,20 +741,28 @@ jobs:
         Write-Output "them. See docs/RELEASE-STRATEGY.md, 'Enabling npm publishing'."
         exit 1
 
+    # A publisher that was just created has no extensions yet, which is exactly the
+    # state this preflight exists for. Asking the extension query about the publisher
+    # therefore cannot answer the question: it returns an empty list both for a missing
+    # publisher and for a new, empty one. The public publisher page separates the two.
     - name: Preflight VS Code Marketplace
       if: ${{ inputs.publish_vscode }}
       shell: pwsh
       run: |
-        $body = '{"filters":[{"criteria":[{"filterType":18,"value":"trsdn"}],"pageNumber":1,"pageSize":1}],"flags":914}'
-        $headers = @{ Accept = 'application/json;api-version=7.2-preview.1'; 'Content-Type' = 'application/json' }
-        $response = Invoke-RestMethod -Uri 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' -Method Post -Headers $headers -Body $body
-        if (-not $response.results[0].extensions) {
-            Write-Output "::error::The 'trsdn' Marketplace publisher has no extensions, so it most likely does not exist."
-            Write-Output "Create it at https://marketplace.visualstudio.com/manage and make sure VSCE_TOKEN belongs to it,"
+        $response = Invoke-WebRequest -Uri 'https://marketplace.visualstudio.com/publishers/trsdn' `
+            -Method Get -UseBasicParsing -TimeoutSec 30 -SkipHttpErrorCheck
+        if ($response.StatusCode -eq 404) {
+            Write-Output "::error::The 'trsdn' Marketplace publisher does not exist."
+            Write-Output "Create it at https://marketplace.visualstudio.com/manage with the id 'trsdn',"
             Write-Output "or dispatch the release with publish_vscode: false."
             exit 1
         }
-        Write-Output "Marketplace publisher 'trsdn' found."
+        if ($response.StatusCode -ne 200) {
+            Write-Output "::error::Could not verify the 'trsdn' Marketplace publisher (HTTP $($response.StatusCode))."
+            Write-Output "Refusing to continue, because the next step pushes to NuGet.org and cannot be undone."
+            exit 1
+        }
+        Write-Output "Marketplace publisher 'trsdn' exists."
 
     - name: NuGet Login (OIDC)
       uses: NuGet/login@v1
