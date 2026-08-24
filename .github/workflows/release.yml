@@ -21,6 +21,9 @@ name: Release All Components
 # that already exists, because the trusted publisher is configured per package in the
 # npm UI. Set NPM_TOKEN for the first publish, then configure the trusted publisher at
 # npmjs.com -> Package Settings -> Trusted Publisher and remove the secret again.
+# The bootstrap token must be granular, keep the default all-packages scope (a package
+# that does not exist cannot be selected) and have "Bypass two-factor authentication"
+# ticked, or the publish stops at a 2FA prompt no runner can answer.
 # See docs/RELEASE-STRATEGY.md, "Enabling npm publishing".
 
 on:
@@ -44,6 +47,11 @@ on:
         required: false
         type: boolean
         default: false
+      publish_npm:
+        description: 'Publish the skill packages to npm (needs NPM_TOKEN until both packages exist)'
+        required: false
+        type: boolean
+        default: true
 
 env:
   DOTNET_VERSION: '9.0.x'
@@ -714,6 +722,7 @@ jobs:
     # up to v1.0.3 failed here. This runs before the NuGet push because that step is
     # irreversible: a version pushed to NuGet.org cannot be replaced.
     - name: Preflight npm publishing
+      if: ${{ inputs.publish_npm }}
       shell: pwsh
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -728,30 +737,52 @@ jobs:
             exit 0
         }
         if ($env:NPM_TOKEN) {
-            Write-Output "First publish for: $($missing -join ', '). NPM_TOKEN is set, proceeding."
+            # Presence is not validity. Everything after this step is irreversible, so
+            # prove the credential works now rather than discovering it is wrong after
+            # NuGet has been pushed.
+            $npmrc = Join-Path $env:USERPROFILE '.npmrc'
+            Set-Content -Path $npmrc -Value "//registry.npmjs.org/:_authToken=$env:NPM_TOKEN"
+            $who = npm whoami --registry https://registry.npmjs.org/ 2>&1
+            if ($LASTEXITCODE -ne 0) {
+                Write-Output "::error::NPM_TOKEN is set but npm rejected it."
+                Write-Output "npm said: $who"
+                Write-Output "Create a granular token at npmjs.com with the default all-packages scope"
+                Write-Output "and 'Bypass two-factor authentication' ticked, then update the secret."
+                exit 1
+            }
+            Write-Output "First publish for: $($missing -join ', '). Authenticated to npm as $who."
             exit 0
         }
         Write-Output "::error::These packages do not exist on npm yet: $($missing -join ', ')."
         Write-Output "Trusted Publishing (OIDC) cannot create a package - it only authorises"
         Write-Output "publishes for a package that already exists and has a trusted publisher."
-        Write-Output "Add an npm automation token as the NPM_TOKEN repository secret to bootstrap"
-        Write-Output "them. See docs/RELEASE-STRATEGY.md, 'Enabling npm publishing'."
+        Write-Output "Add a granular npm token as the NPM_TOKEN repository secret to bootstrap them,"
+        Write-Output "or dispatch the release with publish_npm: false to release everything else."
+        Write-Output "See docs/RELEASE-STRATEGY.md, 'Enabling npm publishing'."
         exit 1
 
+    # A publisher that was just created has no extensions yet, which is exactly the
+    # state this preflight exists for. Asking the extension query about the publisher
+    # therefore cannot answer the question: it returns an empty list both for a missing
+    # publisher and for a new, empty one. The public publisher page separates the two.
     - name: Preflight VS Code Marketplace
       if: ${{ inputs.publish_vscode }}
       shell: pwsh
       run: |
-        $body = '{"filters":[{"criteria":[{"filterType":18,"value":"trsdn"}],"pageNumber":1,"pageSize":1}],"flags":914}'
-        $headers = @{ Accept = 'application/json;api-version=7.2-preview.1'; 'Content-Type' = 'application/json' }
-        $response = Invoke-RestMethod -Uri 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' -Method Post -Headers $headers -Body $body
-        if (-not $response.results[0].extensions) {
-            Write-Output "::error::The 'trsdn' Marketplace publisher has no extensions, so it most likely does not exist."
-            Write-Output "Create it at https://marketplace.visualstudio.com/manage and make sure VSCE_TOKEN belongs to it,"
+        $response = Invoke-WebRequest -Uri 'https://marketplace.visualstudio.com/publishers/trsdn' `
+            -Method Get -UseBasicParsing -TimeoutSec 30 -SkipHttpErrorCheck
+        if ($response.StatusCode -eq 404) {
+            Write-Output "::error::The 'trsdn' Marketplace publisher does not exist."
+            Write-Output "Create it at https://marketplace.visualstudio.com/manage with the id 'trsdn',"
             Write-Output "or dispatch the release with publish_vscode: false."
             exit 1
         }
-        Write-Output "Marketplace publisher 'trsdn' found."
+        if ($response.StatusCode -ne 200) {
+            Write-Output "::error::Could not verify the 'trsdn' Marketplace publisher (HTTP $($response.StatusCode))."
+            Write-Output "Refusing to continue, because the next step pushes to NuGet.org and cannot be undone."
+            exit 1
+        }
+        Write-Output "Marketplace publisher 'trsdn' exists."
 
     - name: NuGet Login (OIDC)
       uses: NuGet/login@v1
@@ -803,6 +834,7 @@ jobs:
         Write-Output "Marketplace listing confirmed: version $($extension[0].versions[0].version)"
 
     - name: Setup npm registry
+      if: ${{ inputs.publish_npm }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
@@ -811,6 +843,7 @@ jobs:
     # string when NPM_TOKEN is unset, which makes npm report a credentials error instead
     # of falling back to OIDC. Configuring .npmrc explicitly keeps both paths clean.
     - name: Configure npm authentication
+      if: ${{ inputs.publish_npm }}
       shell: pwsh
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -828,6 +861,7 @@ jobs:
     # No continue-on-error on either publish: both steps reported success during the
     # v1.0.3 release while neither package reached npm.
     - name: Publish ppt-mcp-skill to npm
+      if: ${{ inputs.publish_npm }}
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
@@ -835,6 +869,7 @@ jobs:
         npm publish --provenance --access public
 
     - name: Publish ppt-cli-skill to npm
+      if: ${{ inputs.publish_npm }}
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
@@ -842,6 +877,7 @@ jobs:
         npm publish --provenance --access public
 
     - name: Verify npm packages are listed
+      if: ${{ inputs.publish_npm }}
       shell: pwsh
       run: |
         $failed = @()
@@ -938,7 +974,7 @@ jobs:
 
         **Agent Skills** (for AI coding assistants)
         - VS Code Extension includes both skills automatically (ppt-mcp + ppt-cli)
-        - Install via npm: `npx skillpm install ppt-mcp-skill` or `npx skillpm install ppt-cli-skill`
+        ${{ inputs.publish_npm && '- Install via npm: `npx skillpm install ppt-mcp-skill` or `npx skillpm install ppt-cli-skill`' || '' }}
         - Or download `ppt-skills-v${{ env.VERSION }}.zip` or install via `npx skills add trsdn/mcp-server-ppt`
 
         ### Requirements
