@@ -75,6 +75,13 @@ Before creating a release tag, ensure all changes are documented under `## [Unre
    - **minor**: `1.5.6` → `1.6.0`
    - **major**: `1.5.6` → `2.0.0`
 3. Or enter a **custom version** (e.g., `1.5.7`) to override the bump
+4. Two publishing targets are switched separately, because neither is configured to
+   fail silently any more:
+   - **publish_npm** (default on): turn it off to release everything else while npm is
+     still unconfigured. Left on without a usable credential, the preflight stops the
+     whole release before anything is published
+   - **publish_vscode** (default off): turn it on once the Marketplace publisher and
+     `VSCE_TOKEN` are in place
 
 The workflow will:
 1. Calculate the next version from the latest git tag
@@ -173,6 +180,9 @@ reachable here: it fails during the TLS handshake, while the configured mirror
 `packagefeedproxy.microsoft.io` answers normally. Publishing only works from the
 runner. The same mirror also serves `npm view`, so a freshly published version may not
 show up there for a while - confirm a publish on npmjs.com, not through the mirror.
+
+Until a token exists, dispatch releases with `publish_npm: false`. Everything else -
+NuGet, the GitHub release assets and the MCP Registry - publishes normally.
 
 ### Enabling the VS Code Marketplace
 

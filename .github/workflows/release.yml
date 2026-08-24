@@ -47,6 +47,11 @@ on:
         required: false
         type: boolean
         default: false
+      publish_npm:
+        description: 'Publish the skill packages to npm (needs NPM_TOKEN until both packages exist)'
+        required: false
+        type: boolean
+        default: true
 
 env:
   DOTNET_VERSION: '9.0.x'
@@ -717,6 +722,7 @@ jobs:
     # up to v1.0.3 failed here. This runs before the NuGet push because that step is
     # irreversible: a version pushed to NuGet.org cannot be replaced.
     - name: Preflight npm publishing
+      if: ${{ inputs.publish_npm }}
       shell: pwsh
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -737,8 +743,9 @@ jobs:
         Write-Output "::error::These packages do not exist on npm yet: $($missing -join ', ')."
         Write-Output "Trusted Publishing (OIDC) cannot create a package - it only authorises"
         Write-Output "publishes for a package that already exists and has a trusted publisher."
-        Write-Output "Add an npm automation token as the NPM_TOKEN repository secret to bootstrap"
-        Write-Output "them. See docs/RELEASE-STRATEGY.md, 'Enabling npm publishing'."
+        Write-Output "Add a granular npm token as the NPM_TOKEN repository secret to bootstrap them,"
+        Write-Output "or dispatch the release with publish_npm: false to release everything else."
+        Write-Output "See docs/RELEASE-STRATEGY.md, 'Enabling npm publishing'."
         exit 1
 
     # A publisher that was just created has no extensions yet, which is exactly the
@@ -814,6 +821,7 @@ jobs:
         Write-Output "Marketplace listing confirmed: version $($extension[0].versions[0].version)"
 
     - name: Setup npm registry
+      if: ${{ inputs.publish_npm }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
@@ -822,6 +830,7 @@ jobs:
     # string when NPM_TOKEN is unset, which makes npm report a credentials error instead
     # of falling back to OIDC. Configuring .npmrc explicitly keeps both paths clean.
     - name: Configure npm authentication
+      if: ${{ inputs.publish_npm }}
       shell: pwsh
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -839,6 +848,7 @@ jobs:
     # No continue-on-error on either publish: both steps reported success during the
     # v1.0.3 release while neither package reached npm.
     - name: Publish ppt-mcp-skill to npm
+      if: ${{ inputs.publish_npm }}
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
@@ -846,6 +856,7 @@ jobs:
         npm publish --provenance --access public
 
     - name: Publish ppt-cli-skill to npm
+      if: ${{ inputs.publish_npm }}
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
@@ -853,6 +864,7 @@ jobs:
         npm publish --provenance --access public
 
     - name: Verify npm packages are listed
+      if: ${{ inputs.publish_npm }}
       shell: pwsh
       run: |
         $failed = @()
@@ -949,7 +961,7 @@ jobs:
 
         **Agent Skills** (for AI coding assistants)
         - VS Code Extension includes both skills automatically (ppt-mcp + ppt-cli)
-        - Install via npm: `npx skillpm install ppt-mcp-skill` or `npx skillpm install ppt-cli-skill`
+        ${{ inputs.publish_npm && '- Install via npm: `npx skillpm install ppt-mcp-skill` or `npx skillpm install ppt-cli-skill`' || '' }}
         - Or download `ppt-skills-v${{ env.VERSION }}.zip` or install via `npx skills add trsdn/mcp-server-ppt`
 
         ### Requirements
