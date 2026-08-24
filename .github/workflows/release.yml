@@ -15,16 +15,19 @@ name: Release All Components
 # Required GitHub Secrets:
 # - NUGET_USER: Your NuGet.org username (profile name, NOT email)
 # - VSCE_TOKEN: VS Code Marketplace PAT (only used when publish_vscode is true)
-# - NPM_TOKEN:  Optional. Needed to bootstrap npm packages that do not exist yet.
+# - NPM_TOKEN:  Not required. Only needed to bootstrap a brand-new npm package.
 #
-# npm publishing prefers Trusted Publishing (OIDC), but OIDC can only publish a package
-# that already exists, because the trusted publisher is configured per package in the
-# npm UI. Set NPM_TOKEN for the first publish, then configure the trusted publisher at
-# npmjs.com -> Package Settings -> Trusted Publisher and remove the secret again.
-# The bootstrap token must be granular, keep the default all-packages scope (a package
-# that does not exist cannot be selected) and have "Bypass two-factor authentication"
-# ticked, or the publish stops at a 2FA prompt no runner can answer.
-# See docs/RELEASE-STRATEGY.md, "Enabling npm publishing".
+# npm publishing uses Trusted Publishing (OIDC) and needs no secret: both skill packages
+# have a trusted publisher bound to this workflow file. OIDC requires npm 11.5.1 or newer,
+# and the pinned Node runtime still bundles npm 10, so the publish job upgrades npm and
+# refuses to continue on an older one instead of silently looking for a token.
+#
+# NPM_TOKEN is only needed to bootstrap a package that does not exist yet, because a
+# trusted publisher is configured per package and cannot be set up in advance. Such a
+# token must be granular, keep the default all-packages scope (a package that does not
+# exist cannot be selected) and have "Bypass two-factor authentication" ticked, or the
+# publish stops at a 2FA prompt no runner can answer.
+# See docs/RELEASE-STRATEGY.md, "npm publishing".
 
 on:
   workflow_dispatch:
@@ -716,11 +719,13 @@ jobs:
         name: npm-skill-packages
         path: npm-packages
 
-    # Trusted Publishing (OIDC) can only publish a package that already exists, because
-    # the trusted publisher is configured per package in the npm UI. Both skill packages
-    # are new, so an OIDC-only release can never create them - which is why every release
-    # up to v1.0.3 failed here. This runs before the NuGet push because that step is
-    # irreversible: a version pushed to NuGet.org cannot be replaced.
+    # Runs before the NuGet push because that step is irreversible: a version pushed to
+    # NuGet.org cannot be replaced. Everything npm needs is therefore proven here.
+    #
+    # Two authentication paths exist. Trusted Publishing (OIDC) is preferred but can only
+    # publish a package that already exists, because the trusted publisher is configured
+    # per package in the npm UI - which is why every release up to v1.0.3 failed here,
+    # when both skill packages were still new. A token bootstraps that first publish.
     - name: Preflight npm publishing
       if: ${{ inputs.publish_npm }}
       shell: pwsh
@@ -732,14 +737,20 @@ jobs:
             npm view $package version --registry https://registry.npmjs.org/ 2>$null | Out-Null
             if ($LASTEXITCODE -ne 0) { $missing += $package }
         }
-        if ($missing.Count -eq 0) {
-            Write-Output "Both packages exist on npm; publishing an update."
-            exit 0
+
+        if ($missing.Count -gt 0 -and -not $env:NPM_TOKEN) {
+            Write-Output "::error::These packages do not exist on npm yet: $($missing -join ', ')."
+            Write-Output "Trusted Publishing (OIDC) cannot create a package - it only authorises"
+            Write-Output "publishes for a package that already exists and has a trusted publisher."
+            Write-Output "Add a granular npm token as the NPM_TOKEN repository secret to bootstrap them,"
+            Write-Output "or dispatch the release with publish_npm: false to release everything else."
+            Write-Output "See docs/RELEASE-STRATEGY.md, 'npm publishing'."
+            exit 1
         }
+
         if ($env:NPM_TOKEN) {
-            # Presence is not validity. Everything after this step is irreversible, so
-            # prove the credential works now rather than discovering it is wrong after
-            # NuGet has been pushed.
+            # Presence is not validity. Prove the credential works now rather than
+            # discovering it is wrong after NuGet has been pushed.
             $npmrc = Join-Path $env:USERPROFILE '.npmrc'
             Set-Content -Path $npmrc -Value "//registry.npmjs.org/:_authToken=$env:NPM_TOKEN"
             $who = npm whoami --registry https://registry.npmjs.org/ 2>&1
@@ -750,16 +761,26 @@ jobs:
                 Write-Output "and 'Bypass two-factor authentication' ticked, then update the secret."
                 exit 1
             }
-            Write-Output "First publish for: $($missing -join ', '). Authenticated to npm as $who."
+            Write-Output "npm authentication: NPM_TOKEN (authenticated as $who)."
             exit 0
         }
-        Write-Output "::error::These packages do not exist on npm yet: $($missing -join ', ')."
-        Write-Output "Trusted Publishing (OIDC) cannot create a package - it only authorises"
-        Write-Output "publishes for a package that already exists and has a trusted publisher."
-        Write-Output "Add a granular npm token as the NPM_TOKEN repository secret to bootstrap them,"
-        Write-Output "or dispatch the release with publish_npm: false to release everything else."
-        Write-Output "See docs/RELEASE-STRATEGY.md, 'Enabling npm publishing'."
-        exit 1
+
+        # OIDC path. npm only learned trusted publishing in 11.5.1 and the Node 22 runtime
+        # pinned above still bundles npm 10, which has no OIDC support at all - it would
+        # quietly fall back to looking for a token that no longer exists.
+        npm install -g npm@latest 2>&1 | Out-Null
+        $raw = (npm --version | Select-Object -Last 1).Trim()
+        if ($raw -notmatch '^(\d+\.\d+\.\d+)') {
+            Write-Output "::error::Could not determine the npm version (got '$raw')."
+            exit 1
+        }
+        $npmVersion = [version]$Matches[1]
+        if ($npmVersion -lt [version]'11.5.1') {
+            Write-Output "::error::npm $npmVersion cannot use Trusted Publishing; 11.5.1 or newer is required."
+            Write-Output "Upgrading npm failed, so raise NODE_VERSION or install npm@latest explicitly."
+            exit 1
+        }
+        Write-Output "npm authentication: OIDC trusted publishing (npm $npmVersion)."
 
     # A publisher that was just created has no extensions yet, which is exactly the
     # state this preflight exists for. Asking the extension query about the publisher
@@ -818,20 +839,28 @@ jobs:
         registryUrl: https://marketplace.visualstudio.com
         extensionFile: vscode-vsix/PptMcp-${{ env.VERSION }}.vsix
 
+    # A freshly uploaded extension goes through Marketplace validation before it appears
+    # in the gallery, so a single immediate query would fail every first-time publish.
     - name: Verify Marketplace listing
       if: ${{ inputs.publish_vscode }}
       shell: pwsh
       run: |
         $body = '{"filters":[{"criteria":[{"filterType":7,"value":"trsdn.ppt-mcp"}],"pageNumber":1,"pageSize":1}],"flags":914}'
         $headers = @{ Accept = 'application/json;api-version=7.2-preview.1'; 'Content-Type' = 'application/json' }
-        $response = Invoke-RestMethod -Uri 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' -Method Post -Headers $headers -Body $body
-        $extension = $response.results[0].extensions
-        if (-not $extension) {
-            Write-Output "::error::trsdn.ppt-mcp is not listed on the Marketplace after publishing."
-            Write-Output "Create the 'trsdn' publisher at https://marketplace.visualstudio.com/manage first."
-            exit 1
+        $deadline = (Get-Date).AddMinutes(10)
+        while ((Get-Date) -lt $deadline) {
+            $response = Invoke-RestMethod -Uri 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' -Method Post -Headers $headers -Body $body
+            $extension = $response.results[0].extensions
+            if ($extension) {
+                Write-Output "Marketplace listing confirmed: version $($extension[0].versions[0].version)"
+                exit 0
+            }
+            Write-Output "Waiting for Marketplace validation to publish trsdn.ppt-mcp..."
+            Start-Sleep -Seconds 30
         }
-        Write-Output "Marketplace listing confirmed: version $($extension[0].versions[0].version)"
+        Write-Output "::error::trsdn.ppt-mcp is not listed 10 minutes after publishing."
+        Write-Output "Check the validation status at https://marketplace.visualstudio.com/manage/publishers/trsdn"
+        exit 1
 
     - name: Setup npm registry
       if: ${{ inputs.publish_npm }}
@@ -854,7 +883,22 @@ jobs:
             Write-Output "npm authentication: NPM_TOKEN"
         } else {
             if (Test-Path $npmrc) { Remove-Item $npmrc }
-            Write-Output "npm authentication: OIDC trusted publishing"
+            # setup-node above may have put Node's bundled npm back in front of the copy
+            # upgraded during preflight, so assert the OIDC-capable version at the point
+            # of use rather than trusting step ordering.
+            $raw = (npm --version | Select-Object -Last 1).Trim()
+            if ($raw -match '^(\d+\.\d+\.\d+)' -and [version]$Matches[1] -ge [version]'11.5.1') {
+                $npmVersion = $Matches[1]
+            } else {
+                npm install -g npm@latest 2>&1 | Out-Null
+                $raw = (npm --version | Select-Object -Last 1).Trim()
+                if ($raw -notmatch '^(\d+\.\d+\.\d+)' -or [version]$Matches[1] -lt [version]'11.5.1') {
+                    Write-Output "::error::npm $raw cannot use Trusted Publishing; 11.5.1 or newer is required."
+                    exit 1
+                }
+                $npmVersion = $Matches[1]
+            }
+            Write-Output "npm authentication: OIDC trusted publishing (npm $npmVersion)"
         }
         npm config set registry https://registry.npmjs.org/
 
@@ -876,17 +920,31 @@ jobs:
         cd npm-packages/ppt-cli-skill
         npm publish --provenance --access public
 
+    # npm's read path is eventually consistent: during the v1.1.0 release both packages
+    # published successfully but `npm view` still 404'd two seconds later, which failed
+    # an otherwise complete release. Poll instead of asking once.
     - name: Verify npm packages are listed
       if: ${{ inputs.publish_npm }}
       shell: pwsh
       run: |
-        $failed = @()
-        foreach ($package in @('ppt-mcp-skill', 'ppt-cli-skill')) {
-            npm view "$package@$env:VERSION" version 2>$null | Out-Null
-            if ($LASTEXITCODE -ne 0) { $failed += $package }
+        $pending = [System.Collections.ArrayList]@('ppt-mcp-skill', 'ppt-cli-skill')
+        $deadline = (Get-Date).AddMinutes(5)
+        while ($pending.Count -gt 0 -and (Get-Date) -lt $deadline) {
+            foreach ($package in @($pending)) {
+                npm view "$package@$env:VERSION" version 2>$null | Out-Null
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Output "Confirmed on npm: $package@$env:VERSION"
+                    $pending.Remove($package)
+                }
+            }
+            if ($pending.Count -gt 0) {
+                Write-Output "Waiting for npm to index: $($pending -join ', ')"
+                Start-Sleep -Seconds 15
+            }
         }
-        if ($failed.Count -gt 0) {
-            Write-Output "::error::Not on npm after publishing: $($failed -join ', ')"
+        if ($pending.Count -gt 0) {
+            Write-Output "::error::Not on npm 5 minutes after publishing: $($pending -join ', ')"
+            Write-Output "The publish steps above reported success, so check https://www.npmjs.com/package/$($pending[0])"
             exit 1
         }
         Write-Output "npm listings confirmed for version $env:VERSION"

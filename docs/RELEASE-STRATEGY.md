@@ -123,15 +123,15 @@ After workflow completes:
 
 | Target | Status |
 |---|---|
-| NuGet (`PptMcp.McpServer`, `PptMcp.CLI`) | published |
+| NuGet (`PptMcp.McpServer`, `PptMcp.CLI`) | published - 1.1.0 is live |
 | GitHub Release assets (VSIX, MCPB, ZIPs) | published |
-| MCP Registry (`io.github.trsdn/mcp-server-ppt`) | published - 1.0.1, 1.0.2 and 1.0.3 are live |
-| VS Code Marketplace (`trsdn.ppt-mcp`) | **not published** - the `trsdn` publisher now exists, the extension does not. See below |
-| npm (`ppt-mcp-skill`, `ppt-cli-skill`) | **not published** - see below |
+| MCP Registry (`io.github.trsdn/mcp-server-ppt`) | published - 1.0.1 through 1.1.0 are live |
+| npm (`ppt-mcp-skill`, `ppt-cli-skill`) | published - first release was 1.1.0, now tokenless via OIDC |
+| VS Code Marketplace (`trsdn.ppt-mcp`) | **not published** - the `trsdn` publisher exists, the extension does not. See below |
 
 The v1.0.3 run reported all of these as successful because each carried
 `continue-on-error: true`, so a failed publish looked exactly like a successful one.
-That masking is gone. Both remaining gaps now fail loudly, and both are checked in a
+That masking is gone. The remaining gap fails loudly, and it is checked in a
 preflight step that runs **before** the NuGet push, because a version pushed to
 NuGet.org cannot be replaced.
 
@@ -143,46 +143,58 @@ dotnet package search PptMcp.McpServer --exact-match
 Invoke-RestMethod "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.trsdn"
 ```
 
-### Enabling npm publishing
+### npm publishing
 
-The workflow publishes with Trusted Publishing (OIDC), which **cannot create a package
-that does not exist yet**: the trusted publisher is configured per package in the npm
-UI, and that page only exists once the package does. Both skill packages are new, so
-every OIDC-only release failed at this step. Breaking the deadlock is a one-time job:
+Both skill packages publish through **Trusted Publishing (OIDC)** and need no secret.
+Each package has a trusted publisher bound to repository `trsdn/mcp-server-ppt` and
+workflow `release.yml`, and the publish job carries `id-token: write`.
 
-1. Create the token at <https://www.npmjs.com/settings/trsdn/tokens> -> **Generate New
-   Token**. Three settings are not obvious and each one breaks the bootstrap if it is
-   wrong:
-   - **Type: granular.** Legacy "automation" tokens were removed in November 2025;
-     granular access tokens are the only kind that still exists.
-   - **Leave "Packages and scopes" at its default (all packages).** The picker only
-     lists packages that already exist, so `ppt-mcp-skill` and `ppt-cli-skill` cannot
-     be selected - that is the very deadlock this step exists to break. A token scoped
-     to specific packages cannot create a new one.
-   - **Tick "Bypass two-factor authentication".** It defaults to off, and a token
-     without it triggers an interactive 2FA challenge on publish, which a CI runner
-     cannot answer. Only skip this if the account has no 2FA at all.
+Two things about this setup are easy to get wrong:
 
-   Give the token a short expiry - it is needed for exactly one release.
-2. Add it as the `NPM_TOKEN` repository secret without printing it:
-   `Get-Clipboard | gh secret set NPM_TOKEN --repo trsdn/mcp-server-ppt`
-3. Run a release. The preflight detects the missing packages, sees the token and
-   bootstraps both packages.
-4. Switch to tokenless publishing and **delete the secret**: configure the trusted
-   publisher for each package (npmjs.com -> Package -> Settings -> Trusted Publisher,
-   repository `trsdn/mcp-server-ppt`, workflow `release.yml`), then delete the
-   `NPM_TOKEN` secret.
-   The workflow drops the token line from `.npmrc` when the secret is absent, so the
-   OIDC path stays clean.
+- **npm must be 11.5.1 or newer.** OIDC trusted publishing did not exist before that
+  release, and the Node version pinned by the workflow still bundles npm 10. An older
+  npm does not fail with a clear message - it quietly falls back to looking for a token
+  that is no longer there. The publish job therefore upgrades npm and refuses to
+  continue below 11.5.1.
+- **`repository.url` in each `package.json` must match this repository exactly.** npm
+  validates it against the OIDC claim, so a package inherited from the upstream project
+  would be rejected. Both packages point at `trsdn/mcp-server-ppt`.
+
+`NPM_TOKEN` is **not** part of normal operation. It is only needed to bootstrap a
+package that does not exist yet, because a trusted publisher is configured per package
+and that settings page only exists once the package does. If that ever comes up again -
+a renamed or additional package - create the token at
+<https://www.npmjs.com/settings/trsdn/tokens>, where three settings are not obvious and
+each one breaks the bootstrap if it is wrong:
+
+- **Type: granular.** Legacy "automation" tokens were removed in November 2025;
+  granular access tokens are the only kind that still exists.
+- **Leave "Packages and scopes" at its default (all packages).** The picker only lists
+  packages that already exist, so a new package cannot be selected - that is the very
+  deadlock the token exists to break.
+- **Tick "Bypass two-factor authentication".** It defaults to off, and a token without
+  it triggers an interactive 2FA challenge on publish, which a CI runner cannot answer.
+
+Add it as `NPM_TOKEN` without printing it
+(`Get-Clipboard | gh secret set NPM_TOKEN --repo trsdn/mcp-server-ppt`), run one
+release, then configure the trusted publisher for the new package and **delete the
+secret again**. While the secret exists the workflow uses it in preference to OIDC, so
+leaving it in place means the tokenless path is never actually exercised.
 
 Do not try to publish from a corporate workstation. `registry.npmjs.org` is not
 reachable here: it fails during the TLS handshake, while the configured mirror
 `packagefeedproxy.microsoft.io` answers normally. Publishing only works from the
 runner. The same mirror also serves `npm view`, so a freshly published version may not
 show up there for a while - confirm a publish on npmjs.com, not through the mirror.
+The provenance attestation is a mirror-independent proof that a publish happened:
 
-Until a token exists, dispatch releases with `publish_npm: false`. Everything else -
-NuGet, the GitHub release assets and the MCP Registry - publishes normally.
+```powershell
+# logIndex comes from the "Provenance statement published to transparency log" line
+$r = Invoke-RestMethod 'https://rekor.sigstore.dev/api/v1/log/entries?logIndex=<index>'
+$k = ($r | Get-Member -MemberType NoteProperty)[0].Name
+[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($r.$k.attestation.data)) |
+    ConvertFrom-Json | Select-Object -ExpandProperty subject
+```
 
 ### Enabling the VS Code Marketplace
 
@@ -283,7 +295,7 @@ Configure these GitHub repository secrets:
 |--------|---------|
 | `NUGET_USER` | NuGet.org username (for OIDC trusted publishing) |
 | `VSCE_TOKEN` | VS Code Marketplace PAT |
-| `NPM_TOKEN` | Optional. Only needed to bootstrap npm packages that do not exist yet, or when Trusted Publishing is not configured. See "Enabling npm publishing" |
+| `NPM_TOKEN` | Not required. npm publishes via OIDC. Only needed to bootstrap a package that does not exist yet - see "npm publishing" |
 
 > **Note:** NuGet uses OIDC trusted publishing (no API key needed). The `NUGET_USER` is just the NuGet.org profile name for OIDC token exchange.
 
@@ -307,7 +319,10 @@ Configure these GitHub repository secrets:
 ### npm Publishing Fails
 
 - `ENEEDAUTH` or 404 on a first publish: Trusted Publishing cannot create a new package.
-  Set `NPM_TOKEN` once to bootstrap it (see "Enabling npm publishing")
+  Set `NPM_TOKEN` once to bootstrap it (see "npm publishing")
+- `ENEEDAUTH` on a package that already has a trusted publisher: check that npm is
+  11.5.1 or newer. Older npm has no OIDC support and looks for a token instead. The
+  workflow asserts this, but a manual publish from an old toolchain will hit it
 - `EOTP`, or a prompt for a one-time password: the granular token was created without
   **Bypass two-factor authentication**, which is off by default. A runner cannot answer
   the challenge. Recreate the token with that box ticked
@@ -315,7 +330,12 @@ Configure these GitHub repository secrets:
   yet: the token was scoped to specific packages. A package that does not exist cannot
   be selected, so the bootstrap token has to keep the default all-packages scope
 - Package exists but publishing is rejected: check the trusted publisher points at
-  `trsdn/mcp-server-ppt` and workflow `release.yml`
+  `trsdn/mcp-server-ppt` and workflow `release.yml`, and that `repository.url` in the
+  package's `package.json` matches this repository - npm validates it against the OIDC
+  claim, which is a common trap in a fork
+- Publishing succeeded but the verification step failed: npm's read path is eventually
+  consistent. The verification polls for five minutes; if it still fails, check
+  npmjs.com directly rather than a mirror
 
 ### MCPB Build Fails
 
