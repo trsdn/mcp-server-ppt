@@ -77,9 +77,9 @@ Before creating a release tag, ensure all changes are documented under `## [Unre
 3. Or enter a **custom version** (e.g., `1.5.7`) to override the bump
 4. Two publishing targets are switched separately, because neither is configured to
    fail silently any more:
-   - **publish_npm** (default on): turn it off to release everything else while npm is
-     still unconfigured. Left on without a usable credential, the preflight stops the
-     whole release before anything is published
+   - **publish_npm** (default on): turn it off to release everything else if npm is
+     unavailable. Left on while a skill package is missing from npm, the preflight stops
+     the whole release before anything is published, since OIDC cannot create a package
    - **publish_vscode** (default off): turn it on once the Marketplace publisher and
      `VSCE_TOKEN` are in place
 
@@ -160,26 +160,16 @@ Two things about this setup are easy to get wrong:
   validates it against the OIDC claim, so a package inherited from the upstream project
   would be rejected. Both packages point at `trsdn/mcp-server-ppt`.
 
-`NPM_TOKEN` is **not** part of normal operation. It is only needed to bootstrap a
-package that does not exist yet, because a trusted publisher is configured per package
-and that settings page only exists once the package does. If that ever comes up again -
-a renamed or additional package - create the token at
-<https://www.npmjs.com/settings/trsdn/tokens>, where three settings are not obvious and
-each one breaks the bootstrap if it is wrong:
+There is no token path. `NPM_TOKEN` used to exist to bootstrap a package that did not
+exist yet - a trusted publisher is configured per package and that settings page only
+appears once the package does - and both skill packages were bootstrapped during the
+v1.1.0 release. The workflow now uses OIDC exclusively, and the preflight fails the
+release if a package it is asked to publish is missing from npm, because OIDC cannot
+create one.
 
-- **Type: granular.** Legacy "automation" tokens were removed in November 2025;
-  granular access tokens are the only kind that still exists.
-- **Leave "Packages and scopes" at its default (all packages).** The picker only lists
-  packages that already exist, so a new package cannot be selected - that is the very
-  deadlock the token exists to break.
-- **Tick "Bypass two-factor authentication".** It defaults to off, and a token without
-  it triggers an interactive 2FA challenge on publish, which a CI runner cannot answer.
-
-Add it as `NPM_TOKEN` without printing it
-(`Get-Clipboard | gh secret set NPM_TOKEN --repo trsdn/mcp-server-ppt`), run one
-release, then configure the trusted publisher for the new package and **delete the
-secret again**. While the secret exists the workflow uses it in preference to OIDC, so
-leaving it in place means the tokenless path is never actually exercised.
+If a *new* skill package is ever added, break that deadlock outside CI: publish its
+first version manually from a machine that can reach `registry.npmjs.org`, bind a
+trusted publisher to it in the npm UI, and only then wire it into the workflow.
 
 Do not try to publish from a corporate workstation. `registry.npmjs.org` is not
 reachable here: it fails during the TLS handshake, while the configured mirror
@@ -295,7 +285,6 @@ Configure these GitHub repository secrets:
 |--------|---------|
 | `NUGET_USER` | NuGet.org username (for OIDC trusted publishing) |
 | `VSCE_TOKEN` | VS Code Marketplace PAT |
-| `NPM_TOKEN` | Not required. npm publishes via OIDC. Only needed to bootstrap a package that does not exist yet - see "npm publishing" |
 
 > **Note:** NuGet uses OIDC trusted publishing (no API key needed). The `NUGET_USER` is just the NuGet.org profile name for OIDC token exchange.
 
@@ -319,23 +308,20 @@ Configure these GitHub repository secrets:
 ### npm Publishing Fails
 
 - `ENEEDAUTH` or 404 on a first publish: Trusted Publishing cannot create a new package.
-  Set `NPM_TOKEN` once to bootstrap it (see "npm publishing")
+  Publish the first version manually and bind a trusted publisher to it (see "npm
+  publishing"). The preflight catches this before the irreversible NuGet push
 - `ENEEDAUTH` on a package that already has a trusted publisher: check that npm is
   11.5.1 or newer. Older npm has no OIDC support and looks for a token instead. The
   workflow asserts this, but a manual publish from an old toolchain will hit it
-- `EOTP`, or a prompt for a one-time password: the granular token was created without
-  **Bypass two-factor authentication**, which is off by default. A runner cannot answer
-  the challenge. Recreate the token with that box ticked
-- `E403` with "you do not have permission to publish" on a package that does not exist
-  yet: the token was scoped to specific packages. A package that does not exist cannot
-  be selected, so the bootstrap token has to keep the default all-packages scope
 - Package exists but publishing is rejected: check the trusted publisher points at
   `trsdn/mcp-server-ppt` and workflow `release.yml`, and that `repository.url` in the
   package's `package.json` matches this repository - npm validates it against the OIDC
   claim, which is a common trap in a fork
 - Publishing succeeded but the verification step failed: npm's read path is eventually
-  consistent. The verification polls for five minutes; if it still fails, check
-  npmjs.com directly rather than a mirror
+  consistent. The verification makes five attempts 15s apart against
+  `https://registry.npmjs.org/<package>` and compares the exact version string against
+  the keys of the `versions` object. If it still fails, check npmjs.com directly rather
+  than a mirror - the publish itself is not undone by a failed verification
 
 ### MCPB Build Fails
 
