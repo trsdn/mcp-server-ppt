@@ -19,7 +19,9 @@ name: Release All Components
 # npm publishing uses Trusted Publishing (OIDC) and needs no secret: ppt-mcp-skill and
 # ppt-cli-skill both exist on npm and have a trusted publisher bound to this workflow
 # file. OIDC requires npm 11.5.1 or newer, and the pinned Node runtime still bundles
-# npm 10, so the publish job upgrades npm and refuses to continue on an older one.
+# npm 10, so the publish job upgrades npm to ^11.5.1 and refuses to continue on an
+# older one. The upper bound is deliberate: npm 12 blocks dependency install scripts
+# by default. See docs/RELEASE-STRATEGY.md, "npm publishing".
 #
 # There is no token path any more. It existed only to bootstrap a package that did not
 # exist yet - a trusted publisher is configured per package and cannot be set up in
@@ -762,7 +764,14 @@ jobs:
         # npm only learned trusted publishing in 11.5.1 and the Node 22 runtime
         # pinned above still bundles npm 10, which has no OIDC support at all - it would
         # quietly fall back to looking for a token that no longer exists.
-        npm install -g npm@latest 2>&1 | Out-Null
+        #
+        # Pinned to ^11.5.1 rather than @latest on purpose: npm 12 blocks dependency
+        # install scripts by default, which has already broken release runs in sibling
+        # repositories (a native binding that never got built, and a rejected esbuild
+        # binary). ^11.5.1 stays above the OIDC minimum and below that breaking major.
+        # Raise the bound deliberately, having checked npm 12's allow-scripts policy -
+        # do not "tidy" it back to @latest.
+        npm install -g "npm@^11.5.1" 2>&1 | Out-Null
         $raw = (npm --version | Select-Object -Last 1).Trim()
         if ($raw -notmatch '^(\d+\.\d+\.\d+)') {
             Write-Output "::error::Could not determine the npm version (got '$raw')."
@@ -771,7 +780,7 @@ jobs:
         $npmVersion = [version]$Matches[1]
         if ($npmVersion -lt [version]'11.5.1') {
             Write-Output "::error::npm $npmVersion cannot use Trusted Publishing; 11.5.1 or newer is required."
-            Write-Output "Upgrading npm failed, so raise NODE_VERSION or install npm@latest explicitly."
+            Write-Output "Upgrading npm failed, so raise NODE_VERSION or install npm@^11.5.1 explicitly."
             exit 1
         }
         Write-Output "npm authentication: OIDC trusted publishing (npm $npmVersion)."
@@ -887,7 +896,9 @@ jobs:
         if ($raw -match '^(\d+\.\d+\.\d+)' -and [version]$Matches[1] -ge [version]'11.5.1') {
             $npmVersion = $Matches[1]
         } else {
-            npm install -g npm@latest 2>&1 | Out-Null
+            # Same ^11.5.1 pin as the preflight: above the OIDC minimum, below npm 12,
+            # which blocks dependency install scripts by default.
+            npm install -g "npm@^11.5.1" 2>&1 | Out-Null
             $raw = (npm --version | Select-Object -Last 1).Trim()
             if ($raw -notmatch '^(\d+\.\d+\.\d+)' -or [version]$Matches[1] -lt [version]'11.5.1') {
                 Write-Output "::error::npm $raw cannot use Trusted Publishing; 11.5.1 or newer is required."

@@ -151,11 +151,21 @@ workflow `release.yml`, and the publish job carries `id-token: write`.
 
 Two things about this setup are easy to get wrong:
 
-- **npm must be 11.5.1 or newer.** OIDC trusted publishing did not exist before that
-  release, and the Node version pinned by the workflow still bundles npm 10. An older
-  npm does not fail with a clear message - it quietly falls back to looking for a token
-  that is no longer there. The publish job therefore upgrades npm and refuses to
-  continue below 11.5.1.
+- **npm must be 11.5.1 or newer, and below 12.** OIDC trusted publishing did not exist
+  before 11.5.1, and the Node version pinned by the workflow still bundles npm 10. An
+  older npm does not fail with a clear message - it quietly falls back to looking for a
+  token that is no longer there. The publish job therefore installs `npm@^11.5.1` and
+  refuses to continue below 11.5.1.
+
+  The upper bound matters as much as the lower one. `npm@latest` is now npm 12, which
+  **blocks dependency install scripts by default**. That has already broken release runs
+  in sibling repositories - a native binding that never got built in `trsdn/nanopielot`,
+  and a rejected `esbuild` binary in `trsdn/aiscrum-pro`, which surfaces locally as
+  `npm warn allow-scripts N packages have install scripts not yet covered by
+  allowScripts`. Neither skill package here declares dependencies or lifecycle scripts,
+  so this repository is not acutely exposed; the pin exists so that a future npm major
+  cannot break a release unannounced. Raise it deliberately after checking npm 12's
+  allow-scripts policy - do not "tidy" it back to `@latest`.
 - **`repository.url` in each `package.json` must match this repository exactly.** npm
   validates it against the OIDC claim, so a package inherited from the upstream project
   would be rejected. Both packages point at `trsdn/mcp-server-ppt`.
