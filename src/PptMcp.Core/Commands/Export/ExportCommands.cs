@@ -255,7 +255,9 @@ public class ExportCommands : IExportCommands
                             dynamic shape = shapes.Item(j);
                             try
                             {
-                                if ((bool)shape.HasTextFrame)
+                                // Shape.HasTextFrame is an MsoTriState (msoTrue = -1), not a
+                                // VBA Boolean. A direct (bool) cast throws (GitHub #124).
+                                if (Convert.ToInt32(shape.HasTextFrame) != 0)
                                 {
                                     dynamic textFrame = shape.TextFrame;
                                     dynamic textRange = textFrame.TextRange;

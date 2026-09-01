@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using PptMcp.McpServer.Tools;
+using PptMcp.Service;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -223,6 +224,57 @@ public class McpServerIntegrationTests(ITestOutputHelper output) : IAsyncLifetim
         Assert.Empty(unexpectedTools);
 
         output.WriteLine($"\n✓ All {ExpectedToolNames.Count} tools discovered successfully via MCP protocol");
+    }
+
+    /// <summary>
+    /// Discovery alone is not a gate. Every tool advertised over the MCP protocol must
+    /// also be routable through <see cref="PptMcpService"/>.
+    ///
+    /// Before GitHub #124 this test would have failed for 11 tools: they were listed by
+    /// <c>ListToolsAsync</c> but every invocation returned "Unknown command category"
+    /// because the hand-written category switch had drifted from the generated surface.
+    /// The old smoke test only listed tools, so the drift shipped undetected.
+    ///
+    /// Needs no PowerPoint: dispatch validates the action before acquiring a session.
+    /// </summary>
+    [Fact]
+    public async Task SmokeTest_EveryAdvertisedTool_IsRoutable()
+    {
+        const string unroutableAction = "zzz-not-a-real-action";
+
+        var tools = await _client!.ListToolsAsync(cancellationToken: _cts.Token);
+        using var service = new PptMcpService();
+
+        var unroutable = new List<string>();
+
+        foreach (var tool in tools.OrderBy(t => t.Name))
+        {
+            // 'file' is session management, handled by the hand-coded PptFileTool rather
+            // than a generated command category.
+            if (tool.Name == "file")
+            {
+                continue;
+            }
+
+            var response = await service.ProcessAsync(new ServiceRequest
+            {
+                Command = $"{tool.Name}.{unroutableAction}",
+            });
+
+            if (response.ErrorMessage?.Contains("Unknown command category", StringComparison.Ordinal) != false)
+            {
+                unroutable.Add(tool.Name);
+                output.WriteLine($"  ✗ {tool.Name}: {response.ErrorMessage}");
+            }
+        }
+
+        if (unroutable.Count > 0)
+        {
+            output.WriteLine($"\n❌ Advertised but unroutable: {string.Join(", ", unroutable)}");
+        }
+
+        Assert.Empty(unroutable);
+        output.WriteLine($"\n✓ All {tools.Count - 1} command tools are routable through PptMcpService");
     }
 
     /// <summary>
