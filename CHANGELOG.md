@@ -14,6 +14,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **`OleMessageFilterTests` asserted the opposite of correct COM behaviour, and could never pass**: the test declared `PENDINGMSG_WAITDEFPROCESS = 1` and `PENDINGMSG_WAITNOPROCESS = 2`. The Win32 header has them the other way round - `PENDINGMSG_CANCELCALL = 0`, `PENDINGMSG_WAITNOPROCESS = 1`, `PENDINGMSG_WAITDEFPROCESS = 2` - and the test's prose repeated the same inversion.
+  - The production code returns 2, which is correct, so the two assertions were mutually unsatisfiable and the test had been deterministically red. It was not flake: it fails in isolation, on a COM-free path
+  - The danger was not the red test. Anyone "fixing" the code to satisfy it would have changed the return to 1 - `WAITNOPROCESS` - which is precisely the value that blocks inbound COM dispatch and causes the STA deadlock the test claims to guard against
+  - Constants corrected, `PENDINGMSG_CANCELCALL` added to the assertions, and the explanatory prose rewritten to match the header
+
 - **`slide list` and `slide read` leaked COM proxies on every call** (#126): both operations built their metadata from inline COM member chains - `slide.Design.SlideMaster.Name`, and a six-hop `slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text` - wrapped in swallowing `catch` blocks. The intermediate proxies were never bound to a local, so `ComUtilities.Release` could not be called on them **even in principle**; they were abandoned to the GC, and each abandoned RCW holds the out-of-process PowerPoint server alive until a finalizer happens to run. A single `slide list` over a 40-slide deck abandoned several hundred.
   - `check-com-leaks.ps1` reported this file as "Proper COM cleanup" throughout. It reasons about `dynamic` locals and their matching `Release` calls, so a leak that is entirely inline is invisible to it - a gate reporting success without evidence, which is the failure mode this repository's own conventions single out
   - Added `scripts/check-inline-com-chains.ps1`, wired into `pre-commit.ps1`, with a per-file ratchet in `scripts/inline-com-chains-baseline.txt`. Verified by injecting a chain and watching it fail. 182 chains predate the gate; `SlideCommands.cs` went from 13 to 4 and the baseline was lowered to 173
@@ -160,3 +165,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Session management** — Shared sessions between MCP Server and CLI
 - **Parameter validation** — All required string parameters validated before COM execution
 - **COM resource safety** — All COM objects released in finally blocks to prevent leaks
+
