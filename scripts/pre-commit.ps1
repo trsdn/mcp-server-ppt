@@ -124,6 +124,30 @@ catch {
 }
 
 Write-Host ""
+Write-Host "Checking for new inline COM member chains..." -ForegroundColor Cyan
+
+# check-com-leaks.ps1 reasons about `dynamic` locals and their Release calls, so it
+# cannot see `slide.Design.SlideMaster.Name` - proxies that are never bound to
+# anything and therefore can never be released. It reported SlideCommands.cs as
+# "Proper COM cleanup" while that file leaked on every `slide list`.
+try {
+    $chainScript = Join-Path $rootDir "scripts\check-inline-com-chains.ps1"
+    & $chainScript
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "New inline COM member chains detected!" -ForegroundColor Red
+        Write-Host "   Bind each COM hop to a local and release it in a finally block." -ForegroundColor Red
+        exit 1
+    }
+}
+catch {
+    Write-Host ""
+    Write-Host "Error running inline COM chain check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
 Write-Host "Checking documented test filters resolve to real tests..." -ForegroundColor Cyan
 
 # A documented filter that matches no tests is worse than no guidance at all:

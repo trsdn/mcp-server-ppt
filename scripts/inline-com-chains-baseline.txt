@@ -1,0 +1,27 @@
+# Inline COM member chains per file. See check-inline-com-chains.ps1.
+# Counts may only go down. Regenerate with -UpdateBaseline.
+# Total at last update: 173
+src\PptMcp.Core\Commands\Accessibility\AccessibilityCommands.cs=1
+src\PptMcp.Core\Commands\Animation\AnimationCommands.cs=1
+src\PptMcp.Core\Commands\Background\BackgroundCommands.cs=8
+src\PptMcp.Core\Commands\Chart\ChartCommands.cs=13
+src\PptMcp.Core\Commands\Comment\CommentCommands.cs=3
+src\PptMcp.Core\Commands\CustomShow\CustomShowCommands.cs=3
+src\PptMcp.Core\Commands\Design\DesignCommands.cs=1
+src\PptMcp.Core\Commands\Export\ExportCommands.cs=1
+src\PptMcp.Core\Commands\Hyperlink\HyperlinkCommands.cs=3
+src\PptMcp.Core\Commands\Image\ImageCommands.cs=5
+src\PptMcp.Core\Commands\Master\MasterCommands.cs=3
+src\PptMcp.Core\Commands\Media\MediaCommands.cs=4
+src\PptMcp.Core\Commands\Notes\NotesCommands.cs=5
+src\PptMcp.Core\Commands\Placeholder\PlaceholderCommands.cs=4
+src\PptMcp.Core\Commands\Proofing\ProofingCommands.cs=4
+src\PptMcp.Core\Commands\Shape\ShapeCommands.cs=52
+src\PptMcp.Core\Commands\Slide\ShapeHelpers.cs=2
+src\PptMcp.Core\Commands\Slide\SlideCommands.cs=4
+src\PptMcp.Core\Commands\Slideshow\SlideshowCommands.cs=2
+src\PptMcp.Core\Commands\SlideTable\SlideTableCommands.cs=19
+src\PptMcp.Core\Commands\SmartArt\SmartArtCommands.cs=6
+src\PptMcp.Core\Commands\Tag\TagCommands.cs=1
+src\PptMcp.Core\Commands\Text\TextCommands.cs=26
+src\PptMcp.Core\Commands\Transition\TransitionCommands.cs=2

@@ -69,29 +69,39 @@ illustrative of relative size, not a contract.
 
 ## Feature-Specific Tests
 
-Rule 16: run only the feature you changed. These are the `Feature` trait values that
-actually exist:
+Rule 16: run only the feature you changed. **A `Feature` value lives in one or two
+specific projects** - pairing it with the wrong project yields a zero match, which
+`dotnet test` reports as success. The guard exists to catch exactly that.
 
-```
-ActionEnums    ActionValidation  Batch          Configuration  Design
-Diag           Export            File           FileLocking    Master
-McpProtocol    ParameterTransforms              PptBatch       PptMcpService
-PptSession     ServiceDaemon     ServiceRegistry               ServiceRouting
-SessionManager SkillGeneration   Slide          StreamJsonRpc  VersionCheck
-```
+| Feature | Project(s) |
+|---|---|
+| `ActionEnums`, `Configuration`, `File`, `McpProtocol`, `ServiceRouting`, `VersionCheck` | McpServer |
+| `ActionValidation`, `Batch`, `Diag`, `Master`, `PptMcpService`, `ServiceDaemon`, `StreamJsonRpc` | CLI |
+| `Export`, `ParameterTransforms`, `ServiceRegistry`, `Slide` | Core |
+| `FileLocking`, `PptBatch`, `PptSession` | ComInterop |
+| `Design` | CLI, McpServer |
+| `SessionManager` | ComInterop, McpServer |
+| `SkillGeneration` | SkillGeneration |
+
+**Most of `PptMcp.Core.Tests` carries no `Feature` trait at all.** Only four values
+appear there, so Rule 16's surgical workflow does not currently reach the bulk of the
+largest suite; for untagged Core work, run the project and rely on `RunType!=OnDemand`.
 
 ```powershell
 .\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.Core.Tests -Filter "Feature=Slide&RunType!=OnDemand"
 .\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.CLI.Tests  -Filter "Feature=Design&RunType!=OnDemand"
 ```
 
-Regenerate the list rather than trusting this block:
+Regenerate the mapping rather than trusting this table:
 
 ```powershell
 Get-ChildItem tests -Recurse -Filter *.cs |
+  Where-Object { $_.FullName -notmatch '\\(bin|obj)\\' } |
   Select-String -Pattern 'Trait\("Feature",\s*"([^"]+)"' -AllMatches |
-  ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value } |
-  Sort-Object -Unique
+  ForEach-Object {
+    $proj = ($_.Path -split '\\tests\\')[1].Split('\')[0]
+    foreach ($m in $_.Matches) { "$($m.Groups[1].Value) -> $proj" }
+  } | Sort-Object -Unique
 ```
 
 There are no `Shape`, `Text`, `Chart`, `Table`, `Animation`, `VBA`, `VBATrust` or
