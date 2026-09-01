@@ -305,6 +305,64 @@ public class McpServerIntegrationTests(ITestOutputHelper output) : IAsyncLifetim
     }
 
     /// <summary>
+    /// A tool-level description is not enough. The MCP SDK emits per-parameter
+    /// descriptions from <c>&lt;param&gt;</c> XML docs, and an LLM reads the parameter
+    /// schema — not the method summary — when deciding what to pass.
+    ///
+    /// <see cref="ListTools_AllToolsHaveValidSchema"/> only checked the tool level, so
+    /// 52 of 340 parameters across 9 tools shipped with <c>description = ""</c>,
+    /// including every parameter of the <c>file</c> tool (GitHub #128, Rule 18).
+    /// </summary>
+    [Fact]
+    public async Task ListTools_AllParametersHaveDescriptions()
+    {
+        output.WriteLine("=== PARAMETER DESCRIPTION VALIDATION ===\n");
+
+        var tools = await _client!.ListToolsAsync(cancellationToken: _cts.Token);
+
+        var undocumented = new List<string>();
+        var totalParameters = 0;
+
+        foreach (var tool in tools.OrderBy(t => t.Name))
+        {
+            if (!tool.JsonSchema.TryGetProperty("properties", out var properties))
+            {
+                continue;
+            }
+
+            foreach (var property in properties.EnumerateObject())
+            {
+                totalParameters++;
+
+                var hasDescription =
+                    property.Value.TryGetProperty("description", out var description)
+                    && !string.IsNullOrWhiteSpace(description.GetString());
+
+                if (!hasDescription)
+                {
+                    undocumented.Add($"{tool.Name}.{property.Name}");
+                }
+            }
+        }
+
+        output.WriteLine($"Tools: {tools.Count}  Parameters: {totalParameters}  Undocumented: {undocumented.Count}");
+
+        if (undocumented.Count > 0)
+        {
+            output.WriteLine("\n❌ Parameters with an empty description:");
+            foreach (var name in undocumented)
+            {
+                output.WriteLine($"  • {name}");
+            }
+        }
+
+        // Guard against the gate going quiet: a schema shape change that stops yielding
+        // properties would otherwise report a clean run having inspected nothing.
+        Assert.True(totalParameters > 200, $"Only {totalParameters} parameters inspected - schema shape changed?");
+        Assert.Empty(undocumented);
+    }
+
+    /// <summary>
     /// Tests that file tool's Test action works via MCP protocol.
     /// This exercises the complete tool invocation path.
     /// </summary>

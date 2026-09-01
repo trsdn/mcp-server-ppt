@@ -42,12 +42,12 @@ public static class PptFileTool
         + "REUSE: file(list) first — if file is already open, reuse the session_id. "
         + "show=true makes PowerPoint visible (Agent Mode). timeout_seconds: max operation time (default 300).")]
     public static string PptFile(
-        PptFileAction action,
-        [DefaultValue(null)] string? path,
-        [DefaultValue(null)] string? session_id,
-        [DefaultValue(false)] bool save,
-        [DefaultValue(false)] bool show,
-        [DefaultValue(300)] int timeout_seconds)
+        [Description("The action to perform")] PptFileAction action,
+        [Description("Absolute path to the .pptx/.pptm file (required for: open, create, test)"), DefaultValue(null)] string? path,
+        [Description("Session ID returned by 'open' or 'create' (required for: close, save, info)"), DefaultValue(null)] string? session_id,
+        [Description("Save the presentation before closing (used by: close)"), DefaultValue(false)] bool save,
+        [Description("Make the PowerPoint window visible instead of running hidden (used by: open, create)"), DefaultValue(false)] bool show,
+        [Description("Maximum time in seconds for a single operation (default 300)"), DefaultValue(300)] int timeout_seconds)
     {
         return PptToolsBase.ExecuteToolAction("file", action.ToString().ToLowerInvariant(), path, () =>
         {

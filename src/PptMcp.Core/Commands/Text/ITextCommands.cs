@@ -54,6 +54,16 @@ public interface ITextCommands
     /// Horizontal alignment: left, center, right, justify.
     /// Vertical alignment: top, middle, bottom.
     /// </summary>
+    /// <param name="batch">Batch context</param>
+    /// <param name="slideIndex">1-based slide index</param>
+    /// <param name="shapeName">Shape name</param>
+    /// <param name="fontName">Font family name, e.g. "Calibri" (null = don't change)</param>
+    /// <param name="fontSize">Font size in points (null = don't change)</param>
+    /// <param name="bold">Set bold (null = don't change)</param>
+    /// <param name="italic">Set italic (null = don't change)</param>
+    /// <param name="color">Font color as '#RRGGBB', e.g. "#0B3D91" (null = don't change)</param>
+    /// <param name="alignment">Horizontal alignment: left, center, right, justify (null = don't change)</param>
+    /// <param name="verticalAlignment">Vertical alignment: top, middle, bottom (null = don't change)</param>
     [ServiceAction("format")]
     OperationResult Format(IPptBatch batch, int slideIndex, string shapeName, string? fontName, float? fontSize, bool? bold, bool? italic, string? color, string? alignment, string? verticalAlignment);
 
