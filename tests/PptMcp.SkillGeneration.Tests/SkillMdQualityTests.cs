@@ -67,14 +67,65 @@ public class SkillMdQualityTests
     [Trait("Feature", "SkillGeneration")]
     public void McpSkill_HasTools()
     {
-        // MCP SKILL.md contains curated guidance, not auto-generated tool docs
-        // Tools are discovered via MCP schema at runtime
-        // Verify it has the expected curated content
-        var skillPath = Path.Combine(SkillsFolder, "ppt-mcp", "SKILL.md");
-        var content = File.ReadAllText(skillPath);
-        Assert.Contains("file", content);
-        Assert.Contains("range", content);
-        Assert.Contains("calculation_mode", content);
+        // The MCP skill is curated, not generated, so its tool table can drift away from
+        // the real tool surface without anything failing. Cross-check every tool it names
+        // against the generated CLI skill, which is emitted from the Core interfaces.
+        var mcpPath = Path.Combine(SkillsFolder, "ppt-mcp", "SKILL.md");
+        var cliPath = Path.Combine(SkillsFolder, "ppt-cli", "SKILL.md");
+        var mcpContent = File.ReadAllText(mcpPath);
+        var cliContent = File.ReadAllText(cliPath);
+
+        var realTools = Regex.Matches(cliContent, @"^### ([a-z][a-z0-9-]*)\s*$", RegexOptions.Multiline)
+            .Select(m => m.Groups[1].Value)
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.True(realTools.Count >= 20, $"Expected the generated CLI skill to document at least 20 tools, found {realTools.Count}");
+
+        var advertised = Regex.Matches(mcpContent, @"^\|[^|]+\|\s*`([^`]+)`\s*\|", RegexOptions.Multiline)
+            .Select(m => m.Groups[1].Value)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        Assert.True(advertised.Count >= 8, $"MCP SKILL.md should name at least 8 tools in its task table, found {advertised.Count}");
+
+        var ghosts = advertised.Where(t => !realTools.Contains(t)).ToList();
+        Assert.True(
+            ghosts.Count == 0,
+            $"MCP SKILL.md names {ghosts.Count} tool(s) that do not exist in the generated tool surface: {string.Join(", ", ghosts)}");
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Feature", "SkillGeneration")]
+    public void Skills_ContainNoSpreadsheetVocabulary()
+    {
+        // This project was ported from a spreadsheet automation tool. Excel-only vocabulary
+        // that survives the port is not merely cosmetic: it tells an agent to call tools
+        // that do not exist. Guard the whole skills tree, not just the two SKILL.md files.
+        string[] excelOnlyTerms =
+        [
+            "calculation_mode", "worksheet", "pivottable", "powerquery",
+            "slicer", "set-values", "get-values", "datamodel"
+        ];
+
+        var offenders = new List<string>();
+        foreach (var file in Directory.EnumerateFiles(SkillsFolder, "*.md", SearchOption.AllDirectories))
+        {
+            var lines = File.ReadAllLines(file);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                foreach (var term in excelOnlyTerms)
+                {
+                    if (lines[i].Contains(term, StringComparison.OrdinalIgnoreCase))
+                    {
+                        offenders.Add($"  {Path.GetFileName(file)}:{i + 1} ({term}): {lines[i].Trim()}");
+                        break;
+                    }
+                }
+            }
+        }
+
+        Assert.True(
+            offenders.Count == 0,
+            $"Found {offenders.Count} line(s) of spreadsheet vocabulary in the skills tree:\n{string.Join("\n", offenders.Take(15))}");
     }
 
     [Fact]

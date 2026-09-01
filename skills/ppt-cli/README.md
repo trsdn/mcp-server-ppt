@@ -17,7 +17,7 @@ Modern coding agents increasingly favor CLI-based workflows:
 ```powershell
 # Token-efficient: No schema overhead
 pptcli -q session open C:\Data\Report.pptx
-pptcli -q range set-values --session 1 --sheet Sheet1 --range A1 --values-json '[["Hello"]]'
+pptcli -q shape add-textbox --session 1 --slide-index 1 --left 72 --top 72 --width 240 --height 48 --text "Hello"
 pptcli -q session close --session 1 --save
 ```
 

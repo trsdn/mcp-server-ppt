@@ -90,6 +90,10 @@ internal sealed class Program
             config.AddCommand<BatchCommand>("batch")
                 .WithDescription("Execute multiple commands from a JSON file or stdin. Outputs NDJSON (one result per line).");
 
+            // Action discovery — lets an agent enumerate the tool surface without --help scraping
+            config.AddCommand<ListActionsCommand>("list-actions")
+                .WithDescription("List valid actions for a command, or for every command when no command is given. Outputs JSON.");
+
             // Diagnostic commands — infrastructure validation (no PowerPoint required)
             config.AddBranch("diag", branch =>
             {

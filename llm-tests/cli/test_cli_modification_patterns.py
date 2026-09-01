@@ -13,9 +13,9 @@ pytestmark = [pytest.mark.aitest, pytest.mark.cli]
 
 @pytest.mark.asyncio
 @pytest.mark.xfail(reason="LLM intermittently omits required action parameter on complex workflows", strict=False)
-async def test_cli_range_updates(aitest_run, ppt_cli_server, ppt_cli_skill):
+async def test_cli_cell_and_row_updates(aitest_run, ppt_cli_server, ppt_cli_skill):
     agent = Agent(
-        name="cli-range-updates",
+        name="cli-cell-and-row-updates",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
         cli_servers=[ppt_cli_server],
         skill=ppt_cli_skill,
@@ -24,7 +24,7 @@ async def test_cli_range_updates(aitest_run, ppt_cli_server, ppt_cli_skill):
     )
 
     prompt = f"""
-1. Create a new empty PowerPoint presentation at {unique_path('llm-test-range-cli')}and open it
+1. Create a new empty PowerPoint presentation at {unique_path('llm-test-cell-row-cli')}and open it
 2. Add a slide with a table containing this budget data:
    Row 1: Category, Budget, Actual
    Row 2: Rent, 1000, 1000

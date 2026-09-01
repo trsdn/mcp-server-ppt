@@ -60,7 +60,7 @@ For scripting and coding agents, use `-q`/`--quiet` to suppress banner and outpu
 
 ```powershell
 pptcli -q session open data.pptx
-pptcli -q range get-values --session 1 --sheet Sheet1 --range A1:B2
+pptcli -q shape list --session 1 --slide-index 1
 pptcli -q session close --session 1 --save
 ```
 
@@ -69,8 +69,9 @@ Banner auto-suppresses when stdout is piped or redirected.
 ## 🆘 Built-in Help
 
 - `pptcli --help` – lists every command category plus the new descriptions from `Program.cs`
-- `pptcli <command> --help` – shows verb-specific arguments (for example `pptcli sheet --help`)
+- `pptcli <command> --help` – shows verb-specific arguments (for example `pptcli slide --help`)
 - `pptcli session --help` – displays nested verbs such as `open`, `save`, `close`, and `list`
+- `pptcli list-actions [command]` – JSON list of valid actions, for agents that would rather parse than scrape `--help`
 
 Descriptions are kept in sync with the CLI source so the help output always reflects the latest capabilities.
 

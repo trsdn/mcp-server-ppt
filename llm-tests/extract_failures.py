@@ -4,8 +4,7 @@ target_tests = [
     "test_cli_file_and_slide_workflow",
     "test_cli_table_create_query",
     "test_cli_chart_workflows",
-    "test_cli_range_set_get",
-    "test_cli_range_updates",
+    "test_cli_cell_and_row_updates",
     "test_cli_table_updates",
     "test_cli_chart_updates",
 ]

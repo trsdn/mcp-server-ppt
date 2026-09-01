@@ -180,7 +180,7 @@ When building multi-slide presentations, maintain consistent colors, fonts, and 
 | Add/modify shapes | `shape` | create, format, position |
 | Set text content | `text` | set, get |
 | Create charts | `chart` | create, update |
-| Add tables to slides | `table` | create |
+| Add tables to slides | `slidetable` | create |
 | Set animations | `animation` | add, remove, reorder |
 | Set slide transitions | `transition` | set, remove |
 | Add speaker notes | `notes` | set, get |
