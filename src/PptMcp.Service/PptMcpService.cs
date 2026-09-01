@@ -2,28 +2,6 @@ using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using PptMcp.ComInterop.Session;
-using PptMcp.Core.Commands.Accessibility;
-using PptMcp.Core.Commands.Animation;
-using PptMcp.Core.Commands.Chart;
-using PptMcp.Core.Commands.Design;
-using PptMcp.Core.Commands.DocumentProperty;
-using PptMcp.Core.Commands.Export;
-using PptMcp.Core.Commands.File;
-using PptMcp.Core.Commands.Hyperlink;
-using PptMcp.Core.Commands.Image;
-using PptMcp.Core.Commands.Master;
-using PptMcp.Core.Commands.Media;
-using PptMcp.Core.Commands.Notes;
-using PptMcp.Core.Commands.Proofing;
-using PptMcp.Core.Commands.Section;
-using PptMcp.Core.Commands.Shape;
-using PptMcp.Core.Commands.Slide;
-using PptMcp.Core.Commands.SlideTable;
-using PptMcp.Core.Commands.Slideshow;
-using PptMcp.Core.Commands.Text;
-using PptMcp.Core.Commands.Transition;
-using PptMcp.Core.Commands.Vba;
-using PptMcp.Core.Commands.Window;
 using PptMcp.Service.Rpc;
 using StreamJsonRpc;
 using PptMcp.Generated;
@@ -46,29 +24,14 @@ public sealed class PptMcpService : IDisposable
     private DateTime _lastActivityTime = DateTime.UtcNow;
     private bool _disposed;
 
-    // Core command instances
-    private readonly FileCommands _fileCommands = new();
-    private readonly SlideCommands _slideCommands = new();
-    private readonly ShapeCommands _shapeCommands = new();
-    private readonly TextCommands _textCommands = new();
-    private readonly NotesCommands _notesCommands = new();
-    private readonly MasterCommands _masterCommands = new();
-    private readonly ExportCommands _exportCommands = new();
-    private readonly TransitionCommands _transitionCommands = new();
-    private readonly ImageCommands _imageCommands = new();
-    private readonly SlideTableCommands _slideTableCommands = new();
-    private readonly ChartCommands _chartCommands = new();
-    private readonly AnimationCommands _animationCommands = new();
-    private readonly DesignCommands _designCommands = new();
-    private readonly SlideshowCommands _slideshowCommands = new();
-    private readonly VbaCommands _vbaCommands = new();
-    private readonly WindowCommands _windowCommands = new();
-    private readonly HyperlinkCommands _hyperlinkCommands = new();
-    private readonly SectionCommands _sectionCommands = new();
-    private readonly DocumentPropertyCommands _documentPropertyCommands = new();
-    private readonly MediaCommands _mediaCommands = new();
-    private readonly ProofingCommands _proofingCommands = new();
-    private readonly AccessibilityCommands _accessibilityCommands = new();
+    // Core command instances, one per generated category.
+    // Built from ServiceRegistry.CategoryTable so a new Core category is picked up
+    // automatically instead of needing a hand-written field and switch case (GitHub #124).
+    private readonly Dictionary<string, object> _commandInstances =
+        ServiceRegistry.CategoryTable.ToDictionary(
+            static kvp => kvp.Key,
+            static kvp => kvp.Value.CreateCommands(),
+            StringComparer.Ordinal);
 
     public PptMcpService()
     {
@@ -216,71 +179,7 @@ public sealed class PptMcpService : IDisposable
                 "service" => HandleServiceCommand(action),
                 "session" => HandleSessionCommand(action, request),
                 "diag" => HandleDiagCommand(action, request),
-                "file" => DispatchSessionless(action, request),
-                "slide" => await DispatchSimpleAsync<SlideAction>(action, request,
-                    ServiceRegistry.Slide.TryParseAction,
-                    (a, batch) => ServiceRegistry.Slide.DispatchToCore(_slideCommands, a, batch, request.Args)),
-                "shape" => await DispatchSimpleAsync<ShapeAction>(action, request,
-                    ServiceRegistry.Shape.TryParseAction,
-                    (a, batch) => ServiceRegistry.Shape.DispatchToCore(_shapeCommands, a, batch, request.Args)),
-                "text" => await DispatchSimpleAsync<TextAction>(action, request,
-                    ServiceRegistry.Text.TryParseAction,
-                    (a, batch) => ServiceRegistry.Text.DispatchToCore(_textCommands, a, batch, request.Args)),
-                "notes" => await DispatchSimpleAsync<NotesAction>(action, request,
-                    ServiceRegistry.Notes.TryParseAction,
-                    (a, batch) => ServiceRegistry.Notes.DispatchToCore(_notesCommands, a, batch, request.Args)),
-                "master" => await DispatchSimpleAsync<MasterAction>(action, request,
-                    ServiceRegistry.Master.TryParseAction,
-                    (a, batch) => ServiceRegistry.Master.DispatchToCore(_masterCommands, a, batch, request.Args)),
-                "export" => await DispatchSimpleAsync<ExportAction>(action, request,
-                    ServiceRegistry.Export.TryParseAction,
-                    (a, batch) => ServiceRegistry.Export.DispatchToCore(_exportCommands, a, batch, request.Args)),
-                "transition" => await DispatchSimpleAsync<TransitionAction>(action, request,
-                    ServiceRegistry.Transition.TryParseAction,
-                    (a, batch) => ServiceRegistry.Transition.DispatchToCore(_transitionCommands, a, batch, request.Args)),
-                "image" => await DispatchSimpleAsync<ImageAction>(action, request,
-                    ServiceRegistry.Image.TryParseAction,
-                    (a, batch) => ServiceRegistry.Image.DispatchToCore(_imageCommands, a, batch, request.Args)),
-                "slidetable" => await DispatchSimpleAsync<SlidetableAction>(action, request,
-                    ServiceRegistry.Slidetable.TryParseAction,
-                    (a, batch) => ServiceRegistry.Slidetable.DispatchToCore(_slideTableCommands, a, batch, request.Args)),
-                "chart" => await DispatchSimpleAsync<ChartAction>(action, request,
-                    ServiceRegistry.Chart.TryParseAction,
-                    (a, batch) => ServiceRegistry.Chart.DispatchToCore(_chartCommands, a, batch, request.Args)),
-                "animation" => await DispatchSimpleAsync<AnimationAction>(action, request,
-                    ServiceRegistry.Animation.TryParseAction,
-                    (a, batch) => ServiceRegistry.Animation.DispatchToCore(_animationCommands, a, batch, request.Args)),
-                "design" => await DispatchSimpleAsync<DesignAction>(action, request,
-                    ServiceRegistry.Design.TryParseAction,
-                    (a, batch) => ServiceRegistry.Design.DispatchToCore(_designCommands, a, batch, request.Args)),
-                "slideshow" => await DispatchSimpleAsync<SlideshowAction>(action, request,
-                    ServiceRegistry.Slideshow.TryParseAction,
-                    (a, batch) => ServiceRegistry.Slideshow.DispatchToCore(_slideshowCommands, a, batch, request.Args)),
-                "vba" => await DispatchSimpleAsync<VbaAction>(action, request,
-                    ServiceRegistry.Vba.TryParseAction,
-                    (a, batch) => ServiceRegistry.Vba.DispatchToCore(_vbaCommands, a, batch, request.Args)),
-                "window" => await DispatchSimpleAsync<WindowAction>(action, request,
-                    ServiceRegistry.Window.TryParseAction,
-                    (a, batch) => ServiceRegistry.Window.DispatchToCore(_windowCommands, a, batch, request.Args)),
-                "hyperlink" => await DispatchSimpleAsync<HyperlinkAction>(action, request,
-                    ServiceRegistry.Hyperlink.TryParseAction,
-                    (a, batch) => ServiceRegistry.Hyperlink.DispatchToCore(_hyperlinkCommands, a, batch, request.Args)),
-                "section" => await DispatchSimpleAsync<SectionAction>(action, request,
-                    ServiceRegistry.Section.TryParseAction,
-                    (a, batch) => ServiceRegistry.Section.DispatchToCore(_sectionCommands, a, batch, request.Args)),
-                "docproperty" => await DispatchSimpleAsync<DocpropertyAction>(action, request,
-                    ServiceRegistry.Docproperty.TryParseAction,
-                    (a, batch) => ServiceRegistry.Docproperty.DispatchToCore(_documentPropertyCommands, a, batch, request.Args)),
-                "media" => await DispatchSimpleAsync<MediaAction>(action, request,
-                    ServiceRegistry.Media.TryParseAction,
-                    (a, batch) => ServiceRegistry.Media.DispatchToCore(_mediaCommands, a, batch, request.Args)),
-                "proofing" => await DispatchSimpleAsync<ProofingAction>(action, request,
-                    ServiceRegistry.Proofing.TryParseAction,
-                    (a, batch) => ServiceRegistry.Proofing.DispatchToCore(_proofingCommands, a, batch, request.Args)),
-                "accessibility" => await DispatchSimpleAsync<AccessibilityAction>(action, request,
-                    ServiceRegistry.Accessibility.TryParseAction,
-                    (a, batch) => ServiceRegistry.Accessibility.DispatchToCore(_accessibilityCommands, a, batch, request.Args)),
-                _ => new ServiceResponse { Success = false, ErrorMessage = $"Unknown command category: {category}" }
+                _ => await DispatchGeneratedAsync(category, action, request)
             };
         }
         catch (Exception ex)
@@ -572,54 +471,43 @@ public sealed class PptMcpService : IDisposable
 
 
 
-    private delegate bool TryParseDelegate<TAction>(string action, out TAction result);
-
-
-
     private static ServiceResponse WrapResult(string? dispatchResult)
-
     {
-
         return dispatchResult == null
-
             ? new ServiceResponse { Success = true }
-
             : new ServiceResponse { Success = true, Result = dispatchResult };
-
-    }
-
-
-
-    private async Task<ServiceResponse> DispatchSimpleAsync<TAction>(
-
-        string actionString, ServiceRequest request,
-
-        TryParseDelegate<TAction> tryParse,
-
-        Func<TAction, IPptBatch, string?> dispatch) where TAction : struct
-
-    {
-
-        if (!tryParse(actionString, out var action))
-
-            return new ServiceResponse { Success = false, ErrorMessage = $"Unknown action: {actionString}" };
-
-
-
-        return await WithSessionAsync(request.SessionId, batch => WrapResult(dispatch(action, batch)));
-
     }
 
     /// <summary>
-    /// Dispatches a session-less command (no PowerPoint batch required).
-    /// Used for [NoSession] categories like file.
+    /// Dispatches any generated service category via <see cref="ServiceRegistry.CategoryTable"/>.
+    ///
+    /// The table is generated from the same [ServiceCategory] interfaces that produce the MCP
+    /// tools and CLI commands, so every advertised category is routable by construction.
+    /// A hand-written switch previously covered only 22 of 33 categories (GitHub #124).
     /// </summary>
-    private ServiceResponse DispatchSessionless(string actionString, ServiceRequest request)
+    private async Task<ServiceResponse> DispatchGeneratedAsync(string category, string actionString, ServiceRequest request)
     {
-        if (!ServiceRegistry.File.TryParseAction(actionString, out var action))
+        if (!ServiceRegistry.CategoryTable.TryGetValue(category, out var entry))
+            return new ServiceResponse { Success = false, ErrorMessage = $"Unknown command category: {category}" };
+
+        // Validate the action before acquiring a session so an invalid action never
+        // starts PowerPoint or reports a misleading session error.
+        if (!entry.IsValidAction(actionString))
             return new ServiceResponse { Success = false, ErrorMessage = $"Unknown action: {actionString}" };
 
-        return WrapResult(ServiceRegistry.File.DispatchToCore(_fileCommands, action, request.Args));
+        var commands = _commandInstances[category];
+
+        if (!entry.RequiresSession)
+        {
+            entry.Dispatch(commands, actionString, batch: null, request.Args, out var sessionlessResult);
+            return WrapResult(sessionlessResult);
+        }
+
+        return await WithSessionAsync(request.SessionId, batch =>
+        {
+            entry.Dispatch(commands, actionString, batch, request.Args, out var result);
+            return WrapResult(result);
+        });
     }
 
     private Task<ServiceResponse> WithSessionAsync(string? sessionId, Func<IPptBatch, ServiceResponse> action)

@@ -242,8 +242,11 @@ Write-Host "Running MCP Server smoke test..." -ForegroundColor Cyan
 & "$PSScriptRoot\Stop-PptMcpProcesses.ps1"
 
 try {
-    # Run the smoke test - validates all MCP tools work correctly
-    $smokeTestFilter = "FullyQualifiedName~McpServerIntegrationTests.SmokeTest_AllTools_E2EWorkflow"
+    # Run the smoke tests - validate all MCP tools are both discoverable AND routable.
+    # Discovery alone is not a gate: before #124, 11 tools were listed by ListToolsAsync
+    # while every invocation returned "Unknown command category". Match the whole
+    # SmokeTest_ prefix so a new smoke test is picked up without editing this script.
+    $smokeTestFilter = "FullyQualifiedName~McpServerIntegrationTests.SmokeTest_|FullyQualifiedName~ServiceRoutingTests"
 
     Write-Host "   dotnet test --filter `"$smokeTestFilter`"" -ForegroundColor Gray
 
@@ -261,14 +264,21 @@ try {
         $env:DOTNET_CLI_UI_LANGUAGE = $previousUiLanguage
     }
 
-    # Check if any tests actually passed (critical - filter typos cause silent failures!)
-    # Note: "No test matches" appears for projects without the test, so we check for "Passed"
-    if (-not ($testOutput -match "Passed!.*Passed:\s*[1-9]")) {
+    # Check that enough tests actually ran (critical - filter typos cause silent failures!)
+    # The routing theory runs once per generated category (33 today), so a healthy run is
+    # well above 20. A bare "Passed: 1" would satisfy a naive check even if one filter
+    # clause stopped matching, which is exactly how a gate goes quiet without failing.
+    $passedCount = 0
+    if ($testOutput -match "Passed!.*Passed:\s*(\d+)") {
+        $passedCount = [int]$Matches[1]
+    }
+
+    if ($passedCount -lt 20) {
         Write-Host ""
-        Write-Host "CRITICAL: No smoke tests passed! Filter may have matched zero tests." -ForegroundColor Red
+        Write-Host "CRITICAL: Only $passedCount smoke tests passed (expected 20+)." -ForegroundColor Red
         Write-Host "   Filter: $smokeTestFilter" -ForegroundColor Yellow
-        Write-Host "   This likely means the test was renamed or deleted." -ForegroundColor Yellow
-        Write-Host "   Verify the test exists: McpServerIntegrationTests.SmokeTest_AllTools_E2EWorkflow" -ForegroundColor Yellow
+        Write-Host "   A filter clause likely matched zero tests." -ForegroundColor Yellow
+        Write-Host "   Verify the tests exist: McpServerIntegrationTests.SmokeTest_* and ServiceRoutingTests" -ForegroundColor Yellow
         Write-Host ""
         Write-Host $testOutput -ForegroundColor Gray
         exit 1
