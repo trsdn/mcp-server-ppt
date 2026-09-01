@@ -183,9 +183,32 @@ Pre-commit runs `scripts/pre-commit.ps1` which blocks commits if any check fails
 | 3 | Documented Counts | `check-documented-counts.ps1` | Tool and operation counts in the docs match the generated tool surface |
 | 4 | Success Flag | `check-success-flag.ps1` | Rule 0: Never `Success=true` with `ErrorMessage` |
 | 5 | CLI Settings Usage | `check-cli-settings-usage.ps1` | All Settings properties forwarded to the daemon in args |
-| 6 | CLI Workflow Test | `Test-CliWorkflow.ps1` | E2E CLI workflow smoke test |
-| 7 | MCP Smoke Test | `dotnet test --filter "...SmokeTest..."` | All MCP tools functional |
+| 6 | CLI Workflow Test | `Test-CliWorkflow.ps1` | E2E CLI workflow smoke test **(launches PowerPoint - see below)** |
+| 7 | MCP Smoke Test | `dotnet test --filter "...SmokeTest..."` | All MCP tools functional **(launches PowerPoint - see below)** |
 | 8 | Dynamic Casts | `check-dynamic-casts.ps1` | No *new* undocumented `((dynamic))` casts (per-file baseline) |
+| 9 | xunit Parallelization | `check-xunit-parallelization.ps1` | Every test project's `xunit.runner.json` reaches the build output |
+
+### The two PowerPoint gates are content-gated
+
+Gates 6 and 7 start a real PowerPoint instance. They are the slowest checks by an
+order of magnitude and the only visible ones - windows appear on the developer's
+desktop. Running them unconditionally meant a run of doc edits, script edits or
+`--amend`s would launch PowerPoint repeatedly within a minute against byte-identical
+source, where every run after the first was guaranteed to reproduce the previous
+result.
+
+They now run only when they can tell you something new. `pre-commit.ps1` fingerprints
+the staged content of `src/` plus `scripts/Test-CliWorkflow.ps1` via `git ls-files -s`,
+and records that fingerprint in `.git/pptmcp-smoke-cache` on success. If the covered
+content is unchanged since the last passing run, both gates are skipped with an
+explicit message.
+
+The key is that the cache is keyed on **content, not time**, so it cannot mask a
+regression: any edit under `src/` produces a different fingerprint and both gates run
+again. If the fingerprint cannot be computed at all, the gates run - failing open, so
+the cost of an unknown is a slow commit rather than a missed regression.
+
+Force a run with `$env:PPTMCP_FORCE_SMOKE = '1'`.
 
 > **Removed gates.** `audit-core-coverage.ps1`, `check-mcp-core-implementations.ps1`,
 > `check-cli-coverage.ps1`, `check-cli-action-coverage.ps1` and `audit-cli-actions.ps1`

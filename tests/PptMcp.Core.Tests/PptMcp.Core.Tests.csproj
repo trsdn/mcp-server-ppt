@@ -38,5 +38,14 @@
     <!-- Copy TestAssets to output directory for test execution -->
     <None Include="TestAssets\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- xunit v2 only reads this file when it sits beside the test assembly; unlike v3,
+         the package does not copy it automatically. Without this item the project runs
+         test collections in parallel, and concurrent COM sessions fight over the single
+         PowerPoint instance. -->
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

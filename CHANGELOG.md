@@ -14,6 +14,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Pre-commit launched PowerPoint on every commit, including commits that could not affect it**: the CLI workflow test and the MCP smoke test both start a real PowerPoint instance, and both ran unconditionally. A run of documentation edits or `--amend`s would launch PowerPoint several times within a minute against byte-identical source, where every run after the first was guaranteed to reproduce the previous result.
+  - Both gates are now keyed on the staged content of `src/` and `scripts/Test-CliWorkflow.ps1`, fingerprinted via `git ls-files -s` and recorded in `.git/pptmcp-smoke-cache` on success. Unchanged content skips them with an explicit message
+  - Keyed on **content, not elapsed time**, so it cannot mask a regression: any edit under `src/` yields a different fingerprint and both gates run again. If the fingerprint cannot be computed the gates run, failing open
+  - Override with `$env:PPTMCP_FORCE_SMOKE = '1'`
+
+- **Three of four test projects ran their COM tests fully parallel because `xunit.runner.json` never reached the build output** (#132): every test project ships a config setting `parallelizeTestCollections` to `false` and `maxParallelThreads` to `1`, but xunit v2 only reads that file when it sits beside the test assembly, and unlike v3 the package does not copy it automatically. Only `PptMcp.ComInterop.Tests` carried the required `None`/`CopyToOutputDirectory` item.
+  - `PptMcp.Core.Tests`, `PptMcp.CLI.Tests` and `PptMcp.McpServer.Tests` therefore ran test collections concurrently, with several COM sessions competing for the single out-of-process PowerPoint instance
+  - This is the mechanism behind the long-standing "passes in isolation, fails in a full run" flakiness. `PptMcp.CLI.Tests` went from roughly 11 such failures and an unreliable finish to **58/58 passing in 2m52s**
+  - The config looked correct in source the entire time. It was another gate reporting intent without effect
+  - `scripts/check-xunit-parallelization.ps1` (new) asserts every project that declares the config also copies it, and fails when it inspects nothing. Wired into `pre-commit.ps1`
+
 - **`OleMessageFilterTests` asserted the opposite of correct COM behaviour, and could never pass**: the test declared `PENDINGMSG_WAITDEFPROCESS = 1` and `PENDINGMSG_WAITNOPROCESS = 2`. The Win32 header has them the other way round - `PENDINGMSG_CANCELCALL = 0`, `PENDINGMSG_WAITNOPROCESS = 1`, `PENDINGMSG_WAITDEFPROCESS = 2` - and the test's prose repeated the same inversion.
   - The production code returns 2, which is correct, so the two assertions were mutually unsatisfiable and the test had been deterministically red. It was not flake: it fails in isolation, on a COM-free path
   - The danger was not the red test. Anyone "fixing" the code to satisfy it would have changed the return to 1 - `WAITNOPROCESS` - which is precisely the value that blocks inbound COM dispatch and causes the STA deadlock the test claims to guard against
@@ -165,4 +176,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Session management** — Shared sessions between MCP Server and CLI
 - **Parameter validation** — All required string parameters validated before COM execution
 - **COM resource safety** — All COM objects released in finally blocks to prevent leaks
+
 
