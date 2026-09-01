@@ -12,7 +12,6 @@ on:
       - 'src/PptMcp.ComInterop/**'
       - 'tests/PptMcp.McpServer.Tests/**'
       - 'tests/PptMcp.Core.Tests/**'
-      - 'tests/PptMcp.Diagnostics.Tests/**'
       - 'tests/PptMcp.ComInterop.Tests/**'
       - 'global.json'
       - 'Directory.Build.props'

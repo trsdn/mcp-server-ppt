@@ -126,20 +126,27 @@ PptMcp uses a **production-ready three-tier testing approach** with organized di
 
 ```
 tests/
-├── PptMcp.Core.Tests/
-│   ├── Unit/           # Fast tests, no PowerPoint required (~2-5 sec)
-│   ├── Integration/    # Medium speed, requires PowerPoint (~1-15 min)
-│   └── RoundTrip/      # Slow, comprehensive workflows (~3-10 min each)
-├── PptMcp.Diagnostics.Tests/
-│   └── Integration/Diagnostics/ # Research tests, manual only (excluded from CI)
-├── PptMcp.McpServer.Tests/
-│   ├── Unit/           # Fast tests, no server required  
-│   ├── Integration/    # Medium speed, requires MCP server
-│   └── RoundTrip/      # Slow, end-to-end protocol testing
-└── PptMcp.CLI.Tests/
-    ├── Unit/           # Fast tests, no PowerPoint required
-    └── Integration/    # Medium speed, requires PowerPoint & CLI
+├── PptMcp.Core.Tests/            # Core business logic (largest suite)
+│   ├── Unit/                     # COM-free helpers only
+│   ├── Integration/              # Requires PowerPoint
+│   ├── Helpers/                  # Shared fixtures (CoreTestHelper, TempDirectoryFixture)
+│   └── TestAssets/, TestData/
+├── PptMcp.McpServer.Tests/       # MCP protocol layer
+│   ├── Unit/
+│   └── Integration/
+├── PptMcp.CLI.Tests/             # CLI wrapper and daemon
+│   ├── Unit/
+│   ├── Integration/
+│   └── Helpers/
+├── PptMcp.ComInterop.Tests/      # COM utilities, sessions, batching
+│   ├── Unit/
+│   └── Integration/
+└── PptMcp.SkillGeneration.Tests/ # Generated skill/doc consistency (no COM)
 ```
+
+See [`tests/README.md`](../tests/README.md) for which filters are safe to use - a
+`dotnet test --filter` that matches nothing exits 0, so filtered runs go through
+`scripts/Invoke-GuardedTest.ps1`.
 
 ### **Development Workflow Commands**
 

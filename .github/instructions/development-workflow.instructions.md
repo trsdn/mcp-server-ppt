@@ -54,10 +54,13 @@ mcp_github_github_pull_request_read(method="get_review_comments", owner="trsdn",
 
 **See testing-strategy.instructions.md for complete test commands.**
 
-Quick reference:
-- Development: `Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust`
-- Session/batch changes: `RunType=OnDemand`
-- VBA tests: `(Feature=VBA|Feature=VBATrust)&RunType!=OnDemand`
+Quick reference (always via the guard - a bare `dotnet test --filter` exits 0 when
+the filter matches nothing):
+- One feature: `.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.Core.Tests -Filter "Feature=Slide&RunType!=OnDemand"`
+- Everything fast: `.\scripts\Invoke-GuardedTest.ps1 -Project PptMcp.sln -Filter "RunType!=OnDemand"`
+- Session/batch changes: `.\scripts\Invoke-GuardedTest.ps1 -Project PptMcp.sln -Filter "RunType=OnDemand"`
+
+There are no VBA tests in this repository; see `tests/README.md`.
 
 ## CI/CD Workflows
 

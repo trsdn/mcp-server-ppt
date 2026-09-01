@@ -61,20 +61,25 @@ Full rationale and the incident that prompted this: [Rule 31](instructions/criti
 
 ### Test Commands
 ```powershell
-# ⚠️ CRITICAL: Integration tests take 45+ MINUTES for full suite
-# ALWAYS use surgical testing - test only what you changed!
+# A zero-match filter EXITS 0. A bare `dotnet test --filter <ghost>` prints
+# "No test matches" and returns success, so a filter naming a trait that does not
+# exist looks exactly like a passing run. Always go through the guard, which fails
+# on a zero match. scripts\check-test-filters.ps1 enforces this for the docs.
 
-# Fast feedback (excludes VBA) - Still takes 10-15 minutes
-dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust"
+# Whole solution
+.\scripts\Invoke-GuardedTest.ps1 -Project PptMcp.sln -Filter "RunType!=OnDemand"
 
-# Surgical testing - Feature-specific (2-5 minutes per feature)
-dotnet test --filter "Feature=Slide&RunType!=OnDemand"
-dotnet test --filter "Feature=Shape&RunType!=OnDemand"
-dotnet test --filter "Feature=Text&RunType!=OnDemand"
+# Surgical testing - only the feature you changed
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.Core.Tests -Filter "Feature=Slide&RunType!=OnDemand"
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.Core.Tests -Filter "Feature=Export&RunType!=OnDemand"
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.McpServer.Tests -Filter "Feature=McpProtocol&RunType!=OnDemand"
 
 # Session/batch changes (MANDATORY)
-dotnet test --filter "RunType=OnDemand"
+.\scripts\Invoke-GuardedTest.ps1 -Project PptMcp.sln -Filter "RunType=OnDemand"
 ```
+
+Real `Feature` values live in `tests/README.md`. Do not filter on `Category` -
+`Category=Integration` matches 1 of 322 tests in Core.
 
 ### Code Patterns
 ```csharp

@@ -124,6 +124,30 @@ catch {
 }
 
 Write-Host ""
+Write-Host "Checking documented test filters resolve to real tests..." -ForegroundColor Cyan
+
+# A documented filter that matches no tests is worse than no guidance at all:
+# `dotnet test --filter <ghost>` exits 0, so following the instructions produces a
+# green run that executed nothing. Six such filters shipped in this repository's
+# own instructions before issue #127.
+try {
+    $filterScript = Join-Path $rootDir "scripts\check-test-filters.ps1"
+    & $filterScript
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "Documented test filters match zero tests!" -ForegroundColor Red
+        Write-Host "   Following these instructions runs nothing and reports success." -ForegroundColor Red
+        exit 1
+    }
+}
+catch {
+    Write-Host ""
+    Write-Host "Error running test filter check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
 Write-Host "Checking CLI Settings properties are forwarded to the daemon..." -ForegroundColor Cyan
 
 try {
