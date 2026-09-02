@@ -1,0 +1,133 @@
+name: Hosted Checks
+
+# Checks that ACTUALLY RUN on every pull request.
+#
+# Context (#143): the `powerpoint-integration` job in integration-tests.yml is
+# unreachable - the repository variable that gates it is unset and no runner carries
+# the required labels - so for the entire life of this repository, zero tests have run
+# in CI. Everything merged on build plus CodeQL alone.
+#
+# Most of the test suite genuinely cannot run here: it drives PowerPoint through COM,
+# and GitHub's hosted Windows images have no Office. But a subset provably does not
+# touch COM, and that subset was not running either, purely because it lived in the
+# same workflow as the tests that cannot run.
+#
+# This job runs that subset, plus every static gate. It is not a substitute for the
+# integration suite and must never be described as one - see the honest summary the
+# integration-tests workflow writes.
+#
+# Membership rule: a test belongs here only if it has NO reference to PptSession,
+# BeginBatch or Presentation. Test counts below are pinned with -MinimumTests, so a
+# rename or an accidental deletion fails the job rather than quietly shrinking it.
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  hosted-checks:
+    name: COM-free tests and static gates
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Build solution
+        run: dotnet build PptMcp.sln -c Release
+
+      # ---------------------------------------------------------------- gates
+      # Each of these fails when it inspects nothing, so a gate cannot report
+      # success without evidence. See copilot-instructions.md.
+      - name: Static gates
+        shell: pwsh
+        run: |
+          $gates = @(
+            'check-documented-counts.ps1',
+            'check-session-parity.ps1',
+            'check-success-flag.ps1',
+            'check-com-leaks.ps1',
+            'check-inline-com-chains.ps1',
+            'check-dynamic-casts.ps1',
+            'check-cli-settings-usage.ps1',
+            'check-test-filters.ps1',
+            'check-xunit-parallelization.ps1'
+          )
+          $failed = @()
+          foreach ($g in $gates) {
+            Write-Output "=== $g ==="
+            & "scripts/$g"
+            if ($LASTEXITCODE -ne 0) { $failed += $g }
+          }
+          if ($failed.Count -gt 0) {
+            Write-Error "Failed gates: $($failed -join ', ')"
+            exit 1
+          }
+          Write-Output "All $($gates.Count) static gates passed."
+
+      # ------------------------------------------------------------ COM-free tests
+      - name: Skill generation quality tests
+        shell: pwsh
+        run: >
+          ./scripts/Invoke-GuardedTest.ps1
+          -Project tests/PptMcp.SkillGeneration.Tests/PptMcp.SkillGeneration.Tests.csproj
+          -NoBuild
+          -MinimumTests 11
+          -LoggerFileName skillgen.trx
+
+      - name: Core parsing and transform tests
+        shell: pwsh
+        run: >
+          ./scripts/Invoke-GuardedTest.ps1
+          -Project tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj
+          -Filter "FullyQualifiedName~ParameterTransformsFileTests|FullyQualifiedName~ServiceRegistryJsonParsingTests"
+          -NoBuild
+          -MinimumTests 23
+          -LoggerFileName core-comfree.trx
+
+      # Rule 15: an unmapped enum value throws instead of returning JSON, which is
+      # invisible until an LLM hits it at runtime.
+      - name: Action enum completeness
+        shell: pwsh
+        run: >
+          ./scripts/Invoke-GuardedTest.ps1
+          -Project tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
+          -Filter "FullyQualifiedName~ActionEnumCompletenessTests"
+          -NoBuild
+          -MinimumTests 3
+          -LoggerFileName mcp-comfree.trx
+
+      - name: Summarise what did and did not run
+        if: always()
+        shell: pwsh
+        run: |
+          $lines = @(
+            '## Hosted checks',
+            '',
+            'Ran on `windows-latest`, which has no Microsoft Office installed.',
+            '',
+            '- 37 COM-free tests (skill generation, parameter transforms, service registry parsing, action enum completeness)',
+            '- 9 static gates',
+            '',
+            '**This is not the integration suite.** The ~580 tests that drive PowerPoint',
+            'through COM did not run here and cannot - see #143.'
+          )
+          $lines -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hosted-checks-results-${{ github.sha }}
+          path: '**/TestResults/*.trx'
+          if-no-files-found: ignore

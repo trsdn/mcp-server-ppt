@@ -38,12 +38,38 @@ jobs:
     if: ${{ vars.ENABLE_POWERPOINT_INTEGRATION_CI != 'true' }}
     runs-on: windows-latest
     steps:
-      - name: Report disabled PowerPoint runner
+      - name: Report that the integration suite did NOT run
         shell: pwsh
         run: |
-          Write-Output "PowerPoint integration workflow is configured but inactive."
-          Write-Output "Set repository variable ENABLE_POWERPOINT_INTEGRATION_CI=true and provide a self-hosted runner labeled 'powerpoint' to activate it."
+          # This job passes so that a required status check always reports, which keeps
+          # documentation-only PRs mergeable. A green check named
+          # "integration-runner-disabled" is easy to misread as coverage, so say plainly
+          # what did not happen - in the job log and in the PR's checks summary.
+          Write-Output "The PowerPoint integration suite did NOT run."
+          Write-Output ""
+          Write-Output "This job is a placeholder. It executes no tests. It is green because a"
+          Write-Output "required status check that never reports blocks every pull request."
+          Write-Output ""
+          Write-Output "To activate real integration coverage, set repository variable"
+          Write-Output "ENABLE_POWERPOINT_INTEGRATION_CI=true AND register a self-hosted runner"
+          Write-Output "labeled 'powerpoint'. Both are currently absent, so the"
+          Write-Output "powerpoint-integration job is unreachable twice over - see issue #143."
           Write-Output "See docs/AZURE_SELFHOSTED_RUNNER_SETUP.md for setup details."
+
+          $summary = @(
+            '## PowerPoint integration suite: DID NOT RUN',
+            '',
+            'No test that drives PowerPoint has executed in this CI run, and none can:',
+            '',
+            '- repository variable `ENABLE_POWERPOINT_INTEGRATION_CI` is not set',
+            '- no self-hosted runner carries the `powerpoint` label',
+            '',
+            'This job executes no tests. It reports success only so that a required',
+            'status check always reports. Do not read it as coverage - see #143.',
+            '',
+            'The COM-free subset does run, in the **Hosted Checks** workflow.'
+          ) -join "`n"
+          $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
 
   powerpoint-integration:
     if: ${{ vars.ENABLE_POWERPOINT_INTEGRATION_CI == 'true' }}
