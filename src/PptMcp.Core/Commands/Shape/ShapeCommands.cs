@@ -11,7 +11,7 @@ public class ShapeCommands : IShapeCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic shapes = slide.Shapes;
             try
             {
@@ -53,8 +53,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 return new ShapeDetailResult
@@ -76,7 +76,7 @@ public class ShapeCommands : IShapeCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             // msoTextOrientationHorizontal = 1
             dynamic shape = slide.Shapes.AddTextbox(1, left, top, width, height);
             try
@@ -103,7 +103,7 @@ public class ShapeCommands : IShapeCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic shape = slide.Shapes.AddShape(autoShapeType, left, top, width, height);
             try
             {
@@ -130,8 +130,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (left.HasValue) shape.Left = left.Value;
@@ -161,8 +161,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 shape.Delete();
@@ -188,8 +188,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 shape.ZOrder(zOrderCmd);
@@ -216,8 +216,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (colorHex.Equals("none", StringComparison.OrdinalIgnoreCase))
@@ -254,8 +254,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (colorHex.Equals("none", StringComparison.OrdinalIgnoreCase))
@@ -291,8 +291,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 shape.Rotation = degrees;
@@ -318,7 +318,7 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? group = null;
             try
             {
@@ -327,7 +327,7 @@ public class ShapeCommands : IShapeCommands
                 dynamic? first = null;
                 try
                 {
-                    first = slide.Shapes.Item(names[0]);
+                    first = ComUtilities.GetShape(slide, names[0]);
                     first.Select(true); // Replace=true to start new selection
                 }
                 finally
@@ -339,7 +339,7 @@ public class ShapeCommands : IShapeCommands
                     dynamic? s = null;
                     try
                     {
-                        s = slide.Shapes.Item(names[i]);
+                        s = ComUtilities.GetShape(slide, names[i]);
                         s.Select(false); // Replace=false to add to selection
                     }
                     finally
@@ -387,8 +387,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 shape.Ungroup();
@@ -414,8 +414,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 shape.AlternativeText = altText;
@@ -442,12 +442,12 @@ public class ShapeCommands : IShapeCommands
         return batch.Execute((ctx, ct) =>
         {
             dynamic pres = ctx.Presentation;
-            dynamic srcSlide = pres.Slides.Item(slideIndex);
-            dynamic shape = srcSlide.Shapes.Item(shapeName);
+            dynamic srcSlide = ComUtilities.GetSlide(pres, slideIndex);
+            dynamic shape = ComUtilities.GetShape(srcSlide, shapeName);
             try
             {
                 shape.Copy();
-                dynamic targetSlide = pres.Slides.Item(targetSlideIndex);
+                dynamic targetSlide = ComUtilities.GetSlide(pres, targetSlideIndex);
                 dynamic pasted = targetSlide.Shapes.Paste();
                 string newName = "";
                 try { newName = pasted.Item(1).Name?.ToString() ?? ""; } catch { }
@@ -477,8 +477,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 dynamic shadow = shape.Shadow;
@@ -521,14 +521,14 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? startShape = null;
             dynamic? endShape = null;
             dynamic? connector = null;
             try
             {
-                startShape = slide.Shapes.Item(startShapeName);
-                endShape = slide.Shapes.Item(endShapeName);
+                startShape = ComUtilities.GetShape(slide, startShapeName);
+                endShape = ComUtilities.GetShape(slide, endShapeName);
 
                 // AddConnector(Type, BeginX, BeginY, EndX, EndY)
                 // Type: 1=msoConnectorStraight, 2=msoConnectorElbow, 3=msoConnectorCurve
@@ -574,7 +574,7 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             try
             {
                 string[] names = shapeNames.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -632,8 +632,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? dup = null;
             try
             {
@@ -666,8 +666,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 // msoFlipHorizontal=0, msoFlipVertical=1
@@ -695,8 +695,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? textFrame = null;
             try
             {
@@ -731,8 +731,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? fill = null;
             try
             {
@@ -787,8 +787,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? line = null;
             try
             {
@@ -851,8 +851,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 // TwoColorGradient(style, variant) - variant 1 is default direction
@@ -883,8 +883,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 dynamic glow = shape.Glow;
@@ -928,8 +928,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 dynamic reflection = shape.Reflection;
@@ -969,8 +969,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 // COM uses Transparency (0=opaque, 1=transparent), which is the inverse of opacity
@@ -995,7 +995,7 @@ public class ShapeCommands : IShapeCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic shapes = slide.Shapes;
             try
             {
@@ -1046,9 +1046,9 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic sourceShape = slide.Shapes.Item(sourceShapeName);
-            dynamic targetShape = slide.Shapes.Item(targetShapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic sourceShape = ComUtilities.GetShape(slide, sourceShapeName);
+            dynamic targetShape = ComUtilities.GetShape(slide, targetShapeName);
             try
             {
                 sourceShape.PickUp();
@@ -1080,8 +1080,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? actionSettings = null;
             dynamic? actionSetting = null;
             try
@@ -1139,8 +1139,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 // 0 = msoScaleFromTopLeft, relative to current size
@@ -1169,8 +1169,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 // msoTrue = -1, msoFalse = 0
@@ -1200,8 +1200,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? softEdge = null;
             try
             {
@@ -1235,8 +1235,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? shadow = null;
             try
             {
@@ -1285,7 +1285,7 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? shape = null;
             try
             {
@@ -1316,8 +1316,8 @@ public class ShapeCommands : IShapeCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? threeD = null;
             try
             {

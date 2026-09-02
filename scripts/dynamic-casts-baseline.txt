@@ -1,4 +1,4 @@
-﻿src\PptMcp.Core\Commands\Accessibility\AccessibilityCommands.cs=2
+src\PptMcp.Core\Commands\Accessibility\AccessibilityCommands.cs=2
 src\PptMcp.Core\Commands\Animation\AnimationCommands.cs=6
 src\PptMcp.Core\Commands\Background\BackgroundCommands.cs=5
 src\PptMcp.Core\Commands\Chart\ChartCommands.cs=10
@@ -11,7 +11,7 @@ src\PptMcp.Core\Commands\Media\MediaCommands.cs=4
 src\PptMcp.Core\Commands\Notes\NotesCommands.cs=3
 src\PptMcp.Core\Commands\Placeholder\PlaceholderCommands.cs=3
 src\PptMcp.Core\Commands\Proofing\ProofingCommands.cs=1
-src\PptMcp.Core\Commands\Shape\ShapeCommands.cs=35
+src\PptMcp.Core\Commands\Shape\ShapeCommands.cs=1
 src\PptMcp.Core\Commands\ShapeAlign\ShapeAlignCommands.cs=2
 src\PptMcp.Core\Commands\Slide\SlideCommands.cs=6
 src\PptMcp.Core\Commands\SlideTable\SlideTableCommands.cs=13

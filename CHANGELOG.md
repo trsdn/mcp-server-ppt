@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`ShapeCommands` no longer abandons a COM proxy on every shape and slide lookup** (#137, #126): 68 call sites wrote `slide.Shapes.Item(name)` or `((dynamic)ctx.Presentation).Slides.Item(i)` inline. Each one materialised a `Shapes` or `Slides` collection RCW that was never bound to a local, so `ComUtilities.Release` could not be called on it **even in principle** — the try/finally pattern Rule 22 mandates cannot express a release for an object you never named.
+  - This is not only hygiene. #148 established by measurement that a single leaked collection proxy is enough to stop the STA thread exiting, turning session teardown into a 45-second timeout (leaky 45093ms vs clean 5501ms).
+  - Adds `ComUtilities.GetSlide`, `GetShape` and `GetShapeAt`, which bind the intermediate collection to a local and release it in a `finally`. They live in `ComInterop` rather than in a command class because every remaining offender — `TextCommands`, `SlideTableCommands`, `ChartCommands` — needs exactly the same accessor.
+  - `ShapeCommands.cs` drops from **52 inline chains to 19**; the repository ratchet drops from 173 to 140.
+
 ### Added
 
 - **Round-trip integration tests for the highest-traffic operations** (#133): of 218 `[ServiceAction]` methods, only 8 were genuinely executed against PowerPoint anywhere in the repository. `shape add-shape`, `shape set-fill`, `text set` and `chart create` all worked, and none had a test that would notice if they stopped.
