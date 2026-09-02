@@ -42,7 +42,12 @@ param(
     [switch]$AllowDirty,
 
     # Skip the build step when the tree is already built.
-    [switch]$NoBuild
+    [switch]$NoBuild,
+
+    # Run only the named suites, for iterating on the gate itself. A partial run cannot
+    # be evidence for a commit, so this forces binding=none no matter how clean the tree
+    # is - otherwise the gate could mint a passing manifest for coverage it never ran.
+    [string[]]$Only = @()
 )
 
 $ErrorActionPreference = 'Stop'
@@ -185,6 +190,20 @@ $suites = @(
 $results = @()
 $gateFailed = $false
 
+if ($Only.Count -gt 0) {
+    $unknown = @($Only | Where-Object { $_ -notin ($suites | ForEach-Object { $_.Name }) })
+    if ($unknown.Count -gt 0) {
+        Write-Host "FAIL: unknown suite name(s): $($unknown -join ', ')" -ForegroundColor Red
+        Write-Host "      Known: $(($suites | ForEach-Object { $_.Name }) -join ', ')"
+        exit 1
+    }
+
+    $suites = @($suites | Where-Object { $_.Name -in $Only })
+    $binding = 'none'
+    Write-Host "Partial run ($($suites.Count) suite(s)): binding=none, this cannot satisfy pre-push." -ForegroundColor Yellow
+    Write-Host ""
+}
+
 foreach ($suite in $suites) {
     Write-Host "[$($suite.Name)]" -ForegroundColor Cyan
     $suiteStart = Get-Date
@@ -192,7 +211,10 @@ foreach ($suite in $suites) {
     $output = ''
 
     if ($suite.Kind -eq 'script') {
-        $output = & $suite.Script 2>&1 | Out-String
+        # *>&1 and not 2>&1: these scripts report through Write-Host, which writes to the
+        # information stream, not stdout. Capturing only stdout yielded an empty test
+        # count and failed a suite that had in fact passed.
+        $output = & $suite.Script *>&1 | Out-String
         $exitCode = $LASTEXITCODE
 
         # Test-CliWorkflow.ps1 prints "Passed: N" / "Failed: N".
@@ -200,12 +222,19 @@ foreach ($suite in $suites) {
         if ($output -match 'Failed:\s*([1-9]\d*)') { $exitCode = 1 }
     }
     else {
-        $guardArgs = @('-Project', $suite.Project, '-NoBuild', '-LoggerFileName', "gate-$($suite.Name).trx")
-        if ($suite.Filter) { $guardArgs += @('-Filter', $suite.Filter) }
-        if ($suite.Full)   { $guardArgs += '-Full' }
-        if ($suite.Timeout) { $guardArgs += @('-TimeoutMinutes', $suite.Timeout) }
+        # Hashtable splatting, not an array. With array splatting PowerShell binds the
+        # token after a switch as that switch's VALUE, so '-NoBuild', '-LoggerFileName'
+        # swallowed the parameter name and pushed the file name onto -MinimumTests.
+        $guardParams = @{
+            Project        = $suite.Project
+            NoBuild        = $true
+            LoggerFileName = "gate-$($suite.Name).trx"
+        }
+        if ($suite.Filter)  { $guardParams.Filter = $suite.Filter }
+        if ($suite.Full)    { $guardParams.Full = $true }
+        if ($suite.Timeout) { $guardParams.TimeoutMinutes = $suite.Timeout }
 
-        $output = & $guard @guardArgs 2>&1 | Out-String
+        $output = & $guard @guardParams *>&1 | Out-String
         $exitCode = $LASTEXITCODE
 
         # Invoke-GuardedTest.ps1 already refuses to report success without a summary, so
@@ -289,7 +318,8 @@ if ($gateFailed) {
 }
 
 if ($binding -eq 'none') {
-    Write-Host "GATE PASSED, but binding=none (dirty tree). Pre-push will still refuse." -ForegroundColor Yellow
+    $why = if ($Only.Count -gt 0) { 'partial run' } else { 'dirty tree' }
+    Write-Host "GATE PASSED, but binding=none ($why). Pre-push will still refuse." -ForegroundColor Yellow
     exit 0
 }
 
