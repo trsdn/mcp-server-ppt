@@ -575,9 +575,11 @@ Advisory wording did not stop this happening repeatedly, so the wrapper now enfo
 ```
 
 The wrapper additionally:
-- **Timeboxes every run** (`-TimeoutMinutes`, default 20) and kills it on expiry. A hung
-  suite keeps spawning PowerPoint for as long as nobody is watching - see issue #139,
-  where `ComInterop.Tests` does not terminate as a full assembly.
+- **Timeboxes every run** (`-TimeoutMinutes`, default 20) and kills the whole process
+  tree on expiry - parent, vstest console and `testhost`. Killing only the parent leaves
+  `testhost` orphaned, and it carries on running tests and launching PowerPoint with
+  nothing watching it (issue #139). `ComInterop.Tests` as a full assembly takes
+  **~34 minutes** (91 tests, measured), so pair `-Full` with `-TimeoutMinutes 60` there.
 - **Cleans up PowerPoint processes the run leaked**, while leaving alone any POWERPNT
   PID that already existed when the run started. Your own open presentation is safe.
 
