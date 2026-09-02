@@ -199,4 +199,44 @@ public sealed class SlideMetadataTests : IClassFixture<TempDirectoryFixture>
             manager.CloseSession(sessionId, save: false);
         }
     }
+
+    /// <summary>
+    /// <c>slide read</c> populates the same metadata through a separate code path from
+    /// <c>slide list</c>, so a fix applied to one does not imply the other (GitHub #133,
+    /// item 5).
+    /// </summary>
+    [Fact]
+    public void Read_PopulatesLayoutAndMasterNames_AndAgreesWithList()
+    {
+        var testFile = _fixture.CreateTestFile();
+
+        using var manager = new SessionManager();
+        var sessionId = manager.CreateSession(testFile, show: false);
+
+        try
+        {
+            var batch = manager.GetSession(sessionId)!;
+            _slides.Create(batch, position: 0, layoutName: "Blank");
+
+            var listed = _slides.List(batch);
+            Assert.True(listed.Success);
+            var slideIndex = listed.Slides.Count;
+
+            var read = _slides.Read(batch, slideIndex);
+
+            Assert.True(read.Success, read.ErrorMessage);
+            Assert.NotNull(read.Slide);
+            Assert.False(string.IsNullOrEmpty(read.Slide.LayoutName));
+            Assert.False(string.IsNullOrEmpty(read.Slide.MasterName));
+
+            // The two paths describing the same slide differently would mean one of
+            // them is reading the wrong object - invisible while only one is tested.
+            Assert.Equal(listed.Slides[^1].LayoutName, read.Slide.LayoutName);
+            Assert.Equal(listed.Slides[^1].MasterName, read.Slide.MasterName);
+        }
+        finally
+        {
+            manager.CloseSession(sessionId, save: false);
+        }
+    }
 }
