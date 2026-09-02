@@ -69,28 +69,40 @@ public class OleMessageFilterTests
     }
 
     /// <summary>
-    /// REGRESSION TEST for the STA deadlock bug (Feb 2026):
-    /// MessagePending MUST return PENDINGMSG_WAITDEFPROCESS (1), NOT PENDINGMSG_WAITNOPROCESS (2).
+    /// Regression guard for the STA deadlock: <c>MessagePending</c> must return
+    /// <c>PENDINGMSG_WAITDEFPROCESS</c> (2), never <c>PENDINGMSG_WAITNOPROCESS</c> (1).
     ///
-    /// Returning 2 (WAITNOPROCESS) blocks ALL inbound COM message processing while an outgoing
-    /// call is in progress. When PowerPoint fires a re-entrant callback (e.g., Calculate, SheetChange)
-    /// during FormatConditions.Add(), the callback is queued but WAITNOPROCESS prevents it from
-    /// being dispatched. PowerPoint waits for the callback → STA thread waits for PowerPoint → deadlock.
+    /// WAITNOPROCESS blocks all inbound COM message processing while an outgoing call
+    /// is in progress. When PowerPoint fires a re-entrant callback during a long
+    /// operation, the callback is queued but never dispatched: PowerPoint waits for the
+    /// callback, the STA thread waits for PowerPoint, and both stop.
     ///
-    /// Returning 1 (WAITDEFPROCESS) allows COM to process the pending inbound call, letting
-    /// PowerPoint's callback complete so FormatConditions.Add() can return normally.
+    /// WAITDEFPROCESS lets COM dispatch the pending inbound call so the callback can
+    /// complete and the outgoing call returns normally.
+    ///
+    /// This test was itself broken until issue #126's sweep. It declared the two
+    /// constants with their values exchanged - WAITDEFPROCESS as 1 and WAITNOPROCESS
+    /// as 2 - and its prose repeated the same inversion. The Win32 header is
+    /// unambiguous: PENDINGMSG_CANCELCALL = 0, PENDINGMSG_WAITNOPROCESS = 1,
+    /// PENDINGMSG_WAITDEFPROCESS = 2.
+    ///
+    /// The consequence was worse than a red test. The production code returns 2, which
+    /// is correct, so the assertions were unsatisfiable and the test could never pass.
+    /// Anyone who had "fixed" the code to satisfy it would have changed the return to 1
+    /// - which is WAITNOPROCESS, the exact value that causes the deadlock this test
+    /// claims to guard against.
     /// </summary>
     [Fact]
     public void MessagePending_ReturnValue_MustBe_WaitDefProcess()
     {
-        // The IOleMessageFilter interface is internal, so we verify the constant value via
-        // reflection on the compiled method body — simpler: we verify by checking the
-        // registered filter doesn't use the blocking value (2).
+        // IOleMessageFilter is internal, so the filter is instantiated and invoked
+        // through the interface by reflection, on a real STA thread.
         //
-        // We instantiate the filter and call MessagePending via the interface.
-        // Use reflection to access the internal interface implementation.
-        const int PENDINGMSG_WAITDEFPROCESS = 1;
-        const int PENDINGMSG_WAITNOPROCESS = 2;
+        // Win32 PENDINGMSG (objidl.h). These were previously declared with their values
+        // exchanged, which made the two assertions below mutually unsatisfiable.
+        const int PENDINGMSG_CANCELCALL = 0;
+        const int PENDINGMSG_WAITNOPROCESS = 1;
+        const int PENDINGMSG_WAITDEFPROCESS = 2;
 
         var returnValue = -1;
         Exception? threadException = null;
@@ -136,9 +148,10 @@ public class OleMessageFilterTests
 
         if (threadException != null) throw new InvalidOperationException($"Thread exception: {threadException.Message}", threadException);
 
-        // REGRESSION: If this returns 2 (WAITNOPROCESS), conditional formatting on cells
-        // with formulas will deadlock because PowerPoint's Calculate/SheetChange callbacks
-        // can't be delivered while the STA thread waits for FormatConditions.Add().
+        // WAITNOPROCESS queues the inbound callback without dispatching it, which
+        // deadlocks the STA thread against PowerPoint. CANCELCALL abandons the
+        // outgoing call outright. Only WAITDEFPROCESS is correct here.
+        Assert.NotEqual(PENDINGMSG_CANCELCALL, returnValue);
         Assert.NotEqual(PENDINGMSG_WAITNOPROCESS, returnValue);
         Assert.Equal(PENDINGMSG_WAITDEFPROCESS, returnValue);
     }

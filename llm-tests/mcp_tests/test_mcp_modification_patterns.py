@@ -13,19 +13,19 @@ pytestmark = [pytest.mark.aitest, pytest.mark.mcp]
 
 @pytest.mark.asyncio
 @pytest.mark.xfail(reason="LLM intermittently omits required action parameter on complex workflows", strict=False)
-async def test_mcp_range_updates(aitest_run, ppt_mcp_server, ppt_mcp_skill):
+async def test_mcp_cell_and_row_updates(aitest_run, ppt_mcp_server, ppt_mcp_skill):
     agent = Agent(
-        name="mcp-range-updates",
+        name="mcp-cell-and-row-updates",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
         mcp_servers=[ppt_mcp_server],
         skill=ppt_mcp_skill,
-        allowed_tools=["range", "file", "slide"],
+        allowed_tools=["slidetable", "shape", "text", "file", "slide"],
         max_turns=25,
         retries=DEFAULT_RETRIES,
     )
 
     prompt = f"""
-1. Create a new empty PowerPoint presentation at {unique_path('llm-test-range')} and open it
+1. Create a new empty PowerPoint presentation at {unique_path('llm-test-cell-row-mcp')} and open it
 2. Add a slide with a table containing this budget data:
    Row 1: Category, Budget, Actual
    Row 2: Rent, 1000, 1000
@@ -41,7 +41,7 @@ async def test_mcp_range_updates(aitest_run, ppt_mcp_server, ppt_mcp_skill):
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
-    assert result.tool_was_called("range")
+    assert result.tool_was_called("slidetable")
     # Loosen assertions - either values or update verification mentioned
     assert_regex(result.final_response, r"(?i)(480|food|updated|budget)")
     assert_regex(result.final_response, r"(?i)(480|food|updated|utilities)")

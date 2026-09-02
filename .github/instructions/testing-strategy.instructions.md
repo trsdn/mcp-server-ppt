@@ -8,22 +8,34 @@ applyTo: "tests/**/*.cs"
 
 **⚠️ CRITICAL: Always specify the test project explicitly to avoid running all test projects!**
 
+> **A zero-match filter exits 0.** A bare `dotnet test` with a filter that matches
+> nothing prints "No test matches the given testcase filter" and then returns success,
+> so a filter naming a trait that does not exist is indistinguishable from a passing
+> run. Run filtered tests through `scripts\Invoke-GuardedTest.ps1`, which fails on a
+> zero match. Only the `Feature` values listed below exist, and
+> `scripts\check-test-filters.ps1` enforces that every filter written in the
+> documentation resolves to at least one real test.
+>
+> Current `Feature` values: `ActionEnums`, `ActionValidation`, `Batch`, `Configuration`,
+> `Design`, `Diag`, `Export`, `File`, `FileLocking`, `Master`, `McpProtocol`,
+> `ParameterTransforms`, `PptBatch`, `PptMcpService`, `PptSession`, `ServiceDaemon`,
+> `ServiceRegistry`, `ServiceRouting`, `SessionManager`, `SkillGeneration`, `Slide`,
+> `StreamJsonRpc`, `VersionCheck`.
+>
+> Regenerate the list with:
+> ```powershell
+> Get-ChildItem -Recurse tests -Include *.cs |
+>   Select-String -Pattern '\[Trait\("Feature",\s*"([^"]+)"\)' |
+>   ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique
+> ```
+
 ### Core.Tests (Business Logic)
-```bash
-# Development (fast - excludes VBA and Screenshot)
-dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust&Feature!=Screenshot"
-
-# Diagnostic tests (validate patterns, slow ~20s each)
-dotnet test tests/PptMcp.Diagnostics.Tests/PptMcp.Diagnostics.Tests.csproj --filter "RunType=OnDemand&Layer=Diagnostics"
-
-# VBA tests (manual only - requires VBA trust)
-dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "(Feature=VBA|Feature=VBATrust)&RunType!=OnDemand"
-
-# Screenshot tests (isolated run only - clipboard contention when parallel)
-dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "Feature=Screenshot"
+```powershell
+# Everything that does not need an interactive session
+dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "RunType!=OnDemand"
 
 # Specific feature
-dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "Feature=Slide"
+dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj --filter "Feature=Export"
 ```
 
 ### ComInterop.Tests (Session/Batch Infrastructure)

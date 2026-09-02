@@ -92,30 +92,37 @@
 <![CDATA[
 // Description overrides for better MCP prompt discoverability
 // Keys are skill filenames (without .md), values are LLM-friendly descriptions
+// Every key MUST correspond to a real skills/shared/*.md file - the build fails otherwise,
+// because a key with no file is silently dead and drifts as the skill set changes.
 var descriptionOverrides = new System.Collections.Generic.Dictionary<string, string>
 {
-    { "anti-patterns", "Common mistakes to avoid when using PowerPoint MCP tools" },
     { "behavioral-rules", "Rules and constraints for PowerPoint MCP operations" },
-    { "chart", "Chart creation, types, positioning, and multi-chart layouts" },
-    { "conditionalformat", "Conditional formatting rule types, parameters, and examples" },
-    { "dashboard", "Dashboard and report best practices: Tables, formatting, charts, verification" },
-    { "datamodel", "Data Model (Power Pivot) operations, DAX measures, and prerequisites" },
-    { "dmv-reference", "DMV query reference for PowerPoint's embedded Analysis Services (TMSCHEMA catalog)" },
-    { "m-code-syntax", "Power Query M code syntax: column quoting, named ranges, query chaining" },
-    { "pivottable", "PivotTable creation, fields, calculated items, and required parameters" },
-    { "powerquery", "Power Query M code workflows, refresh patterns, and development tips" },
-    { "range", "Range number formats, locale-aware formatting, and format codes" },
-    { "screenshot", "Screenshot capture for visual verification of charts and dashboards" },
-    { "slicer", "Slicer types, creation patterns, and multi-select filtering" },
-    { "table", "PowerPoint Table operations, Data Model integration, and column management" },
-    { "workflows", "Key constraints, batch operations, and session management patterns" },
-    { "context-model", "Meeting types, audience levels, consumption modes, and context-driven slide design decisions" },
-    { "density-profiles", "D1-D5 density profiles: text volume, element count, data granularity, annotation depth, whitespace" },
-    { "deck-architecture", "SCQA narrative, MECE grouping, canonical deck sequences S1-S5, headline flow validation" },
     { "generation-pipeline", "Pre/post-generation pipeline, prompt contract, data-to-visual and intent-to-archetype mappings" },
-    { "professional-slide-patterns", "Advanced consulting-grade slide patterns: multi-panel charts, comments sidebar, ranking tables, evidence density benchmarks, transformation deck structure" },
-    { "worksheet", "Worksheet operations including cross-file copy and move" },
+    { "ppt_agent_mode", "Agent mode patterns for autonomous multi-step deck construction" },
+    { "slide-design-principles", "Slide design principles: layout, hierarchy, density, and visual balance" },
+    { "slide-design-review", "Slide design review checklist for verifying a generated deck" },
 };
+
+// Fail the build on an override key that names no skill file. Without this the dictionary
+// silently accumulates dead entries - it had 19 of them, left over from the port from a
+// spreadsheet tool, naming prompts like "pivottable" and "worksheet" that never existed here.
+var skillNames = new System.Collections.Generic.HashSet<string>();
+foreach (var f in SkillFiles)
+{
+    skillNames.Add(System.IO.Path.GetFileNameWithoutExtension(f.ItemSpec));
+}
+var deadKeys = new System.Collections.Generic.List<string>();
+foreach (var key in descriptionOverrides.Keys)
+{
+    if (!skillNames.Contains(key)) deadKeys.Add(key);
+}
+if (deadKeys.Count > 0)
+{
+    Log.LogError("descriptionOverrides in PptMcp.McpServer.csproj names " + deadKeys.Count +
+        " skill file(s) that do not exist in skills/shared: " + string.Join(", ", deadKeys.ToArray()) +
+        ". Remove the entry or add the file.");
+    return false;
+}
 
 var sb = new System.Text.StringBuilder();
 sb.AppendLine("// Auto-generated from skills/shared/*.md - do not edit manually");

@@ -711,13 +711,13 @@ Text operations within shapes: get, set, format, find, replace.
 | `--text` | (required for: set) |
 | `--search-text` | Text to find (required for: find, replace) |
 | `--replace-text` | Replacement text (required for: replace) |
-| `--font-name` | (required for: insert-symbol) |
-| `--font-size` |  |
-| `--bold` |  |
-| `--italic` |  |
-| `--color` |  |
-| `--alignment` |  |
-| `--vertical-alignment` |  |
+| `--font-name` | Font family name, e.g. "Calibri" (null = don't change) (required for: insert-symbol) |
+| `--font-size` | Font size in points (null = don't change) |
+| `--bold` | Set bold (null = don't change) |
+| `--italic` | Set italic (null = don't change) |
+| `--color` | Font color as '#RRGGBB', e.g. "#0B3D91" (null = don't change) |
+| `--alignment` | Horizontal alignment: left, center, right, justify (null = don't change) |
+| `--vertical-alignment` | Vertical alignment: top, middle, bottom (null = don't change) |
 | `--underline` | Set underline (null = don't change) |
 | `--strikethrough` | Set strikethrough (null = don't change) |
 | `--subscript` | Set subscript (null = don't change) |

@@ -92,7 +92,7 @@ public sealed class ParameterInfo
     public string? ExposedName { get; }
     public bool IsRequired { get; }
     public bool IsEnum { get; }
-    public string? XmlDocDescription { get; }
+    public string? XmlDocDescription { get; set; }
 
     /// <summary>
     /// The fully qualified enum type name when IsFromString and IsEnum are both true.
@@ -128,7 +128,16 @@ public sealed class ExposedParameter
 {
     public string Name { get; }
     public string TypeName { get; set; }
-    public string? Description { get; }
+
+    /// <summary>
+    /// Parameter description sourced from the <c>&lt;param&gt;</c> XML doc.
+    ///
+    /// Settable because a parameter is shared across every action in a category: the
+    /// first method to declare it may not document it while a later one does, and the
+    /// MCP and CLI generators additionally backfill this from <c>_ParameterDocs</c>,
+    /// which carries the Core XML docs across the compilation boundary (GitHub #128).
+    /// </summary>
+    public string? Description { get; set; }
     public string? DefaultValue { get; }
 
     /// <summary>Action names where this parameter is required (non-nullable, no default, or [RequiredParameter]).</summary>

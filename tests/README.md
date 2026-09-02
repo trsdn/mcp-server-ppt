@@ -1,21 +1,47 @@
 # PptMcp Tests
 
-> **⚠️ No Traditional Unit Tests**: PptMcp has no unit tests. Integration tests ARE our unit tests because PowerPoint COM cannot be meaningfully mocked. See [`docs/ADR-001-NO-UNIT-TESTS.md`](../docs/ADR-001-NO-UNIT-TESTS.md) for full architectural rationale.
+> **Integration-first, not integration-only.** PowerPoint COM cannot be meaningfully
+> mocked, so anything that touches COM is tested against a real PowerPoint instance.
+> A small number of genuinely COM-free helpers (enum mapping, string transforms,
+> skill-file generation) are covered by `Category=Unit` tests under each project's
+> `Unit/` folder. See [`docs/ADR-001-NO-UNIT-TESTS.md`](../docs/ADR-001-NO-UNIT-TESTS.md)
+> for the rationale, and Rule 30 in
+> [Critical Rules](../.github/instructions/critical-rules.instructions.md) for when a
+> unit test is acceptable.
+
+## Read this before copying a filter
+
+`dotnet test --filter <expr>` prints `No test matches the given testcase filter` and
+then **exits 0**. A filter naming a trait that does not exist is indistinguishable
+from a run in which everything passed.
+
+Always run filtered tests through the guard, which fails on a zero match:
+
+```powershell
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.Core.Tests -Filter "Feature=Slide"
+```
+
+`scripts\check-test-filters.ps1` (wired into pre-commit) fails the build if any
+document in this repository cites a `Feature=` value that no test carries.
+
+### Traits that are NOT usable as filters
+
+`Category` is applied to only a handful of classes - `Category=Integration` matches
+**1 of 322** test methods in `PptMcp.Core.Tests`. Do not filter on it, and do not
+reintroduce the historical `Category=Integration&RunType!=OnDemand&...` recipe: it
+selected nothing while appearing to pass.
 
 ## Quick Start
 
 ```powershell
-# Development (fast feedback - excludes VBA tests)
-dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust"
+# Everything except the slow COM/session suite
+.\scripts\Invoke-GuardedTest.ps1 -Project PptMcp.sln -Filter "RunType!=OnDemand"
 
-# Pre-commit (comprehensive - excludes VBA tests)
-dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust"
+# One project
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.Core.Tests -Filter "RunType!=OnDemand"
 
 # Session/batch changes (MANDATORY when modifying session/batch code)
-dotnet test --filter "RunType=OnDemand"
-
-# VBA tests (manual only - requires VBA trust enabled)
-dotnet test --filter "(Feature=VBA|Feature=VBATrust)&RunType!=OnDemand"
+.\scripts\Invoke-GuardedTest.ps1 -Project PptMcp.sln -Filter "RunType=OnDemand"
 ```
 
 ## Documentation
@@ -23,78 +49,73 @@ dotnet test --filter "(Feature=VBA|Feature=VBATrust)&RunType!=OnDemand"
 **For complete testing guidance, see:**
 
 - **[Testing Strategy](../.github/instructions/testing-strategy.instructions.md)** - Quick reference, templates, common mistakes
-- **[Critical Rules](../.github/instructions/critical-rules.instructions.md)** - Mandatory development rules (Rule 14: SaveAsync)
+- **[Critical Rules](../.github/instructions/critical-rules.instructions.md)** - Mandatory development rules (Rule 14: Save, Rule 16: test scope, Rule 30: integration tests)
 
 ## Test Architecture
 
 ```
 tests/
-├── PptMcp.Core.Tests/           # Core business logic (Integration)
-├── PptMcp.Diagnostics.Tests/    # PowerPoint COM behavior research (OnDemand, Manual)
-├── PptMcp.McpServer.Tests/      # MCP protocol layer (Integration)
-├── PptMcp.CLI.Tests/            # CLI wrapper (Integration)
-└── PptMcp.ComInterop.Tests/     # COM utilities (OnDemand)
+├── PptMcp.Core.Tests/            # Core business logic (322 tests)
+├── PptMcp.McpServer.Tests/       # MCP protocol layer (99 tests)
+├── PptMcp.ComInterop.Tests/      # COM utilities, sessions, batching (86 tests)
+├── PptMcp.CLI.Tests/             # CLI wrapper (52 tests)
+└── PptMcp.SkillGeneration.Tests/ # Generated skill/doc consistency (11 tests)
 
-llm-tests/                          # LLM tool behavior validation (Manual)
+llm-tests/                        # LLM tool behavior validation (manual)
 ```
 
-## Test Categories
-
-| Category | Speed | Requirements | Run By Default |
-|----------|-------|--------------|----------------|
-| **Integration** | Medium (10-20 min) | PowerPoint + Windows | ✅ Yes (local) |
-| **OnDemand** | Slow (3-5 min) | PowerPoint + Windows | ❌ No (explicit only) |
-| **Diagnostics** | Slow (varies) | PowerPoint + Windows | ❌ No (manual, excluded from CI) |
-| **LLM Tests** | Slow (varies) | PowerPoint + Azure OpenAI | ❌ No (manual only) |
-
-## Diagnostics Tests
-
-Diagnostics tests are research/exploratory tests in `PptMcp.Diagnostics.Tests` that document the actual behavior of PowerPoint's COM APIs without our abstraction layer. These tests are **excluded from CI** to keep automation focused on core functionality.
-
-**Purpose:**
-- Understand PowerPoint COM API behavior for slides, shapes, layouts, masters, etc.
-- Document findings and edge cases for future implementation decisions
-- Test alternative approaches to complex PowerPoint operations
-
-**Trait markers:**
-- `Layer=Diagnostics`  
-- `RunType=OnDemand`
-
-**Run diagnostics tests locally:**
-```powershell
-# All diagnostics tests
-dotnet test tests/PptMcp.Diagnostics.Tests/ --filter "RunType=OnDemand&Layer=Diagnostics"
-
-# Specific diagnostic tests
-dotnet test tests/PptMcp.Diagnostics.Tests/ --filter "Feature=Design&RunType=OnDemand"
-```
-
-**CI Behavior:**
-- Diagnostics tests are **NOT** run in CI workflows (GitHub Actions)
-- Path filter includes folder to trigger builds when tests change
-- Test execution uses `RunType!=OnDemand` filter to exclude them
+Counts are current as of the commit that introduced this section; they are
+illustrative of relative size, not a contract.
 
 ## Feature-Specific Tests
 
+Rule 16: run only the feature you changed. **A `Feature` value lives in one or two
+specific projects** - pairing it with the wrong project yields a zero match, which
+`dotnet test` reports as success. The guard exists to catch exactly that.
+
+| Feature | Project(s) |
+|---|---|
+| `ActionEnums`, `Configuration`, `File`, `McpProtocol`, `ServiceRouting`, `VersionCheck` | McpServer |
+| `ActionValidation`, `Batch`, `Diag`, `Master`, `PptMcpService`, `ServiceDaemon`, `StreamJsonRpc` | CLI |
+| `Export`, `ParameterTransforms`, `ServiceRegistry`, `Slide` | Core |
+| `FileLocking`, `PptBatch`, `PptSession` | ComInterop |
+| `Design` | CLI, McpServer |
+| `SessionManager` | ComInterop, McpServer |
+| `SkillGeneration` | SkillGeneration |
+
+**Most of `PptMcp.Core.Tests` carries no `Feature` trait at all.** Only four values
+appear there, so Rule 16's surgical workflow does not currently reach the bulk of the
+largest suite; for untagged Core work, run the project and rely on `RunType!=OnDemand`.
+
 ```powershell
-# Test specific feature only
-dotnet test --filter "Feature=Slide&RunType!=OnDemand"
-dotnet test --filter "Feature=Design&RunType!=OnDemand"
-dotnet test --filter "Feature=Master&RunType!=OnDemand"
-dotnet test --filter "Feature=File&RunType!=OnDemand"
-dotnet test --filter "Feature=SessionManager&RunType!=OnDemand"
-dotnet test --filter "Feature=Batch&RunType!=OnDemand"
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.Core.Tests -Filter "Feature=Slide&RunType!=OnDemand"
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.CLI.Tests  -Filter "Feature=Design&RunType!=OnDemand"
 ```
+
+Regenerate the mapping rather than trusting this table:
+
+```powershell
+Get-ChildItem tests -Recurse -Filter *.cs |
+  Where-Object { $_.FullName -notmatch '\\(bin|obj)\\' } |
+  Select-String -Pattern 'Trait\("Feature",\s*"([^"]+)"' -AllMatches |
+  ForEach-Object {
+    $proj = ($_.Path -split '\\tests\\')[1].Split('\')[0]
+    foreach ($m in $_.Matches) { "$($m.Groups[1].Value) -> $proj" }
+  } | Sort-Object -Unique
+```
+
+There are no `Shape`, `Text`, `Chart`, `Table`, `Animation`, `VBA`, `VBATrust` or
+`Screenshot` features. Filters naming them - which appeared throughout this
+repository's documentation until issue #127 - match zero tests and pass vacuously.
 
 ## When to Run Which Tests
 
 | Scenario | Command |
 |----------|---------|
-| **Daily development** | `dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA"` |
-| **Before commit** | `dotnet test --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA"` |
-| **Modified session/batch code** | `dotnet test --filter "RunType=OnDemand"` (see [Rule 3](../.github/instructions/critical-rules.instructions.md#rule-3-session-cleanup-tests)) |
-| **VBA development** | `dotnet test --filter "(Feature=VBA\|Feature=VBATrust)&RunType!=OnDemand"` |
-| **LLM behavior validation** | `.\scripts\Test-LlmRegressionGate.ps1` |
+| **Changed one feature** | `.\scripts\Invoke-GuardedTest.ps1 -Project <project> -Filter "Feature=<name>&RunType!=OnDemand"` |
+| **Before commit** | `.\scripts\pre-commit.ps1` |
+| **Modified session/batch code** | `.\scripts\Invoke-GuardedTest.ps1 -Project PptMcp.sln -Filter "RunType=OnDemand"` (see [Rule 3](../.github/instructions/critical-rules.instructions.md#rule-3-session-cleanup-tests)) |
+| **Changed tool descriptions or skills** | `.\scripts\Test-LlmRegressionGate.ps1` |
 
 ## LLM Tests
 
@@ -134,53 +155,19 @@ The canonical gate runs three CLI scenarios plus the matching three MCP scenario
 
 ## VBA Testing
 
-### Why VBA Tests Are Excluded by Default
+**There are currently no VBA tests in this repository.** Until issue #127 this file
+documented a `tests/PptMcp.Core.Tests/Integration/Commands/Script/` directory with
+four test files and a `ScriptAndSetupCommandsTests.cs` in the CLI project. None of
+those files exist, and no test carries `Feature=VBA` or `Feature=VBATrust`. <!-- ghost-filter-ok -->
 
-VBA tests are excluded from normal test runs because:
-1. **Stable codebase** - VBA features are mature with minimal changes
-2. **Performance** - Excluding VBA tests makes integration tests ~25% faster (10-15 min vs 15-20 min)
-3. **Special requirements** - VBA tests require VBA trust enabled in PowerPoint settings
-4. **Opt-in model** - Explicit testing when VBA code changes, rather than every commit
+VBA functionality (`ScriptCommands`, VBA trust detection) is therefore **untested**.
+If you add coverage, tag it `[Trait("Feature", "VBA")]`, add the trait to the list
+above, and remove this notice.
 
-### When to Run VBA Tests
-
-Run VBA tests manually when:
-- Modifying VBA-related code (ScriptCommands, VbaTrustDetection)
-- Adding new VBA features
-- Before releasing VBA-related changes
-- Troubleshooting VBA-specific issues
-
-### How to Run VBA Tests
+VBA work against a real PowerPoint install needs trust enabled:
 
 ```powershell
-# Run ONLY VBA tests
-dotnet test --filter "(Feature=VBA|Feature=VBATrust)&RunType!=OnDemand"
-
-# Run ALL tests including VBA (takes longer)
-dotnet test --filter "Category=Integration&RunType!=OnDemand"
-```
-
-### VBA Test Files
-
-All VBA tests are tagged with `[Trait("Feature", "VBA")]` or `[Trait("Feature", "VBATrust")]`:
-
-```
-tests/PptMcp.Core.Tests/Integration/Commands/Script/
-  - ScriptCommandsTests.cs
-  - ScriptCommandsTests.Lifecycle.cs
-  - VbaTrustDetectionTests.ScriptCommands.cs
-  - VbaTrustDetectionTests.cs
-
-tests/PptMcp.CLI.Tests/Integration/Commands/
-  - ScriptAndSetupCommandsTests.cs
-```
-
-### VBA Trust Setup
-
-VBA tests require VBA trust enabled in PowerPoint:
-
-```powershell
-# Enable VBA trust (required for VBA tests)
+# Enable VBA trust (development machines only)
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\PowerPoint\Security" -Name "AccessVBOM" -Value 1
 
 # Verify setting
@@ -194,7 +181,8 @@ Get-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\PowerPoint\Security
 - ✅ **File Isolation** - Each test creates unique file (no sharing)
 - ✅ **Binary Assertions** - Pass OR fail, never "accept both"
 - ✅ **Verify PowerPoint State** - Always verify actual PowerPoint state after operations
-- ❌ **No SaveAsync** - Unless testing persistence (see [Rule 14](../.github/instructions/critical-rules.instructions.md#rule-14-no-saveasync-unless-testing-persistence))
+- ✅ **Guarded Filters** - A filter that selects nothing must fail, never pass
+- ❌ **No Save** - Unless testing persistence (see [Rule 14](../.github/instructions/critical-rules.instructions.md#rule-14-no-save-unless-testing-persistence))
 
 ## Getting Help
 
@@ -202,3 +190,4 @@ Get-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\PowerPoint\Security
 - **PowerPoint issues**: Ensure PowerPoint 2016+ installed and activated
 - **Session/batch issues**: Run OnDemand tests to verify cleanup
 - **Writing tests**: See [Testing Strategy](../.github/instructions/testing-strategy.instructions.md)
+

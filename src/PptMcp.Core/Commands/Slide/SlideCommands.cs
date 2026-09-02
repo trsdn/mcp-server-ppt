@@ -6,6 +6,136 @@ namespace PptMcp.Core.Commands.Slide;
 
 public class SlideCommands : ISlideCommands
 {
+    /// <summary>
+    /// Populates the descriptive fields of <paramref name="info"/> from a slide.
+    /// </summary>
+    /// <remarks>
+    /// Every COM hop is bound to a local and released in a <c>finally</c> block.
+    /// The previous inline form - <c>slide.Design.SlideMaster.Name</c> and, worse,
+    /// <c>slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text</c> -
+    /// materialised proxies that were never assigned to anything, so
+    /// <see cref="ComUtilities.Release"/> could not be called on them even in
+    /// principle. On a 40-slide deck a single <c>slide list</c> abandoned several
+    /// hundred RCWs, each holding the out-of-process PowerPoint server alive until
+    /// a finalizer happened to run.
+    ///
+    /// Layout and master names are NOT wrapped in a catch: every slide has both, so
+    /// a failure there is a real fault and must surface (Rule 22). Notes and
+    /// animations are genuinely optional - a slide need not have a notes placeholder
+    /// or a timeline - and are the "optional property access" case Rule 1b permits.
+    /// </remarks>
+    private static void PopulateSlideMetadata(dynamic slide, SlideInfo info)
+    {
+        info.SlideNumber = (int)slide.SlideNumber;
+        info.SlideId = slide.SlideID.ToString();
+        info.Name = slide.Name?.ToString();
+
+        dynamic? shapes = null;
+        try
+        {
+            shapes = slide.Shapes;
+            info.ShapeCount = (int)shapes.Count;
+        }
+        finally
+        {
+            if (shapes != null) { ComUtilities.Release(ref shapes!); }
+        }
+
+        dynamic? customLayout = null;
+        try
+        {
+            customLayout = slide.CustomLayout;
+            info.LayoutName = customLayout.Name?.ToString() ?? string.Empty;
+        }
+        finally
+        {
+            if (customLayout != null) { ComUtilities.Release(ref customLayout!); }
+        }
+
+        dynamic? design = null;
+        dynamic? slideMaster = null;
+        try
+        {
+            design = slide.Design;
+            slideMaster = design.SlideMaster;
+            info.MasterName = slideMaster.Name?.ToString() ?? string.Empty;
+        }
+        finally
+        {
+            if (slideMaster != null) { ComUtilities.Release(ref slideMaster!); }
+            if (design != null) { ComUtilities.Release(ref design!); }
+        }
+
+        info.HasNotes = ReadHasNotes(slide);
+        info.HasAnimations = ReadHasAnimations(slide);
+    }
+
+    /// <summary>
+    /// Returns whether the slide's notes placeholder contains text.
+    /// </summary>
+    /// <remarks>
+    /// A slide need not have a notes placeholder at index 2, so the lookup is
+    /// allowed to fail. The catch is scoped to the optional access itself rather
+    /// than wrapped around the whole chain, and the six intermediate proxies are
+    /// released in reverse order regardless of outcome.
+    /// </remarks>
+    private static bool ReadHasNotes(dynamic slide)
+    {
+        dynamic? notesPage = null;
+        dynamic? shapes = null;
+        dynamic? placeholders = null;
+        dynamic? placeholder = null;
+        dynamic? textFrame = null;
+        dynamic? textRange = null;
+        try
+        {
+            notesPage = slide.NotesPage;
+            shapes = notesPage.Shapes;
+            placeholders = shapes.Placeholders;
+
+            if ((int)placeholders.Count < 2)
+            {
+                return false;
+            }
+
+            placeholder = placeholders.Item(2);
+            textFrame = placeholder.TextFrame;
+            textRange = textFrame.TextRange;
+
+            string? text = textRange.Text?.ToString();
+            return !string.IsNullOrEmpty(text);
+        }
+        finally
+        {
+            if (textRange != null) { ComUtilities.Release(ref textRange!); }
+            if (textFrame != null) { ComUtilities.Release(ref textFrame!); }
+            if (placeholder != null) { ComUtilities.Release(ref placeholder!); }
+            if (placeholders != null) { ComUtilities.Release(ref placeholders!); }
+            if (shapes != null) { ComUtilities.Release(ref shapes!); }
+            if (notesPage != null) { ComUtilities.Release(ref notesPage!); }
+        }
+    }
+
+    /// <summary>
+    /// Returns whether the slide has any entries in its main animation sequence.
+    /// </summary>
+    private static bool ReadHasAnimations(dynamic slide)
+    {
+        dynamic? timeLine = null;
+        dynamic? mainSequence = null;
+        try
+        {
+            timeLine = slide.TimeLine;
+            mainSequence = timeLine.MainSequence;
+            return (int)mainSequence.Count > 0;
+        }
+        finally
+        {
+            if (mainSequence != null) { ComUtilities.Release(ref mainSequence!); }
+            if (timeLine != null) { ComUtilities.Release(ref timeLine!); }
+        }
+    }
+
     public SlideListResult List(IPptBatch batch)
     {
         return batch.Execute((ctx, ct) =>
@@ -22,20 +152,8 @@ public class SlideCommands : ISlideCommands
                     dynamic slide = slides.Item(i);
                     try
                     {
-                        var info = new SlideInfo
-                        {
-                            SlideIndex = i,
-                            SlideNumber = (int)slide.SlideNumber,
-                            SlideId = slide.SlideID.ToString(),
-                            ShapeCount = (int)slide.Shapes.Count,
-                        };
-
-                        try { info.LayoutName = slide.CustomLayout.Name?.ToString() ?? ""; } catch { info.LayoutName = ""; }
-                        try { info.MasterName = slide.Design.SlideMaster.Name?.ToString() ?? ""; } catch { info.MasterName = ""; }
-                        try { info.HasNotes = slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text?.ToString()?.Length > 0; } catch { info.HasNotes = false; }
-                        try { info.HasAnimations = (int)slide.TimeLine.MainSequence.Count > 0; } catch { info.HasAnimations = false; }
-                        try { info.Name = slide.Name?.ToString(); } catch { }
-
+                        var info = new SlideInfo { SlideIndex = i };
+                        PopulateSlideMetadata(slide, info);
                         result.Slides.Add(info);
                     }
                     finally
@@ -62,38 +180,40 @@ public class SlideCommands : ISlideCommands
             dynamic slide = slides.Item(slideIndex);
             try
             {
+                var info = new SlideInfo { SlideIndex = slideIndex };
+                PopulateSlideMetadata(slide, info);
+
                 var result = new SlideDetailResult
                 {
                     Success = true,
                     FilePath = ctx.PresentationPath,
-                    Slide = new SlideInfo
-                    {
-                        SlideIndex = slideIndex,
-                        SlideNumber = (int)slide.SlideNumber,
-                        SlideId = slide.SlideID.ToString(),
-                        ShapeCount = (int)slide.Shapes.Count,
-                    }
+                    Slide = info
                 };
 
-                try { result.Slide.LayoutName = slide.CustomLayout.Name?.ToString() ?? ""; } catch { result.Slide.LayoutName = ""; }
-                try { result.Slide.MasterName = slide.Design.SlideMaster.Name?.ToString() ?? ""; } catch { result.Slide.MasterName = ""; }
-                try { result.Slide.Name = slide.Name?.ToString(); } catch { }
-
-                dynamic shapes = slide.Shapes;
-                int shapeCount = (int)shapes.Count;
-                for (int i = 1; i <= shapeCount; i++)
+                dynamic? shapes = null;
+                try
                 {
-                    dynamic shape = shapes.Item(i);
-                    try
+                    shapes = slide.Shapes;
+                    int shapeCount = (int)shapes.Count;
+                    for (int i = 1; i <= shapeCount; i++)
                     {
-                        result.Shapes.Add(ShapeHelpers.ReadShapeInfo(shape));
-                    }
-                    finally
-                    {
-                        ComUtilities.Release(ref shape!);
+                        dynamic shape = shapes.Item(i);
+                        try
+                        {
+                            result.Shapes.Add(ShapeHelpers.ReadShapeInfo(shape));
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref shape!);
+                        }
                     }
                 }
-                ComUtilities.Release(ref shapes!);
+                finally
+                {
+                    // Previously released after the loop rather than in a finally, so
+                    // any shape that failed to read leaked the Shapes collection too.
+                    if (shapes != null) { ComUtilities.Release(ref shapes!); }
+                }
 
                 return result;
             }

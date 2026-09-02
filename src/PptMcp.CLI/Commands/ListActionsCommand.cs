@@ -53,7 +53,7 @@ internal sealed class ListActionsCommand : Command<ListActionsCommand.Settings>
         {
             success = true,
             workflow = "REQUIRED: 1) session open/create <file> → get sessionId, 2) all commands need --session <id>, 3) session close --save to persist",
-            example = "session create file.pptx → returns {sessionId:'abc'} → range set-values --session abc --range A1 --values 'Hello' → session close --save --session abc",
+            example = "session create file.pptx → returns {sessionId:'abc'} → shape add-textbox --session abc --slide-index 1 --left 72 --top 72 --width 240 --height 48 --text 'Hello' → session close --save --session abc",
             commands = all
         };
         Console.WriteLine(JsonSerializer.Serialize(payload, ServiceProtocol.JsonOptions));

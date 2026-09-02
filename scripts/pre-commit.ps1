@@ -26,6 +26,94 @@
 $ErrorActionPreference = "Stop"
 $rootDir = Split-Path -Parent $PSScriptRoot
 
+# ---------------------------------------------------------------------------
+# PowerPoint-launching gate control
+# ---------------------------------------------------------------------------
+# Two of the gates below (the CLI workflow test and the MCP smoke test) start a
+# real PowerPoint instance. They are the slowest part of this hook by an order of
+# magnitude, and they are also the most visible: PowerPoint windows appear on the
+# developer's desktop every time.
+#
+# Running them on every commit was pure waste. A run of doc edits, script edits or
+# amended commits would launch PowerPoint several times within a minute against
+# byte-identical source, and every run after the first was guaranteed to reproduce
+# the previous result.
+#
+# These gates now run only when they can tell you something new:
+#
+#   1. Something they actually cover has changed. A commit touching only markdown,
+#      workflows or test-project config cannot change CLI or MCP behaviour.
+#   2. That code has not already passed. The fingerprint of the covered tree is
+#      recorded on success in .git, so re-committing the same source is a skip.
+#
+# Set PPTMCP_FORCE_SMOKE=1 to run them regardless.
+#
+# The cache is keyed on content, not on time, so it cannot mask a real change:
+# any edit under src/ or to the workflow script produces a different fingerprint
+# and the gates run again.
+
+$script:SmokeCachePath = Join-Path $rootDir ".git\pptmcp-smoke-cache"
+
+function Get-SmokeFingerprint {
+    # Hash the tracked content the PowerPoint gates actually exercise: the product
+    # source and the workflow script itself. Uses the index, so it reflects exactly
+    # what is about to be committed.
+    $paths = @('src', 'scripts/Test-CliWorkflow.ps1')
+    $lines = git ls-files -s -- $paths 2>$null
+
+    if ($LASTEXITCODE -ne 0 -or -not $lines) {
+        return $null
+    }
+
+    # `git ls-files -s` prints the blob SHA of every staged file, so the joined
+    # output changes if and only if the covered content changes.
+    $joined = ($lines | Sort-Object) -join "`n"
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($joined)
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return [System.BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-', '')
+    }
+    finally {
+        $sha.Dispose()
+    }
+}
+
+function Test-ShouldRunPowerPointGates {
+    if ($env:PPTMCP_FORCE_SMOKE -eq '1') {
+        Write-Host "   PPTMCP_FORCE_SMOKE=1 - running PowerPoint gates." -ForegroundColor Gray
+        return $true
+    }
+
+    $fingerprint = Get-SmokeFingerprint
+
+    if (-not $fingerprint) {
+        # Cannot establish what changed, so do not skip. Failing open here is the
+        # safe direction: the cost is a slow commit, not a missed regression.
+        return $true
+    }
+
+    $script:SmokeFingerprint = $fingerprint
+
+    if ((Test-Path $script:SmokeCachePath) -and
+        ((Get-Content $script:SmokeCachePath -Raw).Trim() -eq $fingerprint)) {
+        Write-Host ""
+        Write-Host "Skipping PowerPoint gates: src/ is byte-identical to the last passing run." -ForegroundColor Yellow
+        Write-Host "   Re-running them would launch PowerPoint to reproduce a known result." -ForegroundColor Gray
+        Write-Host "   Force with: `$env:PPTMCP_FORCE_SMOKE = '1'" -ForegroundColor Gray
+        return $false
+    }
+
+    return $true
+}
+
+function Set-SmokeGatesPassed {
+    if ($script:SmokeFingerprint) {
+        Set-Content -Path $script:SmokeCachePath -Value $script:SmokeFingerprint -Encoding ASCII
+    }
+}
+
+$runPowerPointGates = Test-ShouldRunPowerPointGates
+
 # CRITICAL: Check branch FIRST - never commit directly to main (Rule 6)
 Write-Host "Checking current branch..." -ForegroundColor Cyan
 $currentBranch = git branch --show-current
@@ -124,6 +212,79 @@ catch {
 }
 
 Write-Host ""
+Write-Host "Checking for new inline COM member chains..." -ForegroundColor Cyan
+
+# check-com-leaks.ps1 reasons about `dynamic` locals and their Release calls, so it
+# cannot see `slide.Design.SlideMaster.Name` - proxies that are never bound to
+# anything and therefore can never be released. It reported SlideCommands.cs as
+# "Proper COM cleanup" while that file leaked on every `slide list`.
+try {
+    $chainScript = Join-Path $rootDir "scripts\check-inline-com-chains.ps1"
+    & $chainScript
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "New inline COM member chains detected!" -ForegroundColor Red
+        Write-Host "   Bind each COM hop to a local and release it in a finally block." -ForegroundColor Red
+        exit 1
+    }
+}
+catch {
+    Write-Host ""
+    Write-Host "Error running inline COM chain check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
+Write-Host "Checking documented test filters resolve to real tests..." -ForegroundColor Cyan
+
+# A documented filter that matches no tests is worse than no guidance at all:
+# `dotnet test --filter <ghost>` exits 0, so following the instructions produces a
+# green run that executed nothing. Six such filters shipped in this repository's
+# own instructions before issue #127.
+try {
+    $filterScript = Join-Path $rootDir "scripts\check-test-filters.ps1"
+    & $filterScript
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "Documented test filters match zero tests!" -ForegroundColor Red
+        Write-Host "   Following these instructions runs nothing and reports success." -ForegroundColor Red
+        exit 1
+    }
+}
+catch {
+    Write-Host ""
+    Write-Host "Error running test filter check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
+Write-Host "Checking xunit parallelization config reaches the build output..." -ForegroundColor Cyan
+
+# xunit v2 only reads xunit.runner.json when it sits beside the test assembly, and
+# unlike v3 the package does not copy it for you. Three of the four test projects
+# carried a correct-looking config in source that never reached bin/, so they ran
+# fully parallel and concurrent COM sessions fought over the single PowerPoint
+# instance -- roughly 11 failures per CLI run that all passed in isolation.
+try {
+    $parallelScript = Join-Path $rootDir "scripts\check-xunit-parallelization.ps1"
+    & $parallelScript
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "xunit parallelization config is not reaching the build output!" -ForegroundColor Red
+        Write-Host "   Test collections will run concurrently against one PowerPoint." -ForegroundColor Red
+        exit 1
+    }
+}
+catch {
+    Write-Host ""
+    Write-Host "Error running xunit parallelization check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
 Write-Host "Checking CLI Settings properties are forwarded to the daemon..." -ForegroundColor Cyan
 
 try {
@@ -209,6 +370,12 @@ catch {
     exit 1
 }
 
+if (-not $runPowerPointGates) {
+    Write-Host ""
+    Write-Host "CLI workflow smoke test: skipped (unchanged source)" -ForegroundColor Yellow
+}
+else {
+
 Write-Host ""
 Write-Host "Running CLI workflow smoke test..." -ForegroundColor Cyan
 
@@ -234,6 +401,14 @@ catch {
     Write-Host "Error running CLI workflow smoke test: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
+
+} # end CLI workflow gate
+
+if (-not $runPowerPointGates) {
+    Write-Host ""
+    Write-Host "MCP Server smoke test: skipped (unchanged source)" -ForegroundColor Yellow
+}
+else {
 
 Write-Host ""
 Write-Host "Running MCP Server smoke test..." -ForegroundColor Cyan
@@ -302,6 +477,13 @@ catch {
     Write-Host "   Ensure PowerPoint is installed and accessible." -ForegroundColor Yellow
     exit 1
 }
+
+# Both PowerPoint gates passed against this exact source. Record it so an amend or
+# a follow-up commit that changes no product code does not launch PowerPoint again
+# to reproduce the same result.
+Set-SmokeGatesPassed
+
+} # end MCP smoke gate
 
 Write-Host ""
 Write-Host "Checking for undocumented ((dynamic)) casts..." -ForegroundColor Cyan

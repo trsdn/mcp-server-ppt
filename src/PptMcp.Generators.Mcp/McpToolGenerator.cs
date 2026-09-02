@@ -59,6 +59,11 @@ public class McpToolGenerator : IIncrementalGenerator
             }
         }
 
+        // Core's <param> XML docs are invisible here (Core is a metadata reference and the
+        // compiler does not load reference XML docs), so read them back from the constants
+        // the Core-side generator emitted (GitHub #128).
+        ParameterDocLookup.Apply(result, ParameterDocLookup.Build(compilation));
+
         return result;
     }
 

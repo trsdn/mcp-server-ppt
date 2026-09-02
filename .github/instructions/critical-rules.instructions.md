@@ -525,12 +525,27 @@ dotnet test --filter "Category=Integration&RunType!=OnDemand"
 ```
 
 **Correct:**
-```bash
-# ✅ CORRECT: Test only the feature you changed
-dotnet test --filter "Feature=Slide&RunType!=OnDemand"       # Slide changes only
-dotnet test --filter "Feature=Shape&RunType!=OnDemand"      # Shape changes only
-dotnet test --filter "Feature=Text&RunType!=OnDemand"       # Text changes only
+```powershell
+# CORRECT: run through the guard, which fails when the filter selects nothing
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.Core.Tests -Filter "Feature=Slide&RunType!=OnDemand"
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.Core.Tests -Filter "Feature=Export&RunType!=OnDemand"
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.McpServer.Tests -Filter "Feature=McpProtocol&RunType!=OnDemand"
 ```
+
+**⚠️ A zero-match filter EXITS 0.** A bare `dotnet test --filter <ghost>` prints
+"No test matches the given testcase filter" and then returns success. A filter naming
+a trait that does not exist is indistinguishable from a passing run, so obeying Rule 0
+with a wrong filter manufactures exactly the false confidence Rule 0 exists to prevent.
+`scripts\Invoke-GuardedTest.ps1` exists to turn that silent no-op into a failure.
+
+This was not hypothetical: filters naming Shape, Text, Chart, VBA, VBATrust and <!-- ghost-filter-ok -->
+Screenshot were all prescribed by these instructions and none of those trait values have
+ever existed in this fork. `Category=Integration` is worse still - it matches 1 of 322
+tests in Core, so the long-standing "pre-commit" recipe ran almost nothing.
+`scripts\check-test-filters.ps1` now fails the build on any documented filter that
+resolves to zero tests. **Before inventing a filter, check the trait exists** - the
+current list is in [testing-strategy.instructions.md](testing-strategy.instructions.md)
+and in `tests/README.md`.
 
 **Why Critical:** Integration tests require PowerPoint COM automation and are SLOW. Running all tests wastes time and resources.
 

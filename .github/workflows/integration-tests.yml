@@ -73,28 +73,32 @@ jobs:
       - name: Run MCP smoke workflow
         shell: pwsh
         run: >
-          dotnet test tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
-          --filter "FullyQualifiedName~McpServerIntegrationTests.SmokeTest_AllTools_E2EWorkflow"
-          --logger "trx;LogFileName=mcp-smoke.trx"
+          ./scripts/Invoke-GuardedTest.ps1
+          -Project tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
+          -Filter "FullyQualifiedName~McpServerIntegrationTests.SmokeTest_"
+          -LoggerFileName mcp-smoke.trx
 
-      - name: Run fast Core integration suite
+      - name: Run Core suite
         shell: pwsh
         run: >
-          dotnet test tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj
-          --filter "Category=Integration&RunType!=OnDemand&Feature!=VBA&Feature!=VBATrust&Feature!=Screenshot"
-          --logger "trx;LogFileName=core-integration.trx"
+          ./scripts/Invoke-GuardedTest.ps1
+          -Project tests/PptMcp.Core.Tests/PptMcp.Core.Tests.csproj
+          -Filter "RunType!=OnDemand"
+          -LoggerFileName core-integration.trx
 
       - name: Run CLI integration suite
         shell: pwsh
         run: >
-          dotnet test tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj
-          --logger "trx;LogFileName=cli-integration.trx"
+          ./scripts/Invoke-GuardedTest.ps1
+          -Project tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj
+          -LoggerFileName cli-integration.trx
 
       - name: Run MCP integration suite
         shell: pwsh
         run: >
-          dotnet test tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
-          --logger "trx;LogFileName=mcp-integration.trx"
+          ./scripts/Invoke-GuardedTest.ps1
+          -Project tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
+          -LoggerFileName mcp-integration.trx
 
       - name: Run OnDemand COM/session suite
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_on_demand }}
