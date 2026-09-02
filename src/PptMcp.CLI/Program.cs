@@ -120,6 +120,8 @@ internal sealed class Program
                     .WithDescription("List active sessions.");
                 branch.AddCommand<SessionSaveCommand>("save")
                     .WithDescription("Save a session without closing it.");
+                branch.AddCommand<SessionTestCommand>("test")
+                    .WithDescription("Inspect a file without opening it. Reports existence, size, read-only and macro-enabled status.");
             });
 
             // Sheet commands

@@ -8,6 +8,13 @@ namespace PptMcp.McpServer.Tools;
 
 /// <summary>
 /// Actions for the file tool (hand-coded because session management is not generated).
+///
+/// This is the ONLY tool whose CLI counterpart is not generated from a Core interface,
+/// so parity here is maintained by discipline rather than construction - and it has
+/// drifted before (#131: 'test' shipped on MCP and never reached the CLI).
+///
+/// Adding a member here requires a matching command in the CLI's 'session' branch.
+/// scripts\check-session-parity.ps1 enforces this as a pre-commit gate.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<PptFileAction>))]
 public enum PptFileAction

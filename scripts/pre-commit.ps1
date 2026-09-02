@@ -212,6 +212,31 @@ catch {
 }
 
 Write-Host ""
+Write-Host "Checking session/file parity between CLI and MCP..." -ForegroundColor Cyan
+
+# The count gate above covers the generated surface, but it counts the MCP side, so a
+# CLI missing an action is invisible to it. Session/file management is the one tool
+# that is hand-written on both entry points - PptFileTool.cs says so outright - and it
+# is the bootstrap layer every workflow calls first. It had already drifted: MCP
+# exposed 'test', the CLI did not (issue #131).
+try {
+    $parityScript = Join-Path $rootDir "scripts\check-session-parity.ps1"
+    & $parityScript
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "Session/file action sets differ between the CLI and the MCP server!" -ForegroundColor Red
+        Write-Host "   Both entry points are documented as first-class and equal." -ForegroundColor Red
+        exit 1
+    }
+}
+catch {
+    Write-Host ""
+    Write-Host "Error running session parity check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
 Write-Host "Checking for new inline COM member chains..." -ForegroundColor Cyan
 
 # check-com-leaks.ps1 reasons about `dynamic` locals and their Release calls, so it

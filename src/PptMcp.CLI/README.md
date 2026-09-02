@@ -70,7 +70,7 @@ Banner auto-suppresses when stdout is piped or redirected.
 
 - `pptcli --help` – lists every command category plus the new descriptions from `Program.cs`
 - `pptcli <command> --help` – shows verb-specific arguments (for example `pptcli slide --help`)
-- `pptcli session --help` – displays nested verbs such as `open`, `save`, `close`, and `list`
+- `pptcli session --help` – displays nested verbs such as `open`, `save`, `close`, `list`, and `test`
 - `pptcli list-actions [command]` – JSON list of valid actions, for agents that would rather parse than scrape `--help`
 
 Descriptions are kept in sync with the CLI source so the help output always reflects the latest capabilities.
@@ -110,7 +110,7 @@ PptMcp.CLI provides **224 operations** across 33 command categories:
 
 | Category | Operations | Examples |
 |----------|-----------|----------|
-| **File & Session** | 6 | `session create`, `session open` (IRM/AIP auto-detected), `session close --save`, `session list`, `file test` |
+| **File & Session** | 6 | `session create`, `session open` (IRM/AIP auto-detected), `session close --save`, `session list`, `session test` |
 | **Slide** | 15 | `slide list`, `slide create`, `slide duplicate`, `slide apply-layout` |
 | **Shape** | 35 | `shape add-shape`, `shape move-resize`, `shape set-fill`, `shape group` |
 | **Text** | 18 | `text set`, `text replace`, `text format`, `text set-bullets` |
