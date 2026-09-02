@@ -17,7 +17,7 @@ public class SlideshowCommands : ISlideshowCommands
                 if (startSlide > 0)
                 {
                     settings.StartingSlide = startSlide;
-                    settings.EndingSlide = (int)pres.Slides.Count;
+                    settings.EndingSlide = ComUtilities.GetSlideCount(pres);
                 }
 
                 // ppShowTypeSpeaker = 1 (full screen)
@@ -119,7 +119,7 @@ public class SlideshowCommands : ISlideshowCommands
         return batch.Execute((ctx, ct) =>
         {
             dynamic pres = (dynamic)ctx.Presentation;
-            int totalSlides = (int)pres.Slides.Count;
+            int totalSlides = ComUtilities.GetSlideCount(pres);
 
             bool isRunning = false;
             int currentSlide = 0;

@@ -24,18 +24,23 @@ public class BackgroundCommands : IBackgroundCommands
 
                 if (!followMaster)
                 {
+                    dynamic? fill = null;
                     try
                     {
-                        int fillType = Convert.ToInt32(slide.Background.Fill.Type);
+                        fill = ComUtilities.GetBackgroundFill(slide);
+                        int fillType = Convert.ToInt32(fill.Type);
                         result.FillType = GetFillTypeName(fillType);
 
                         if (fillType == 1) // msoFillSolid
                         {
-                            int rgb = Convert.ToInt32(slide.Background.Fill.ForeColor.RGB);
-                            result.Color = $"#{rgb:X6}";
+                            result.Color = $"#{ComUtilities.GetForeColorRgb(fill):X6}";
                         }
                     }
                     catch { result.FillType = "Unknown"; }
+                    finally
+                    {
+                        ComUtilities.Release(ref fill!);
+                    }
                 }
                 else
                 {
@@ -57,12 +62,14 @@ public class BackgroundCommands : IBackgroundCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? fill = null;
             try
             {
                 slide.FollowMasterBackground = 0; // msoFalse
-                slide.Background.Fill.Solid();
-                slide.Background.Fill.ForeColor.RGB = HexToOleColor(colorHex);
+                fill = ComUtilities.GetBackgroundFill(slide);
+                fill.Solid();
+                ComUtilities.SetForeColorRgb(fill, HexToOleColor(colorHex));
 
                 return new OperationResult
                 {
@@ -74,6 +81,7 @@ public class BackgroundCommands : IBackgroundCommands
             }
             finally
             {
+                ComUtilities.Release(ref fill!);
                 ComUtilities.Release(ref slide!);
             }
         });
@@ -83,7 +91,7 @@ public class BackgroundCommands : IBackgroundCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             try
             {
                 slide.FollowMasterBackground = -1; // msoTrue
@@ -113,11 +121,13 @@ public class BackgroundCommands : IBackgroundCommands
             if (!System.IO.File.Exists(fullPath))
                 throw new FileNotFoundException($"Image file not found: '{fullPath}'");
 
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? fill = null;
             try
             {
                 slide.FollowMasterBackground = 0; // msoFalse
-                slide.Background.Fill.UserPicture(fullPath);
+                fill = ComUtilities.GetBackgroundFill(slide);
+                fill.UserPicture(fullPath);
 
                 return new OperationResult
                 {
@@ -129,6 +139,7 @@ public class BackgroundCommands : IBackgroundCommands
             }
             finally
             {
+                ComUtilities.Release(ref fill!);
                 ComUtilities.Release(ref slide!);
             }
         });
@@ -144,13 +155,15 @@ public class BackgroundCommands : IBackgroundCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? fill = null;
             try
             {
                 slide.FollowMasterBackground = 0; // msoFalse
-                slide.Background.Fill.TwoColorGradient(gradientStyle, 1);
-                slide.Background.Fill.ForeColor.RGB = HexToOleColor(color1);
-                slide.Background.Fill.BackColor.RGB = HexToOleColor(color2);
+                fill = ComUtilities.GetBackgroundFill(slide);
+                fill.TwoColorGradient(gradientStyle, 1);
+                ComUtilities.SetForeColorRgb(fill, HexToOleColor(color1));
+                ComUtilities.SetBackColorRgb(fill, HexToOleColor(color2));
 
                 return new OperationResult
                 {
@@ -162,6 +175,7 @@ public class BackgroundCommands : IBackgroundCommands
             }
             finally
             {
+                ComUtilities.Release(ref fill!);
                 ComUtilities.Release(ref slide!);
             }
         });

@@ -37,7 +37,7 @@ internal static class ShapeHelpers
             info.HasTextFrame = Convert.ToInt32(shape.HasTextFrame) != 0; // msoTrue = -1
             if (info.HasTextFrame)
             {
-                try { info.Text = shape.TextFrame.TextRange.Text?.ToString(); } catch { }
+                try { info.Text = ComUtilities.GetShapeText(shape); } catch { }
             }
         }
         catch { info.HasTextFrame = false; }
@@ -55,7 +55,7 @@ internal static class ShapeHelpers
         info.IsPlaceholder = shapeType == 14;
         if (info.IsPlaceholder)
         {
-            try { info.PlaceholderType = Convert.ToInt32(shape.PlaceholderFormat.Type); } catch { }
+            try { info.PlaceholderType = ComUtilities.GetPlaceholderTypeInt(shape); } catch { }
         }
 
         // Group items

@@ -12,8 +12,8 @@ public class SmartArtCommands : ISmartArtCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasSmartArt) == 0)
@@ -83,8 +83,8 @@ public class SmartArtCommands : ISmartArtCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasSmartArt) == 0)
@@ -130,8 +130,8 @@ public class SmartArtCommands : ISmartArtCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasSmartArt) == 0)
@@ -179,8 +179,8 @@ public class SmartArtCommands : ISmartArtCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasSmartArt) == 0)
@@ -228,8 +228,8 @@ public class SmartArtCommands : ISmartArtCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasSmartArt) == 0)
@@ -274,8 +274,8 @@ public class SmartArtCommands : ISmartArtCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasSmartArt) == 0)

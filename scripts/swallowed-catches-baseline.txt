@@ -2,14 +2,14 @@ src/PptMcp.Core/Commands/Accessibility/AccessibilityCommands.cs:221
 src/PptMcp.Core/Commands/Accessibility/AccessibilityCommands.cs:254
 src/PptMcp.Core/Commands/Accessibility/AccessibilityCommands.cs:263
 src/PptMcp.Core/Commands/Accessibility/AccessibilityCommands.cs:316
-src/PptMcp.Core/Commands/Background/BackgroundCommands.cs:38
+src/PptMcp.Core/Commands/Background/BackgroundCommands.cs:39
 src/PptMcp.Core/Commands/Chart/ChartCommands.cs:82
 src/PptMcp.Core/Commands/Design/DesignCommands.cs:114
 src/PptMcp.Core/Commands/Design/DesignCommands.cs:163
 src/PptMcp.Core/Commands/DocumentProperty/DocumentPropertyCommands.cs:105
 src/PptMcp.Core/Commands/DocumentProperty/DocumentPropertyCommands.cs:160
 src/PptMcp.Core/Commands/DocumentProperty/DocumentPropertyCommands.cs:87
-src/PptMcp.Core/Commands/Media/MediaCommands.cs:101
+src/PptMcp.Core/Commands/Media/MediaCommands.cs:107
 src/PptMcp.Core/Commands/Placeholder/PlaceholderCommands.cs:49
 src/PptMcp.Core/Commands/Slide/ShapeHelpers.cs:43
 src/PptMcp.Core/Commands/Slide/ShapeHelpers.cs:83

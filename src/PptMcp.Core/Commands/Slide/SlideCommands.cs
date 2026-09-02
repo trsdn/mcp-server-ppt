@@ -27,7 +27,9 @@ public class SlideCommands : ISlideCommands
     private static void PopulateSlideMetadata(dynamic slide, SlideInfo info)
     {
         info.SlideNumber = (int)slide.SlideNumber;
-        info.SlideId = slide.SlideID.ToString();
+        // SlideID is a value, not a COM proxy - cast before ToString so the inline-chain
+        // gate is not left with a false positive it cannot distinguish from a real hop.
+        info.SlideId = ((int)slide.SlideID).ToString(System.Globalization.CultureInfo.InvariantCulture);
         info.Name = slide.Name?.ToString();
 
         dynamic? shapes = null;
@@ -472,11 +474,13 @@ public class SlideCommands : ISlideCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? transition = null;
             try
             {
                 // msoTrue = -1
-                slide.SlideShowTransition.Hidden = -1;
+                transition = ComUtilities.GetSlideShowTransition(slide);
+                transition.Hidden = -1;
                 return new OperationResult
                 {
                     Success = true,
@@ -487,6 +491,7 @@ public class SlideCommands : ISlideCommands
             }
             finally
             {
+                ComUtilities.Release(ref transition!);
                 ComUtilities.Release(ref slide!);
             }
         });
@@ -496,11 +501,13 @@ public class SlideCommands : ISlideCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? transition = null;
             try
             {
                 // msoFalse = 0
-                slide.SlideShowTransition.Hidden = 0;
+                transition = ComUtilities.GetSlideShowTransition(slide);
+                transition.Hidden = 0;
                 return new OperationResult
                 {
                     Success = true,
@@ -511,6 +518,7 @@ public class SlideCommands : ISlideCommands
             }
             finally
             {
+                ComUtilities.Release(ref transition!);
                 ComUtilities.Release(ref slide!);
             }
         });
@@ -571,7 +579,7 @@ public class SlideCommands : ISlideCommands
                     dynamic slide = slides.Item(i);
                     try
                     {
-                        totalShapes += (int)slide.Shapes.Count;
+                        totalShapes += ComUtilities.GetShapeCount(slide);
                     }
                     finally
                     {

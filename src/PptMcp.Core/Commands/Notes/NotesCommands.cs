@@ -10,16 +10,13 @@ public class NotesCommands : INotesCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             try
             {
                 string text = "";
-                try
-                {
-                    // Notes page has placeholders; placeholder 2 is the text body
-                    text = slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text?.ToString() ?? "";
-                }
-                catch { }
+                // Notes page has placeholders; placeholder 2 is the text body.
+                // A slide without a notes placeholder throws, and that is not an error.
+                try { text = ComUtilities.GetNotesText(slide); } catch { }
 
                 return new NotesResult
                 {
@@ -40,10 +37,10 @@ public class NotesCommands : INotesCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             try
             {
-                slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text = text;
+                ComUtilities.SetNotesText(slide, text);
                 return new OperationResult
                 {
                     Success = true,
@@ -68,14 +65,14 @@ public class NotesCommands : INotesCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             try
             {
                 string existing = "";
-                try { existing = slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text?.ToString() ?? ""; } catch { }
+                try { existing = ComUtilities.GetNotesText(slide); } catch { }
 
                 string newText = string.IsNullOrEmpty(existing) ? text : existing + "\n" + text;
-                slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text = newText;
+                ComUtilities.SetNotesText(slide, newText);
 
                 return new OperationResult
                 {
@@ -109,11 +106,7 @@ public class NotesCommands : INotesCommands
                     try
                     {
                         string text = "";
-                        try
-                        {
-                            text = slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text?.ToString() ?? "";
-                        }
-                        catch { }
+                        try { text = ComUtilities.GetNotesText(slide); } catch { }
 
                         lines.Add($"Slide {i}: {text}");
                     }

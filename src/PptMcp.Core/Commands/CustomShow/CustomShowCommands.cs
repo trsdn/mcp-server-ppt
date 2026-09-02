@@ -11,7 +11,7 @@ public class CustomShowCommands : ICustomShowCommands
         return batch.Execute((ctx, ct) =>
         {
             dynamic pres = ctx.Presentation;
-            dynamic shows = pres.SlideShowSettings.NamedSlideShows;
+            dynamic shows = ComUtilities.GetNamedSlideShows(pres);
             try
             {
                 var result = new CustomShowListResult { Success = true, FilePath = ctx.PresentationPath };
@@ -56,7 +56,7 @@ public class CustomShowCommands : ICustomShowCommands
         return batch.Execute((ctx, ct) =>
         {
             dynamic pres = ctx.Presentation;
-            dynamic shows = pres.SlideShowSettings.NamedSlideShows;
+            dynamic shows = ComUtilities.GetNamedSlideShows(pres);
             try
             {
                 int[] indices = slideIndices.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -104,7 +104,7 @@ public class CustomShowCommands : ICustomShowCommands
         return batch.Execute((ctx, ct) =>
         {
             dynamic pres = ctx.Presentation;
-            dynamic shows = pres.SlideShowSettings.NamedSlideShows;
+            dynamic shows = ComUtilities.GetNamedSlideShows(pres);
             try
             {
                 dynamic show = shows.Item(showName);

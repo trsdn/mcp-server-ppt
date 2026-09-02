@@ -10,7 +10,7 @@ public class TransitionCommands : ITransitionCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? trans = null;
             try
             {
@@ -38,7 +38,7 @@ public class TransitionCommands : ITransitionCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             try
             {
                 dynamic trans = slide.SlideShowTransition;
@@ -75,11 +75,13 @@ public class TransitionCommands : ITransitionCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? transition = null;
             try
             {
                 // ppEffectNone = 0
-                slide.SlideShowTransition.EntryEffect = 0;
+                transition = ComUtilities.GetSlideShowTransition(slide);
+                transition.EntryEffect = 0;
                 return new OperationResult
                 {
                     Success = true,
@@ -90,6 +92,7 @@ public class TransitionCommands : ITransitionCommands
             }
             finally
             {
+                ComUtilities.Release(ref transition!);
                 ComUtilities.Release(ref slide!);
             }
         });
@@ -100,7 +103,7 @@ public class TransitionCommands : ITransitionCommands
         return batch.Execute((ctx, ct) =>
         {
             dynamic pres = ctx.Presentation;
-            dynamic srcSlide = pres.Slides.Item(slideIndex);
+            dynamic srcSlide = ComUtilities.GetSlide(pres, slideIndex);
             dynamic slides = pres.Slides;
             dynamic? srcTrans = null;
             try

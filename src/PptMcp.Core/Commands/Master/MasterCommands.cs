@@ -158,13 +158,13 @@ public class MasterCommands : IMasterCommands
         return batch.Execute((ctx, ct) =>
         {
             dynamic master = GetMaster(ctx.Presentation, masterIndex);
-            dynamic shape = master.Shapes.Item(shapeName);
+            dynamic shape = ComUtilities.GetShape(master, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasTextFrame) == 0)
                     throw new InvalidOperationException($"Shape '{shapeName}' on master {masterIndex} does not have a text frame.");
 
-                shape.TextFrame.TextRange.Text = text;
+                ComUtilities.SetShapeText(shape, text);
 
                 return new OperationResult
                 {
@@ -253,7 +253,7 @@ public class MasterCommands : IMasterCommands
                     dynamic slide = slides.Item(s);
                     try
                     {
-                        string designName = slide.Design.Name?.ToString() ?? "";
+                        string designName = ComUtilities.GetSlideDesignName(slide);
                         if (!string.IsNullOrEmpty(designName))
                             usedDesignNames.Add(designName);
                     }

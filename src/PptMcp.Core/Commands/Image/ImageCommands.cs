@@ -14,17 +14,19 @@ public class ImageCommands : IImageCommands
             if (!System.IO.File.Exists(fullImagePath))
                 throw new FileNotFoundException($"Image file not found: '{fullImagePath}'");
 
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? shapes = null;
+            dynamic? shape = null;
             try
             {
                 // AddPicture(FileName, LinkToFile, SaveWithDocument, Left, Top, Width, Height)
                 // msoFalse=0, msoTrue=-1
-                dynamic shape = (width > 0 && height > 0)
-                    ? slide.Shapes.AddPicture(fullImagePath, 0, -1, left, top, width, height)
-                    : slide.Shapes.AddPicture(fullImagePath, 0, -1, left, top);
+                shapes = slide.Shapes;
+                shape = (width > 0 && height > 0)
+                    ? shapes.AddPicture(fullImagePath, 0, -1, left, top, width, height)
+                    : shapes.AddPicture(fullImagePath, 0, -1, left, top);
 
                 string name = shape.Name?.ToString() ?? "";
-                ComUtilities.Release(ref shape!);
 
                 return new OperationResult
                 {
@@ -36,6 +38,8 @@ public class ImageCommands : IImageCommands
             }
             finally
             {
+                ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref shapes!);
                 ComUtilities.Release(ref slide!);
             }
         });
@@ -47,8 +51,8 @@ public class ImageCommands : IImageCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 dynamic picFormat = shape.PictureFormat;
@@ -86,8 +90,8 @@ public class ImageCommands : IImageCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 dynamic picFormat = shape.PictureFormat;
@@ -124,8 +128,8 @@ public class ImageCommands : IImageCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 dynamic picFormat = shape.PictureFormat;

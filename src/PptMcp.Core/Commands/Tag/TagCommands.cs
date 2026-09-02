@@ -10,7 +10,7 @@ public class TagCommands : ITagCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             try
             {
                 dynamic tags = GetTags(slide, shapeName);
@@ -54,7 +54,7 @@ public class TagCommands : ITagCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             try
             {
                 dynamic tags = GetTags(slide, shapeName);
@@ -92,7 +92,7 @@ public class TagCommands : ITagCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             try
             {
                 dynamic tags = GetTags(slide, shapeName);
@@ -129,7 +129,7 @@ public class TagCommands : ITagCommands
         if (string.IsNullOrWhiteSpace(shapeName))
             return slide.Tags;
 
-        dynamic shape = slide.Shapes.Item(shapeName);
+        dynamic shape = ComUtilities.GetShape(slide, shapeName);
         try
         {
             dynamic tags = shape.Tags;

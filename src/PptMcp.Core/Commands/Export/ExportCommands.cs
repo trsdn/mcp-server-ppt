@@ -114,7 +114,7 @@ public class ExportCommands : IExportCommands
             if (from > 0 && to > 0)
                 pres.PrintOut(from, to, "", numCopies);
             else
-                pres.PrintOut(1, (int)pres.Slides.Count, "", numCopies);
+                pres.PrintOut(1, ComUtilities.GetSlideCount(pres), "", numCopies);
 
             return new OperationResult
             {

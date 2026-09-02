@@ -10,7 +10,7 @@ public class AnimationCommands : IAnimationCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? timeline = null;
             dynamic? mainSequence = null;
             try
@@ -74,8 +74,8 @@ public class AnimationCommands : IAnimationCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? timeline = null;
             dynamic? mainSequence = null;
             dynamic? effect = null;
@@ -109,7 +109,7 @@ public class AnimationCommands : IAnimationCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? timeline = null;
             dynamic? mainSequence = null;
             dynamic? effect = null;
@@ -142,7 +142,7 @@ public class AnimationCommands : IAnimationCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? timeline = null;
             dynamic? mainSequence = null;
             try
@@ -179,7 +179,7 @@ public class AnimationCommands : IAnimationCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? timeline = null;
             dynamic? mainSequence = null;
             dynamic? effect = null;
@@ -217,7 +217,7 @@ public class AnimationCommands : IAnimationCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? timeline = null;
             dynamic? mainSequence = null;
             dynamic? effect = null;
