@@ -112,7 +112,23 @@ if (-not $manifest.totalTests -or $manifest.totalTests -le 0) {
     Fail "the manifest records zero tests in total."
 }
 
-$ageHours = [math]::Round(((Get-Date).ToUniversalTime() - [datetime]::Parse($manifest.generatedAtUtc).ToUniversalTime()).TotalHours, 1)
+# ConvertFrom-Json already converts an ISO 8601 string into a [datetime], so calling
+# [datetime]::Parse on it stringifies it in the current culture and reads it back in
+# another - which turned 2026-09-02 into 2026-02-09 and reported a minutes-old manifest
+# as 4921 hours stale. Only parse when it is genuinely still a string, and pin the
+# culture and round-trip kind when doing so.
+$generatedRaw = $manifest.generatedAtUtc
+if ($generatedRaw -is [datetime]) {
+    $generatedUtc = $generatedRaw.ToUniversalTime()
+}
+else {
+    $generatedUtc = [datetime]::Parse(
+        [string]$generatedRaw,
+        [System.Globalization.CultureInfo]::InvariantCulture,
+        [System.Globalization.DateTimeStyles]::RoundtripKind).ToUniversalTime()
+}
+
+$ageHours = [math]::Round(((Get-Date).ToUniversalTime() - $generatedUtc).TotalHours, 1)
 
 Write-Host "Integration evidence OK" -ForegroundColor Green
 Write-Host "  commit:  $($manifest.commit)"
