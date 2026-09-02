@@ -54,7 +54,7 @@ async def test_mcp_table_updates(aitest_run, ppt_mcp_server, ppt_mcp_skill):
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
         mcp_servers=[ppt_mcp_server],
         skill=ppt_mcp_skill,
-        allowed_tools=["range", "table", "file", "slide"],
+        allowed_tools=["slidetable", "file", "slide"],
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
@@ -74,7 +74,7 @@ async def test_mcp_table_updates(aitest_run, ppt_mcp_server, ppt_mcp_skill):
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
-    assert result.tool_was_called("table")
+    assert result.tool_was_called("slidetable")
     assert_regex(result.final_response, r"(?i)(salestable)")
 
 
@@ -85,7 +85,7 @@ async def test_mcp_chart_updates(aitest_run, ppt_mcp_server, ppt_mcp_skill):
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
         mcp_servers=[ppt_mcp_server],
         skill=ppt_mcp_skill,
-        allowed_tools=["chart", "chart_config", "file", "slide", "range"],
+        allowed_tools=["chart", "file", "slide", "slidetable"],
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
@@ -117,7 +117,7 @@ async def test_mcp_slide_structural_changes(aitest_run, ppt_mcp_server, ppt_mcp_
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
         mcp_servers=[ppt_mcp_server],
         skill=ppt_mcp_skill,
-        allowed_tools=["range", "file", "slide"],
+        allowed_tools=["slidetable", "file", "slide"],
         max_turns=25,
         retries=DEFAULT_RETRIES,
     )
@@ -143,7 +143,7 @@ async def test_mcp_slide_structural_changes(aitest_run, ppt_mcp_server, ppt_mcp_
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
-    assert result.tool_was_called("range")
+    assert result.tool_was_called("slidetable")
     assert_regex(result.final_response, r"(?i)(100)")
     assert_regex(result.final_response, r"(?i)(300)")
     assert_regex(result.final_response, r"(?i)(400)")

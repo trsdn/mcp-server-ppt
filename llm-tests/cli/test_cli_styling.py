@@ -13,7 +13,7 @@ pytestmark = [pytest.mark.aitest, pytest.mark.cli]
 
 @pytest.mark.asyncio
 async def test_cli_styling_table_style(aitest_run, ppt_cli_server, ppt_cli_skill):
-    """LLM should use table(set-style) for table visual styling, not range_format on header."""
+    """LLM should use slidetable(create) then slidetable(format-cell) for table styling."""
     agent = Agent(
         name="cli-styling-table",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
@@ -44,7 +44,7 @@ Close the presentation without saving.
 
 @pytest.mark.asyncio
 async def test_cli_styling_semantic_status(aitest_run, ppt_cli_server, ppt_cli_skill):
-    """LLM should use range_format(set-style) with Good/Bad/Neutral for status cells."""
+    """LLM should use slidetable(format-cell) to colour status cells distinctly."""
     agent = Agent(
         name="cli-styling-status",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),

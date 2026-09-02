@@ -35,7 +35,7 @@ async def test_mcp_table_create_query(aitest_run, ppt_mcp_server, ppt_mcp_skill)
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
-    assert result.tool_was_called("table")
+    assert result.tool_was_called("slidetable")
     assert_regex(result.final_response, r"(?i)(SalesData)")
 
 
@@ -63,5 +63,5 @@ async def test_mcp_table_lifecycle(aitest_run, ppt_mcp_server, ppt_mcp_skill):
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
-    assert result.tool_was_called("table")
+    assert result.tool_was_called("slidetable")
     assert_regex(result.final_response, r"(?i)(TaskList)")

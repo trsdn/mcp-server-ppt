@@ -1,6 +1,6 @@
 """MCP chart collision detection and auto-positioning tests.
 
-Tests that the built-in collision detection, auto-positioning, and screenshot
+Tests that the built-in collision detection, auto-positioning, and slide-image export
 verification hints work WITHOUT the skill. This validates that the MCP tool
 descriptions and result messages alone are sufficient to guide the LLM toward
 well-positioned charts.
@@ -10,7 +10,7 @@ Key behaviors tested:
 - targetRange positions charts within specified cell ranges
 - Collision warnings are returned in the result message
 - LLM reacts to OVERLAP WARNING by repositioning
-- LLM uses screenshot to verify layout (prompted by result message)
+- LLM uses export(slide-to-image) to verify layout (prompted by result message)
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ async def test_mcp_auto_position_no_skill(aitest_run, ppt_mcp_server):
         provider=Provider(model="azure/gpt-4.1"),
         mcp_servers=[ppt_mcp_server],
         # NO skill — only tool descriptions guide the LLM
-        allowed_tools=["file", "range", "chart", "screenshot"],
+        allowed_tools=["file", "slidetable", "chart", "export"],
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
@@ -52,9 +52,9 @@ async def test_mcp_auto_position_no_skill(aitest_run, ppt_mcp_server):
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
     assert result.tool_was_called("chart")
-    # The LLM should follow the result message hint and verify with screenshot
-    assert result.tool_was_called("screenshot"), (
-        "Expected LLM to use screenshot for verification (prompted by result message)"
+    # The LLM should follow the result message hint and verify with a rendered slide image
+    assert result.tool_was_called("export"), (
+        "Expected LLM to use export(slide-to-image) for verification (prompted by result message)"
     )
 
 
@@ -66,7 +66,7 @@ async def test_mcp_targetrange_no_skill(aitest_run, ppt_mcp_server):
         provider=Provider(model="azure/gpt-4.1"),
         mcp_servers=[ppt_mcp_server],
         # NO skill
-        allowed_tools=["file", "range", "chart", "screenshot"],
+        allowed_tools=["file", "slidetable", "chart", "export"],
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
@@ -85,8 +85,8 @@ async def test_mcp_targetrange_no_skill(aitest_run, ppt_mcp_server):
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
     assert result.tool_was_called("chart")
-    assert result.tool_was_called("screenshot"), (
-        "Expected LLM to use screenshot for verification (prompted by result message)"
+    assert result.tool_was_called("export"), (
+        "Expected LLM to use export(slide-to-image) for verification (prompted by result message)"
     )
     assert_regex(result.final_response, r"(?i)(chart|created|position)")
 
@@ -102,7 +102,7 @@ async def test_mcp_multi_chart_collision_no_skill(
         mcp_servers=[ppt_mcp_server],
         # NO skill — relies on tool descriptions + collision warnings
         # Minimal tool set to reduce schema size and token usage
-        allowed_tools=["file", "range", "chart", "screenshot"],
+        allowed_tools=["file", "slidetable", "chart", "export"],
         max_turns=25,
         retries=DEFAULT_RETRIES,
     )
@@ -124,8 +124,8 @@ async def test_mcp_multi_chart_collision_no_skill(
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS * 2)
     assert result.success
     assert result.tool_was_called("chart")
-    assert result.tool_was_called("screenshot"), (
-        "LLM must take screenshot to verify multi-chart layout has no overlaps"
+    assert result.tool_was_called("export"), (
+        "LLM must render the slide to an image to verify multi-chart layout has no overlaps"
     )
 
 
@@ -137,7 +137,7 @@ async def test_mcp_collision_warning_reaction_no_skill(aitest_run, ppt_mcp_serve
         provider=Provider(model="azure/gpt-4.1"),
         mcp_servers=[ppt_mcp_server],
         # NO skill
-        allowed_tools=["file", "range", "chart", "screenshot"],
+        allowed_tools=["file", "slidetable", "chart", "export"],
         max_turns=25,
         retries=DEFAULT_RETRIES,
     )
@@ -158,8 +158,8 @@ async def test_mcp_collision_warning_reaction_no_skill(aitest_run, ppt_mcp_serve
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
     assert result.tool_was_called("chart")
-    assert result.tool_was_called("screenshot"), (
-        "Expected LLM to use screenshot for verification (prompted by result message)"
+    assert result.tool_was_called("export"), (
+        "Expected LLM to use export(slide-to-image) for verification (prompted by result message)"
     )
     # LLM should mention overlap/warning/reposition in its summary
     assert_regex(result.final_response, r"(?i)(overlap|warning|reposition|move|fix)")
