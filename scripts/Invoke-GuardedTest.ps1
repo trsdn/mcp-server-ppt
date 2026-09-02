@@ -11,9 +11,10 @@
 #    Pass -Full to opt in deliberately.
 #
 # 2. A HARD TIMEOUT. Nothing here may run unbounded. A run that is killed or wedged
-#    keeps spawning PowerPoint for as long as nobody is watching. Note that
-#    tests\PptMcp.ComInterop.Tests takes ~34 minutes as a full assembly (measured,
-#    issue #139), so -Full on that project needs -TimeoutMinutes above the default.
+#    keeps spawning PowerPoint for as long as nobody is watching. The full
+#    tests\PptMcp.ComInterop.Tests assembly takes ~7 minutes (it was ~34 before the
+#    teardown fix in issue #148); tests\PptMcp.Core.Tests is the long one, so -Full
+#    there needs -TimeoutMinutes well above the default.
 #
 # 3. STRAY POWERPOINT CLEANUP. Only processes that appear DURING the run are killed -
 #    PIDs present beforehand are the developer's own PowerPoint and are left alone.
@@ -82,9 +83,9 @@ if ($drivesPowerPoint -and -not $Filter -and -not $Full) {
     Write-Host "If you genuinely want the whole assembly, say so:"
     Write-Host "  .\scripts\Invoke-GuardedTest.ps1 -Project $Project -Full"
     Write-Host ""
-    Write-Host "Note: tests\PptMcp.ComInterop.Tests takes ~34 minutes as a full assembly"
-    Write-Host "      (measured, issue #139). Pair -Full with -TimeoutMinutes 60 there,"
-    Write-Host "      or the default 20-minute ceiling will cut it short."
+    Write-Host "Note: tests\PptMcp.Core.Tests is the long assembly; pair -Full there"
+    Write-Host "      with a generous -TimeoutMinutes, or the default 20-minute ceiling"
+    Write-Host "      will cut it short."
     exit 1
 }
 

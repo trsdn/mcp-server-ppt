@@ -1,17 +1,50 @@
 # Azure Self-Hosted Runner Setup
 
-This document describes the minimum setup needed to activate `.github/workflows/integration-tests.yml`.
+> **DECISION: this runner was considered and DECLINED.** It will not be provisioned.
+> The document is kept as a record of that decision and of what activation would take,
+> so the question is not silently re-litigated. See "Decision" below before planning any
+> work that assumes CI runs the integration suite - it does not, and will not.
 
-## Why a Self-Hosted Runner Is Required
+This document describes the minimum setup that *would* be needed to activate the
+`powerpoint-integration` job in `.github/workflows/integration-tests.yml`.
 
-Real PowerPoint COM automation requires a Windows machine with Microsoft PowerPoint installed and an interactive desktop session. GitHub-hosted runners do not provide that environment.
+## Decision: declined, with the coverage moved to a local gate
 
-The integration workflow is therefore present in the repository but only becomes active when:
+Real PowerPoint COM automation needs a licensed Office install and an interactive desktop
+session. Providing that in CI means running, licensing, patching and securing a persistent
+Windows host - a standing cost, and a machine holding repository credentials with a desktop
+session permanently logged in. The maintainer decided that cost is not justified for this
+project.
+
+What replaced it: the suite runs on the maintainer's machine and is enforced **at push
+time**, which is the only point where a human is present and PowerPoint is available.
+
+```powershell
+.\scripts\Invoke-LocalIntegrationGate.ps1   # runs the suite, writes an evidence manifest
+.\scripts\install-hooks.ps1                 # installs the pre-push hook that requires it
+```
+
+The gate writes `.integration-evidence/manifest.json`, recording the commit SHA, every
+suite, the number of tests that ran, and the result. `scripts/check-integration-evidence.ps1`
+verifies it, and the pre-push hook refuses any push touching `src/` or `tests/` without
+evidence **for that exact commit**. Evidence for a different SHA, or produced from a dirty
+working tree, is rejected - stale evidence looks like coverage and is worse than none.
+
+The override is `PPTMCP_SKIP_INTEGRATION_GATE=1`, and it prints a banner naming the
+unverified commit so that skipping is visible rather than habitual.
+
+The suite list in the local gate deliberately mirrors the steps of the unreachable
+`powerpoint-integration` job, so the two cannot drift apart in what they claim to cover.
+
+## What activation would take, if the decision is ever revisited
+
+The workflow is still in the repository and becomes active when both of these are true:
 
 - repository variable `ENABLE_POWERPOINT_INTEGRATION_CI` is set to `true`
 - a self-hosted Windows runner with the label `powerpoint` is available
 
-Until then, the workflow exits with a status message instead of pretending that PowerPoint integration is covered in CI.
+Until then, the workflow reports a status message instead of pretending that PowerPoint
+integration is covered in CI.
 
 ## Recommended Host Requirements
 

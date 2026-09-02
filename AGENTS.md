@@ -99,7 +99,22 @@ dotnet test tests\PptMcp.Core.Tests -c Release --no-build --filter "Feature=Slid
 # Pre-commit gates
 .\scripts\check-com-leaks.ps1
 .\scripts\pre-commit.ps1
+
+# Install the git hooks (pre-commit AND pre-push). Do NOT copy .ps1 files into
+# .git\hooks\ - git cannot execute them, and every commit then fails.
+.\scripts\install-hooks.ps1
+
+# Full integration suite + evidence manifest, required before pushing src/ or tests/
+.\scripts\Invoke-LocalIntegrationGate.ps1
 ```
+
+**There is no CI for the integration suite, and there will not be.** The
+`powerpoint-integration` job needs a self-hosted Windows runner with Office; that was
+considered and declined (`docs/AZURE_SELFHOSTED_RUNNER_SETUP.md`). Coverage is produced
+locally by `Invoke-LocalIntegrationGate.ps1`, which writes an evidence manifest bound to
+a commit SHA, and the pre-push hook refuses to push `src/` or `tests/` changes without
+evidence for that exact commit. Override with `PPTMCP_SKIP_INTEGRATION_GATE=1`, which
+prints a banner naming the unverified commit.
 
 **If the build fails with `MSB3027` (file locked):** a `pptcli` daemon or MSBuild node still holds the output.
 

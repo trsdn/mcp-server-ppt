@@ -234,11 +234,44 @@ Force a run with `$env:PPTMCP_FORCE_SMOKE = '1'`.
 > `scripts/dynamic-casts-baseline.txt`. New casts fail; when the count drops, lower
 > the baseline with `check-dynamic-casts.ps1 -UpdateBaseline`.
 
-**Install hook:**
+**Install hooks:**
 ```powershell
-# From repo root
-Copy-Item scripts\pre-commit.ps1 .git\hooks\pre-commit
+# From repo root - installs pre-commit AND pre-push
+.\scripts\install-hooks.ps1
 ```
+
+> **Do not copy the `.ps1` files into `.git\hooks\` directly.** That was the documented
+> instruction and it never worked: git runs hooks through its own shell, which refuses a
+> PowerShell file without a `.ps1` extension (`Processing -File '.git/hooks/pre-commit'
+> failed because the file does not have a '.ps1' extension`). Every commit then failed for
+> a reason unrelated to the code, so the realistic outcome was that the hook got deleted
+> and nothing was enforced. `install-hooks.ps1` writes an `sh` shim per hook that forwards
+> to the real script, with LF endings and no BOM.
+
+## Pre-Push Gate: Local Integration Evidence
+
+The `powerpoint-integration` CI job **cannot run and will not be provisioned** (see
+`docs/AZURE_SELFHOSTED_RUNNER_SETUP.md`). Integration coverage is produced locally and
+enforced at push time instead.
+
+```powershell
+.\scripts\Invoke-LocalIntegrationGate.ps1   # runs the suite, writes the evidence manifest
+```
+
+The manifest at `.integration-evidence/manifest.json` (gitignored) is **bound to a commit
+SHA** and records every suite, its test count, and its result. The pre-push hook refuses
+any push touching `src/` or `tests/` without valid evidence for that exact commit.
+Rejected: a missing manifest, a manifest for a different SHA, one produced from a dirty
+tree (`binding=none`), a recorded failure, or any suite reporting zero tests.
+
+Override, deliberately and on the record:
+
+```powershell
+$env:PPTMCP_SKIP_INTEGRATION_GATE = '1'; git push; $env:PPTMCP_SKIP_INTEGRATION_GATE = $null
+```
+
+It prints a banner naming the unverified commit, so skipping is visible rather than
+habitual.
 
 ---
 
