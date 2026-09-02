@@ -299,7 +299,13 @@ Core Command Method (NO try-catch wrapping)
 
 All `dynamic` COM objects must be released in `finally` blocks using `ComUtilities.Release(ref obj!)`.
 
-Exception: Session management files (PptBatch.cs, PptSession.cs).
+Exceptions:
+- Session management files (PptBatch.cs, PptSession.cs) own the objects they hand out.
+- A `dynamic` bound directly to `ctx.Presentation` is **borrowed**, not acquired. The batch owns it and releasing it would tear down the caller's presentation, so the gate exempts that shape deliberately.
+
+The gate tracks each variable and requires a matching `ComUtilities.Release(ref <name>)` (or `ReleaseIfNotNull`). It does **not** verify the release sits in a `finally` - write it there anyway, because a release skipped by an early exception is a leak the gate cannot see.
+
+Until #125 this gate could not fail: it asked only whether a file contained *any* `dynamic` acquisition and *any* `Release`, so all 33 command files were permanently green. Injecting a blatant never-released acquisition did not change the verdict. Rule 5 was satisfied vacuously rather than actually.
 
 ---
 

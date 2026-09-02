@@ -10,6 +10,7 @@ namespace PptMcp.ComInterop.Tests.Unit;
 /// so these tests use null! for those parameters and verify only what is testable.
 /// </summary>
 [Trait("Category", "Unit")]
+[Trait("Feature", "PptContext")]
 [Trait("Speed", "Fast")]
 [Trait("Layer", "ComInterop")]
 public class PptContextTests

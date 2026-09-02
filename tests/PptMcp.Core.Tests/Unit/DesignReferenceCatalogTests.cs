@@ -6,6 +6,11 @@ using Xunit;
 
 namespace PptMcp.Core.Tests.Unit;
 
+[Trait("Category", "Unit")]
+[Trait("Layer", "Core")]
+[Trait("Feature", "Design")]
+[Trait("RequiresPowerPoint", "false")]
+[Trait("Speed", "Fast")]
 public class DesignReferenceCatalogTests
 {
     [Fact]

@@ -179,7 +179,7 @@ Pre-commit runs `scripts/pre-commit.ps1` which blocks commits if any check fails
 | # | Check | Script | What It Validates |
 |---|-------|--------|-------------------|
 | 1 | Branch | (inline) | Never commit to `main` directly (Rule 6) |
-| 2 | COM Leaks | `check-com-leaks.ps1` | All `dynamic` COM objects have `ComUtilities.Release()` in finally |
+| 2 | COM Leaks | `check-com-leaks.ps1` | Each `dynamic` that acquires a COM object has a matching `ComUtilities.Release(ref <name>)`. Tracks **per variable**; borrowed `ctx.Presentation` aliases are exempt because the batch owns them |
 | 3 | Documented Counts | `check-documented-counts.ps1` | Tool and operation counts in the docs match the generated tool surface |
 | 4 | Success Flag | `check-success-flag.ps1` | Rule 0: Never `Success=true` with `ErrorMessage` |
 | 5 | CLI Settings Usage | `check-cli-settings-usage.ps1` | All Settings properties forwarded to the daemon in args |

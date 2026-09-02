@@ -310,6 +310,30 @@ catch {
 }
 
 Write-Host ""
+Write-Host "Checking every test class is reachable by a Feature filter..." -ForegroundColor Cyan
+
+# The mirror image of the check above. That one proves documented filters resolve to
+# real traits; this one proves no test hides where no filter can reach it. A class
+# without a Feature trait can only be run by the 45-minute full suite, so in practice
+# it is never run at all - which is how 381 tests sat untraited until issue #138.
+try {
+    $traitScript = Join-Path $rootDir "scripts\check-test-traits.ps1"
+    & $traitScript
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "Test classes are unreachable by any Feature filter!" -ForegroundColor Red
+        Write-Host "   Surgical testing (Rule 16) cannot select them, so they never run." -ForegroundColor Red
+        exit 1
+    }
+}
+catch {
+    Write-Host ""
+    Write-Host "Error running test trait check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
 Write-Host "Checking xunit parallelization config reaches the build output..." -ForegroundColor Cyan
 
 # xunit v2 only reads xunit.runner.json when it sits beside the test assembly, and
