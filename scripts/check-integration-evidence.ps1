@@ -71,13 +71,42 @@ if ($manifest.binding -ne 'commit') {
     )
 }
 
+$reusedFrom = $null
 if ($manifest.commit -ne $Commit) {
-    Fail "the evidence covers a different commit." @(
-        "evidence: $($manifest.commit)",
-        "required: $Commit",
-        "",
-        "Stale evidence is worse than none, because it looks like coverage."
-    )
+    # Evidence names a different commit, but what the suites actually exercised is the
+    # content of src/ and tests/. If that content is byte-identical between the two
+    # commits, the run tested exactly this code and re-running would ask PowerPoint the
+    # same 787 questions for a second time to get the same answers. A docs, scripts or
+    # CHANGELOG commit on top of a verified one is the common case, and forcing a fresh
+    # 11-minute run there teaches people to reach for the override - which is how a
+    # blocking gate ends up disabled in practice.
+    #
+    # This is a narrow exemption, not a softening: any difference at all under src/ or
+    # tests/, or an evidence commit git can no longer resolve, still fails.
+    git diff --quiet $manifest.commit $Commit -- src tests 2>$null
+    $diffExit = $LASTEXITCODE
+
+    if ($diffExit -eq 0) {
+        $reusedFrom = $manifest.commit
+    }
+    else {
+        $detail = if ($diffExit -gt 1) {
+            @("git could not compare the two commits - the evidence commit may have been",
+              "rebased away or never existed here.")
+        }
+        else {
+            @("src/ or tests/ differ between them, so the run did not exercise this code.")
+        }
+
+        Fail "the evidence covers a different commit." (@(
+            "evidence: $($manifest.commit)",
+            "required: $Commit",
+            ""
+        ) + $detail + @(
+            "",
+            "Stale evidence is worse than none, because it looks like coverage."
+        ))
+    }
 }
 
 if ($manifest.result -ne 'pass') {
@@ -132,6 +161,9 @@ $ageHours = [math]::Round(((Get-Date).ToUniversalTime() - $generatedUtc).TotalHo
 
 Write-Host "Integration evidence OK" -ForegroundColor Green
 Write-Host "  commit:  $($manifest.commit)"
+if ($reusedFrom) {
+    Write-Host "  reused:  src/ and tests/ are identical in $($Commit.Substring(0, 8)), so this run covers it" -ForegroundColor Yellow
+}
 Write-Host "  suites:  $($suites.Count)   tests: $($manifest.totalTests)   age: ${ageHours}h"
 Write-Host "  machine: $($manifest.machine.name), PowerPoint $($manifest.machine.powerPoint)"
 

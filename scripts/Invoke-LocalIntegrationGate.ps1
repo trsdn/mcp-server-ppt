@@ -293,7 +293,7 @@ if ($binding -eq 'commit') {
     }
 }
 
-$totalTests = ($results | Measure-Object -Property tests -Sum).Sum
+$totalTests = [int](($results | Measure-Object -Property tests -Sum).Sum)
 if (-not $totalTests -or $totalTests -le 0) {
     $gateFailed = $true
 }
