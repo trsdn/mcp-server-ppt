@@ -106,6 +106,9 @@ dotnet test tests\PptMcp.Core.Tests -c Release --no-build --filter "Feature=Slid
 
 # Full integration suite + evidence manifest, required before pushing src/ or tests/
 .\scripts\Invoke-LocalIntegrationGate.ps1
+
+# Audit which paths each suite depends on, without running anything
+.\scripts\Invoke-LocalIntegrationGate.ps1 -ListInputs
 ```
 
 **There is no CI for the integration suite, and there will not be.** The
@@ -115,6 +118,13 @@ locally by `Invoke-LocalIntegrationGate.ps1`, which writes an evidence manifest 
 a commit SHA, and the pre-push hook refuses to push `src/` or `tests/` changes without
 evidence for that exact commit. Override with `PPTMCP_SKIP_INTEGRATION_GATE=1`, which
 prints a banner naming the unverified commit.
+
+The gate is **scope-aware**: each suite's inputs are derived from its transitive
+`ProjectReference` closure, and a suite whose inputs are byte-identical to the previous
+manifest is carried forward as `reused` rather than re-run. A Core-only change therefore
+skips the whole ComInterop assembly (96 tests, ~96 PowerPoint launches). Reuse only
+applies when both manifests are `binding=commit`. Pass `-Force` to re-run everything when
+you suspect a flaky result rather than a stale one.
 
 **If the build fails with `MSB3027` (file locked):** a `pptcli` daemon or MSBuild node still holds the output.
 

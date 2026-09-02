@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **The integration gate now re-runs only the suites a change can actually affect** (#143 follow-up): a full gate run is ~11 minutes and launches PowerPoint roughly 200 times, and it ran in full for every push — including pushes that touched only documentation or a single unrelated project. A gate that expensive on every push is a gate that ends up disabled.
+  - Each suite's inputs are now derived from its **transitive `ProjectReference` closure**, not a hand-maintained list, so the mapping cannot silently drift from the build graph. The fingerprint is a SHA-256 over `git ls-files -s` for those paths, which uses git's own blob SHAs as the content hash rather than re-reading files.
+  - A suite whose fingerprint matches the previous manifest is carried forward and marked `reused`, with the commit it was actually verified on recorded in `reusedFrom`. The pushed commit's evidence therefore still names the run that produced it.
+  - Reuse is refused unless the previous manifest and the current run are both `binding=commit`. `git ls-files` reports the index, so on a dirty tree its blob SHAs would describe content that no commit holds — the same reason the gate refuses to mint evidence from a dirty tree at all.
+  - Measured effect: a change confined to `src/PptMcp.Core` now reuses `cominterop-full`, skipping 96 tests and ~96 PowerPoint launches, while every suite that genuinely depends on Core still runs. A docs-only push reuses all six suites and completes in ~2 seconds with zero PowerPoint launches.
+  - `-Force` re-runs everything, for when a result is suspected flaky or environment-dependent rather than stale. `-ListInputs` prints each suite's derived paths and fingerprint and exits without running anything, so the dependency mapping can be audited without paying for a run.
+
 ### Security
 
 - **Scriban bumped 6.6.0 → 7.2.6**: resolves NU1904 (critical) and four NU1902 (moderate) NuGet audit advisories that broke `dotnet restore` and caused the scheduled CodeQL workflow to fail on `main` since July
