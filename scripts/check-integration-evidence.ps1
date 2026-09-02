@@ -169,7 +169,8 @@ Write-Host "  machine: $($manifest.machine.name), PowerPoint $($manifest.machine
 
 if ($Detailed) {
     foreach ($s in $suites) {
-        Write-Host "  - $($s.name): $($s.tests) test(s), $($s.durationSeconds)s"
+        $tag = if ($s.reused) { "  (reused from $($s.reusedFrom.Substring(0, 8)) - inputs unchanged)" } else { '' }
+        Write-Host "  - $($s.name): $($s.tests) test(s), $($s.durationSeconds)s$tag"
     }
 }
 

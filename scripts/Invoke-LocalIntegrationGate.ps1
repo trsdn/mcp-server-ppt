@@ -47,7 +47,15 @@ param(
     # Run only the named suites, for iterating on the gate itself. A partial run cannot
     # be evidence for a commit, so this forces binding=none no matter how clean the tree
     # is - otherwise the gate could mint a passing manifest for coverage it never ran.
-    [string[]]$Only = @()
+    [string[]]$Only = @(),
+
+    # Re-run every suite even when its inputs are unchanged. Use when you suspect a
+    # flaky or environment-dependent result rather than a code change.
+    [switch]$Force,
+
+    # Print each suite's derived input paths and content hash, then exit. Runs nothing,
+    # launches nothing - for checking that the dependency derivation is sane.
+    [switch]$ListInputs
 )
 
 $ErrorActionPreference = 'Stop'
@@ -71,7 +79,7 @@ $dirty = @(git status --porcelain -- src tests | Where-Object { $_ -ne '' })
 $binding = 'commit'
 
 if ($dirty.Count -gt 0) {
-    if (-not $AllowDirty) {
+    if (-not $AllowDirty -and -not $ListInputs) {
         Write-Host "REFUSED: uncommitted changes under src/ or tests/." -ForegroundColor Red
         Write-Host ""
         Write-Host "Evidence is bound to a commit. Running now would test content that no"
@@ -118,6 +126,82 @@ $dotnetVersion = (dotnet --version).Trim()
 Write-Host "PowerPoint: $powerPointVersion   .NET SDK: $dotnetVersion   Machine: $env:COMPUTERNAME"
 Write-Host ""
 
+# ---------------------------------------------------------------- suite input hashing
+# Every ComInterop test creates and tears down a real PowerPoint process, because session
+# lifecycle is the thing under test. That is ~95 launches, and re-running them to re-prove
+# a result about code that did not change is the single most disruptive thing this gate
+# does to the machine it runs on.
+#
+# So a suite is re-run only when its inputs changed. "Inputs" is derived, not declared:
+# the transitive ProjectReference closure of the test project, which is exactly the code
+# that suite can exercise. A change confined to src/PptMcp.Core cannot alter the behaviour
+# of a suite that never references it.
+#
+# The hash is built from git blob SHAs, so it describes committed content precisely. That
+# is only meaningful on a clean tree, so reuse is disabled outright unless binding=commit.
+function Get-ProjectClosure {
+    param([string]$ProjectPath)
+
+    $seen = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $frontier = @([System.IO.Path]::GetFullPath($ProjectPath))
+
+    while ($frontier.Count -gt 0) {
+        $next = @()
+        foreach ($proj in $frontier) {
+            if (-not $seen.Add($proj)) { continue }
+            if (-not (Test-Path $proj)) { continue }
+
+            $dir = Split-Path -Parent $proj
+            try { [xml]$xml = Get-Content $proj -Raw } catch { continue }
+
+            foreach ($group in $xml.Project.ItemGroup) {
+                foreach ($ref in $group.ProjectReference) {
+                    if ($ref -and $ref.Include) {
+                        $next += [System.IO.Path]::GetFullPath((Join-Path $dir $ref.Include))
+                    }
+                }
+            }
+        }
+        $frontier = $next
+    }
+
+    return @($seen)
+}
+
+function Get-SuiteInputsHash {
+    param([string[]]$Paths)
+
+    # git ls-files -s prints mode, blob SHA, stage and path for every tracked file. The
+    # blob SHA is the content, so this is a precise content fingerprint of the inputs
+    # without reading a single file ourselves.
+    $listing = git ls-files -s -- @Paths 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $listing) { return $null }
+
+    $joined = ($listing | Sort-Object) -join "`n"
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($joined)
+    $sha = [System.Security.Cryptography.SHA256]::HashData($bytes)
+    return [System.Convert]::ToHexString($sha).ToLowerInvariant()
+}
+
+function Get-SuiteInputPaths {
+    param([hashtable]$Suite)
+
+    $paths = @()
+
+    if ($Suite.Project) {
+        foreach ($proj in Get-ProjectClosure (Join-Path $repoRoot $Suite.Project)) {
+            $dir = Split-Path -Parent $proj
+            $paths += [System.IO.Path]::GetRelativePath($repoRoot, $dir).Replace('\', '/')
+        }
+    }
+
+    foreach ($extra in @($Suite.ExtraInputs)) {
+        if ($extra) { $paths += $extra }
+    }
+
+    return @($paths | Sort-Object -Unique)
+}
+
 # ---------------------------------------------------------------- build
 if (-not $NoBuild) {
     Write-Host "Building solution (Release)..." -ForegroundColor Cyan
@@ -145,10 +229,14 @@ $guard = Join-Path $PSScriptRoot 'Invoke-GuardedTest.ps1'
 
 $suites = @(
     @{
-        Name    = 'cli-smoke-workflow'
-        Kind    = 'script'
-        Script  = (Join-Path $PSScriptRoot 'Test-CliWorkflow.ps1')
-        Args    = @()
+        Name        = 'cli-smoke-workflow'
+        Kind        = 'script'
+        Script      = (Join-Path $PSScriptRoot 'Test-CliWorkflow.ps1')
+        Args        = @()
+        # Not a test project, but it drives the built CLI, so it depends on the CLI's
+        # project closure plus the workflow script itself.
+        Project     = 'src/PptMcp.CLI/PptMcp.CLI.csproj'
+        ExtraInputs = @('scripts/Test-CliWorkflow.ps1')
     }
     @{
         Name    = 'mcp-smoke'
@@ -190,6 +278,18 @@ $suites = @(
 $results = @()
 $gateFailed = $false
 
+if ($ListInputs) {
+    foreach ($suite in $suites) {
+        $paths = Get-SuiteInputPaths $suite
+        $hash = Get-SuiteInputsHash $paths
+        Write-Host "[$($suite.Name)]" -ForegroundColor Cyan
+        Write-Host "  hash: $hash"
+        foreach ($p in $paths) { Write-Host "  - $p" }
+        Write-Host ""
+    }
+    exit 0
+}
+
 if ($Only.Count -gt 0) {
     $unknown = @($Only | Where-Object { $_ -notin ($suites | ForEach-Object { $_.Name }) })
     if ($unknown.Count -gt 0) {
@@ -204,11 +304,61 @@ if ($Only.Count -gt 0) {
     Write-Host ""
 }
 
+# ---------------------------------------------------------------- prior evidence
+# Load the manifest this run is about to replace, so suites whose inputs are unchanged can
+# stand on their previous result instead of launching PowerPoint again to reach it.
+$previousSuites = @{}
+$previousCommit = $null
+
+if (-not $Force -and $binding -eq 'commit' -and (Test-Path $OutputPath)) {
+    try {
+        $prev = Get-Content $OutputPath -Raw | ConvertFrom-Json
+        if ($prev.schemaVersion -eq 1 -and $prev.binding -eq 'commit') {
+            $previousCommit = $prev.commit
+            foreach ($s in @($prev.suites)) {
+                if ($s.result -eq 'pass' -and $s.inputsHash) {
+                    $previousSuites[$s.name] = $s
+                }
+            }
+        }
+    }
+    catch {
+        # An unreadable manifest simply means no reuse. It is never a reason to fail.
+        $previousSuites = @{}
+    }
+}
+
 foreach ($suite in $suites) {
     Write-Host "[$($suite.Name)]" -ForegroundColor Cyan
     $suiteStart = Get-Date
     $testCount = $null
     $output = ''
+
+    # ------------------------------------------------------------ reuse check
+    $inputsHash = if ($binding -eq 'commit') { Get-SuiteInputsHash (Get-SuiteInputPaths $suite) } else { $null }
+
+    if ($inputsHash -and $previousSuites.ContainsKey($suite.Name)) {
+        $prior = $previousSuites[$suite.Name]
+        if ($prior.inputsHash -eq $inputsHash) {
+            $priorFrom = if ($prior.reusedFrom) { $prior.reusedFrom } else { $previousCommit }
+
+            Write-Host "  REUSED - $($prior.tests) test(s), inputs unchanged since $($priorFrom.Substring(0, 8))" -ForegroundColor DarkGray
+            Write-Host ""
+
+            $results += [pscustomobject]@{
+                name            = $suite.Name
+                kind            = $suite.Kind
+                tests           = [int]$prior.tests
+                result          = 'pass'
+                exitCode        = 0
+                durationSeconds = [double]$prior.durationSeconds
+                inputsHash      = $inputsHash
+                reused          = $true
+                reusedFrom      = $priorFrom
+            }
+            continue
+        }
+    }
 
     if ($suite.Kind -eq 'script') {
         # *>&1 and not 2>&1: these scripts report through Write-Host, which writes to the
@@ -256,6 +406,8 @@ foreach ($suite in $suites) {
         result          = if ($passed) { 'pass' } else { 'fail' }
         exitCode        = $exitCode
         durationSeconds = $suiteDuration
+        inputsHash      = $inputsHash
+        reused          = $false
     }
 
     if ($passed) {
@@ -325,7 +477,9 @@ if ($outDir -and -not (Test-Path $outDir)) {
 $manifest | ConvertTo-Json -Depth 6 | Out-File -FilePath $OutputPath -Encoding utf8
 
 Write-Host "=================================="
-Write-Host "Suites: $($results.Count)   Tests: $totalTests   Duration: $([math]::Round($totalDuration / 60, 1))m"
+$reusedCount = @($results | Where-Object { $_.reused }).Count
+$ranCount = $results.Count - $reusedCount
+Write-Host "Suites: $($results.Count) ($ranCount run, $reusedCount reused)   Tests: $totalTests   Duration: $([math]::Round($totalDuration / 60, 1))m"
 Write-Host "Manifest: $OutputPath"
 Write-Host ""
 

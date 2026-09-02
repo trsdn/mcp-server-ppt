@@ -256,6 +256,7 @@ enforced at push time instead.
 
 ```powershell
 .\scripts\Invoke-LocalIntegrationGate.ps1   # runs the suite, writes the evidence manifest
+.\scripts\Invoke-LocalIntegrationGate.ps1 -ListInputs   # audit suite inputs, runs nothing
 ```
 
 The manifest at `.integration-evidence/manifest.json` (gitignored) is **bound to a commit
@@ -263,6 +264,13 @@ SHA** and records every suite, its test count, and its result. The pre-push hook
 any push touching `src/` or `tests/` without valid evidence for that exact commit.
 Rejected: a missing manifest, a manifest for a different SHA, one produced from a dirty
 tree (`binding=none`), a recorded failure, or any suite reporting zero tests.
+
+**The gate is scope-aware — do not work around it by skipping runs.** Each suite's inputs
+come from its transitive `ProjectReference` closure, fingerprinted with git's own blob
+SHAs. A suite whose inputs are unchanged since the previous manifest is carried forward as
+`reused` (recording the commit it was verified on) instead of re-run. A Core-only change
+skips the entire ComInterop assembly; a docs-only change reuses everything and finishes in
+seconds without launching PowerPoint. Use `-Force` only when you suspect a flaky result.
 
 Override, deliberately and on the record:
 
