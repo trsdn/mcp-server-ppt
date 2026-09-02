@@ -12,8 +12,8 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 var result = new TextResult
@@ -60,14 +60,23 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasTextFrame) == 0)
                     throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
 
-                shape.TextFrame.TextRange.Text = text;
+                dynamic textRange = ComUtilities.GetTextRange(shape);
+                try
+                {
+                    textRange.Text = text;
+                }
+                finally
+                {
+                    ComUtilities.Release(ref textRange!);
+                }
+
                 return new OperationResult
                 {
                     Success = true,
@@ -104,7 +113,17 @@ public class TextCommands : ITextCommands
                         {
                             if (Convert.ToInt32(shape.HasTextFrame) != 0)
                             {
-                                string text = shape.TextFrame.TextRange.Text?.ToString() ?? "";
+                                string text;
+                                dynamic tr = ComUtilities.GetTextRange(shape);
+                                try
+                                {
+                                    text = tr.Text?.ToString() ?? "";
+                                }
+                                finally
+                                {
+                                    ComUtilities.Release(ref tr!);
+                                }
+
                                 if (text.Contains(searchText, StringComparison.OrdinalIgnoreCase))
                                 {
                                     matches.Add($"Slide {idx}, Shape '{shape.Name}': found '{searchText}'");
@@ -125,7 +144,7 @@ public class TextCommands : ITextCommands
 
             if (slideIndex > 0)
             {
-                dynamic slide = pres.Slides.Item(slideIndex);
+                dynamic slide = ComUtilities.GetSlide(pres, slideIndex);
                 try
                 {
                     SearchSlide(slide, slideIndex);
@@ -192,7 +211,7 @@ public class TextCommands : ITextCommands
                         {
                             if (Convert.ToInt32(shape.HasTextFrame) != 0)
                             {
-                                dynamic textRange = shape.TextFrame.TextRange;
+                                dynamic textRange = ComUtilities.GetTextRange(shape);
                                 try
                                 {
                                     string text = textRange.Text?.ToString() ?? "";
@@ -235,7 +254,7 @@ public class TextCommands : ITextCommands
 
             if (slideIndex > 0)
             {
-                dynamic slide = pres.Slides.Item(slideIndex);
+                dynamic slide = ComUtilities.GetSlide(pres, slideIndex);
                 try
                 {
                     ReplaceInSlide(slide);
@@ -286,68 +305,105 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasTextFrame) == 0)
                     throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
 
-                dynamic textFrame = shape.TextFrame;
-                dynamic font = textFrame.TextRange.Font;
-                if (fontName != null) font.Name = fontName;
-                if (fontSize.HasValue) font.Size = fontSize.Value;
-                if (bold.HasValue) font.Bold = bold.Value ? -1 : 0; // msoTrue/msoFalse
-                if (italic.HasValue) font.Italic = italic.Value ? -1 : 0;
-                if (color != null)
+                dynamic? textFrame = null;
+                dynamic? textRange = null;
+                dynamic? font = null;
+                try
                 {
-                    // Parse hex color #RRGGBB → RGB int
-                    if (color.StartsWith('#') && color.Length == 7)
+                    textFrame = shape.TextFrame;
+                    textRange = textFrame.TextRange;
+                    font = textRange.Font;
+                    if (fontName != null) font.Name = fontName;
+                    if (fontSize.HasValue) font.Size = fontSize.Value;
+                    if (bold.HasValue) font.Bold = bold.Value ? -1 : 0; // msoTrue/msoFalse
+                    if (italic.HasValue) font.Italic = italic.Value ? -1 : 0;
+                    if (color != null)
                     {
-                        int r = Convert.ToInt32(color[1..3], 16);
-                        int g = Convert.ToInt32(color[3..5], 16);
-                        int b = Convert.ToInt32(color[5..7], 16);
-                        font.Color.RGB = r + (g << 8) + (b << 16); // PowerPoint uses BGR format
+                        // Parse hex color #RRGGBB → RGB int
+                        if (color.StartsWith('#') && color.Length == 7)
+                        {
+                            int r = Convert.ToInt32(color[1..3], 16);
+                            int g = Convert.ToInt32(color[3..5], 16);
+                            int b = Convert.ToInt32(color[5..7], 16);
+                            dynamic? fontColor = null;
+                            try
+                            {
+                                fontColor = font.Color;
+                                fontColor.RGB = r + (g << 8) + (b << 16); // PowerPoint uses BGR format
+                            }
+                            finally
+                            {
+                                ComUtilities.Release(ref fontColor!);
+                            }
+                        }
+                    }
+
+                    // Horizontal alignment for all paragraphs
+                    if (alignment != null)
+                    {
+                        // ppAlignLeft=1, ppAlignCenter=2, ppAlignRight=3, ppAlignJustify=4
+                        int ppAlign = alignment.ToLowerInvariant() switch
+                        {
+                            "left" => 1,
+                            "center" => 2,
+                            "right" => 3,
+                            "justify" => 4,
+                            _ => 1
+                        };
+                        dynamic? paragraphs = null;
+                        try
+                        {
+                            paragraphs = textRange.Paragraphs();
+                            int paraCount = (int)paragraphs.Count;
+                            for (int p = 1; p <= paraCount; p++)
+                            {
+                                dynamic? para = null;
+                                dynamic? paraFormat = null;
+                                try
+                                {
+                                    para = textRange.Paragraphs(p, 1);
+                                    paraFormat = para.ParagraphFormat;
+                                    paraFormat.Alignment = ppAlign;
+                                }
+                                finally
+                                {
+                                    ComUtilities.Release(ref paraFormat!);
+                                    ComUtilities.Release(ref para!);
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref paragraphs!);
+                        }
+                    }
+
+                    // Vertical anchor: msoAnchorTop=1, msoAnchorMiddle=3, msoAnchorBottom=4
+                    if (verticalAlignment != null)
+                    {
+                        textFrame.VerticalAnchor = verticalAlignment.ToLowerInvariant() switch
+                        {
+                            "top" => 1,
+                            "middle" => 3,
+                            "bottom" => 4,
+                            _ => 1
+                        };
                     }
                 }
-
-                // Horizontal alignment for all paragraphs
-                if (alignment != null)
+                finally
                 {
-                    // ppAlignLeft=1, ppAlignCenter=2, ppAlignRight=3, ppAlignJustify=4
-                    int ppAlign = alignment.ToLowerInvariant() switch
-                    {
-                        "left" => 1,
-                        "center" => 2,
-                        "right" => 3,
-                        "justify" => 4,
-                        _ => 1
-                    };
-                    dynamic paragraphs = textFrame.TextRange.Paragraphs();
-                    int paraCount = (int)paragraphs.Count;
-                    for (int p = 1; p <= paraCount; p++)
-                    {
-                        dynamic para = textFrame.TextRange.Paragraphs(p, 1);
-                        try { para.ParagraphFormat.Alignment = ppAlign; }
-                        finally { ComUtilities.Release(ref para!); }
-                    }
-                    ComUtilities.Release(ref paragraphs!);
+                    ComUtilities.Release(ref font!);
+                    ComUtilities.Release(ref textRange!);
+                    ComUtilities.Release(ref textFrame!);
                 }
 
-                // Vertical anchor: msoAnchorTop=1, msoAnchorMiddle=3, msoAnchorBottom=4
-                if (verticalAlignment != null)
-                {
-                    textFrame.VerticalAnchor = verticalAlignment.ToLowerInvariant() switch
-                    {
-                        "top" => 1,
-                        "middle" => 3,
-                        "bottom" => 4,
-                        _ => 1
-                    };
-                }
-
-                ComUtilities.Release(ref font!);
-                ComUtilities.Release(ref textFrame!);
                 return new OperationResult
                 {
                     Success = true,
@@ -370,14 +426,14 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasTextFrame) == 0)
                     throw new InvalidOperationException($"Shape '{shapeName}' does not have a text frame.");
 
-                dynamic font = shape.TextFrame.TextRange.Font;
+                dynamic font = ComUtilities.GetTextFont(shape);
                 try
                 {
                     if (underline.HasValue)
@@ -430,7 +486,7 @@ public class TextCommands : ITextCommands
                         {
                             if (Convert.ToInt32(shape.HasTextFrame) != 0)
                             {
-                                dynamic textRange = shape.TextFrame.TextRange;
+                                dynamic textRange = ComUtilities.GetTextRange(shape);
                                 try
                                 {
                                     string text = textRange.Text?.ToString() ?? "";
@@ -459,7 +515,7 @@ public class TextCommands : ITextCommands
 
             if (slideIndex > 0)
             {
-                dynamic slide = pres.Slides.Item(slideIndex);
+                dynamic slide = ComUtilities.GetSlide(pres, slideIndex);
                 try
                 {
                     CountInSlide(slide);
@@ -543,7 +599,7 @@ public class TextCommands : ITextCommands
 
             if (slideIndex > 0)
             {
-                dynamic slide = pres.Slides.Item(slideIndex);
+                dynamic slide = ComUtilities.GetSlide(pres, slideIndex);
                 try
                 {
                     AuditSlide(slide, slideIndex);
@@ -610,7 +666,7 @@ public class TextCommands : ITextCommands
                         {
                             if (Convert.ToInt32(ph.HasTextFrame) != 0)
                             {
-                                dynamic textRange = ph.TextFrame.TextRange;
+                                dynamic textRange = ComUtilities.GetTextRange(ph);
                                 try
                                 {
                                     string text = textRange.Text?.ToString() ?? "";
@@ -639,7 +695,7 @@ public class TextCommands : ITextCommands
 
             if (slideIndex > 0)
             {
-                dynamic slide = pres.Slides.Item(slideIndex);
+                dynamic slide = ComUtilities.GetSlide(pres, slideIndex);
                 try
                 {
                     AuditSlide(slide, slideIndex);
@@ -692,8 +748,8 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasTextFrame) == 0)
@@ -758,8 +814,8 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasTextFrame) == 0)
@@ -897,8 +953,8 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? textFrame = null;
             dynamic? textRange = null;
             dynamic? found = null;
@@ -955,8 +1011,8 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? textFrame = null;
             dynamic? textRange = null;
             try
@@ -1002,8 +1058,8 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? textFrame = null;
             dynamic? textRange = null;
             dynamic? paragraphFormat = null;
@@ -1049,8 +1105,8 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? textFrame = null;
             dynamic? textRange = null;
             dynamic? allParagraphs = null;
@@ -1117,8 +1173,8 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? textFrame = null;
             dynamic? textRange = null;
             try
@@ -1154,8 +1210,8 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? textFrame = null;
             dynamic? textRange = null;
             try
@@ -1191,8 +1247,8 @@ public class TextCommands : ITextCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? textFrame = null;
             dynamic? textRange = null;
             try

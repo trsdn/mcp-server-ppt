@@ -146,6 +146,53 @@ public static class ComUtilities
     }
 
     /// <summary>
+    /// Gets a shape's <c>TextRange</c> without abandoning the intermediate
+    /// <c>TextFrame</c>. See <see cref="GetSlide"/> for why the inline form leaks.
+    ///
+    /// <para>
+    /// The caller is responsible for checking <c>HasTextFrame</c> first; this method
+    /// deliberately does not guard, because a shape that cannot hold text is a caller
+    /// error rather than something to paper over with a null return.
+    /// </para>
+    /// </summary>
+    /// <param name="shape">Shape COM object.</param>
+    /// <returns>The text range COM object. The caller owns it and must release it.</returns>
+    public static dynamic GetTextRange(dynamic shape)
+    {
+        dynamic? textFrame = null;
+        try
+        {
+            textFrame = shape.TextFrame;
+            return textFrame.TextRange;
+        }
+        finally
+        {
+            ComUtilities.Release(ref textFrame!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a shape's text <c>Font</c> without abandoning the intermediate
+    /// <c>TextFrame</c> and <c>TextRange</c>. See <see cref="GetSlide"/> for why the
+    /// inline form leaks.
+    /// </summary>
+    /// <param name="shape">Shape COM object.</param>
+    /// <returns>The font COM object. The caller owns it and must release it.</returns>
+    public static dynamic GetTextFont(dynamic shape)
+    {
+        dynamic? textRange = null;
+        try
+        {
+            textRange = GetTextRange(shape);
+            return textRange.Font;
+        }
+        finally
+        {
+            ComUtilities.Release(ref textRange!);
+        }
+    }
+
+    /// <summary>
     /// Safely gets a string property from a COM object, returning empty string if null
     /// </summary>
     /// <param name="obj">COM object</param>

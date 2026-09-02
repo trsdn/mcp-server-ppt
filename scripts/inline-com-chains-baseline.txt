@@ -1,6 +1,6 @@
 # Inline COM member chains per file. See check-inline-com-chains.ps1.
 # Counts may only go down. Regenerate with -UpdateBaseline.
-# Total at last update: 140
+# Total at last update: 114
 src\PptMcp.Core\Commands\Accessibility\AccessibilityCommands.cs=1
 src\PptMcp.Core\Commands\Animation\AnimationCommands.cs=1
 src\PptMcp.Core\Commands\Background\BackgroundCommands.cs=8
@@ -23,5 +23,4 @@ src\PptMcp.Core\Commands\Slideshow\SlideshowCommands.cs=2
 src\PptMcp.Core\Commands\SlideTable\SlideTableCommands.cs=19
 src\PptMcp.Core\Commands\SmartArt\SmartArtCommands.cs=6
 src\PptMcp.Core\Commands\Tag\TagCommands.cs=1
-src\PptMcp.Core\Commands\Text\TextCommands.cs=26
 src\PptMcp.Core\Commands\Transition\TransitionCommands.cs=2
