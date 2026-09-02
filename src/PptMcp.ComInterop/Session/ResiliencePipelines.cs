@@ -50,14 +50,6 @@ public static class ResiliencePipelines
     #region Pipeline Configuration
 
     /// <summary>
-    /// Default retry configuration for standard COM busy operations.
-    /// </summary>
-    private static readonly PipelineConfig DefaultComConfig = new(
-        MaxRetryAttempts: 6,
-        DelayMs: 500,
-        AdditionalHResults: []);
-
-    /// <summary>
     /// Retry configuration for Data Model operations.
     /// </summary>
     private static readonly PipelineConfig DataModelConfig = new(
@@ -78,13 +70,6 @@ public static class ResiliencePipelines
     #endregion
 
     #region Factory Methods
-
-    /// <summary>
-    /// Creates a retry pipeline for PowerPoint.Quit() operations.
-    /// Handles transient COM busy conditions with exponential backoff + jitter.
-    /// </summary>
-    /// <returns>Configured resilience pipeline</returns>
-    public static ResiliencePipeline CreatePowerPointQuitPipeline() => CreatePipeline(DefaultComConfig);
 
     /// <summary>
     /// Creates a retry pipeline for Data Model operations (measures, relationships, tables).

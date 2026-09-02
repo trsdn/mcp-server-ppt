@@ -8,17 +8,19 @@ public static class ComInteropConstants
     #region Timeouts
 
     /// <summary>
-    /// Timeout for PowerPoint.Quit() operation (30 seconds).
-    /// With DisplayAlerts=false, PowerPoint quits quickly. This timeout catches hung scenarios.
+    /// Budget for releasing PowerPoint's COM references during shutdown (30 seconds).
+    /// The shutdown sequence closes the presentation and releases every proxy; this timeout
+    /// catches a COM server that stops responding part-way through.
     /// </summary>
-    public static readonly TimeSpan PowerPointQuitTimeout = TimeSpan.FromSeconds(30);
+    public static readonly TimeSpan PowerPointShutdownTimeout = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// Timeout for STA thread join after quit.
-    /// CRITICAL: Must be >= PowerPointQuitTimeout to ensure Dispose() waits for CloseAndQuit() to complete.
-    /// Set to PowerPointQuitTimeout + 15s margin for presentation close and COM cleanup.
+    /// Timeout for STA thread join after shutdown.
+    /// CRITICAL: Must be >= PowerPointShutdownTimeout so Dispose() waits for the shutdown
+    /// sequence to complete. Set to PowerPointShutdownTimeout + 15s margin for presentation
+    /// close and COM cleanup.
     /// </summary>
-    public static readonly TimeSpan StaThreadJoinTimeout = PowerPointQuitTimeout + TimeSpan.FromSeconds(15);
+    public static readonly TimeSpan StaThreadJoinTimeout = PowerPointShutdownTimeout + TimeSpan.FromSeconds(15);
 
     /// <summary>
     /// Timeout for save operations (5 minutes).

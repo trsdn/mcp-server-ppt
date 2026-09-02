@@ -38,7 +38,7 @@ internal sealed class PptBatch : IPptBatch
     private readonly Thread _staThread;
     private readonly CancellationTokenSource _shutdownCts;
     private int _disposed; // 0 = not disposed, 1 = disposed (using int for Interlocked.CompareExchange)
-    private int? _powerPointProcessId; // POWERPNT.exe process ID for force-kill if needed
+    private int? _powerPointProcessId; // POWERPNT.exe process ID, terminated during Dispose
     private bool _operationTimedOut; // Track if an operation timed out for aggressive cleanup
 
     // COM state (STA thread only)
@@ -160,72 +160,90 @@ internal sealed class PptBatch : IPptBatch
                 var tempPresentations = new Dictionary<string, PowerPoint.Presentation>(StringComparer.OrdinalIgnoreCase);
                 PowerPoint.Presentation? primaryPresentation = null;
 
-                foreach (var path in _allPresentationPaths)
+                // Bind the Presentations collection to a local so its COM proxy can be released.
+                // An inline chain such as tempPowerPoint.Presentations.Open(...) materialises this
+                // proxy and abandons it, because there is no local to release. That single abandoned
+                // proxy keeps POWERPNT alive after Quit() succeeds, so the STA thread cannot exit and
+                // Dispose burns its full join timeout before force-killing the process (issue #148).
+                dynamic? presentationsCollection = null;
+                try
                 {
-                    PowerPoint.Presentation pres;
-                    string normalizedPath = Path.GetFullPath(path);
+                    presentationsCollection = ((dynamic)tempPowerPoint).Presentations;
 
-                    if (_createNewFile)
+                    foreach (var path in _allPresentationPaths)
                     {
-                        // CREATE NEW FILE: Use Add() + SaveAs() instead of Open()
-                        string? directory = Path.GetDirectoryName(normalizedPath);
-                        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                        {
-                            throw new DirectoryNotFoundException($"Directory does not exist: '{directory}'. Create the directory first before creating PowerPoint files.");
-                        }
+                        PowerPoint.Presentation pres;
+                        string normalizedPath = Path.GetFullPath(path);
 
-                        // Create new presentation WITH window (required for embedded objects like charts)
-                        // PowerPoint's AddChart/AddChart2 requires a DocumentWindow to exist.
-                        // Using Add(msoFalse) creates without window and breaks chart/OLE operations.
-                        pres = ((dynamic)tempPowerPoint).Presentations.Add();
-
-                        // SaveAs with appropriate format
-                        if (_isMacroEnabled)
+                        if (_createNewFile)
                         {
-                            ((dynamic)pres).SaveAs(normalizedPath, ComInteropConstants.PpSaveAsOpenXMLPresentationMacroEnabled);
+                            // CREATE NEW FILE: Use Add() + SaveAs() instead of Open()
+                            string? directory = Path.GetDirectoryName(normalizedPath);
+                            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                            {
+                                throw new DirectoryNotFoundException($"Directory does not exist: '{directory}'. Create the directory first before creating PowerPoint files.");
+                            }
+
+                            // Create new presentation WITH window (required for embedded objects like charts)
+                            // PowerPoint's AddChart/AddChart2 requires a DocumentWindow to exist.
+                            // Using Add(msoFalse) creates without window and breaks chart/OLE operations.
+                            pres = presentationsCollection.Add();
+
+                            // SaveAs with appropriate format
+                            if (_isMacroEnabled)
+                            {
+                                ((dynamic)pres).SaveAs(normalizedPath, ComInteropConstants.PpSaveAsOpenXMLPresentationMacroEnabled);
+                            }
+                            else
+                            {
+                                ((dynamic)pres).SaveAs(normalizedPath, ComInteropConstants.PpSaveAsOpenXMLPresentation);
+                            }
                         }
                         else
                         {
-                            ((dynamic)pres).SaveAs(normalizedPath, ComInteropConstants.PpSaveAsOpenXMLPresentation);
+                            // OPEN EXISTING FILE: Validate and open
+                            bool isIrm = FileAccessValidator.IsIrmProtected(normalizedPath);
+
+                            if (isIrm)
+                            {
+                                ((dynamic)tempPowerPoint).Visible = -1 /* msoTrue */;
+                                _logger.LogDebug(
+                                    "IRM-protected file detected: {FileName}. Forcing PowerPoint visible and opening read-only.",
+                                    Path.GetFileName(normalizedPath));
+                            }
+                            else
+                            {
+                                // CRITICAL: Check if file is locked at OS level BEFORE attempting PowerPoint COM open
+                                FileAccessValidator.ValidateFileNotLocked(path);
+                            }
+
+                            // Open presentation with PowerPoint COM
+                            try
+                            {
+                                pres = isIrm
+                                    ? presentationsCollection.Open(normalizedPath, -1 /* msoTrue ReadOnly */)
+                                    : presentationsCollection.Open(normalizedPath);
+                            }
+                            catch (COMException ex) when (ex.HResult == unchecked((int)0x800A03EC))
+                            {
+                                // Error 1004 equivalent - File is already open or locked
+                                throw FileAccessValidator.CreateFileLockedError(path, ex);
+                            }
+                        }
+
+                        tempPresentations[normalizedPath] = pres;
+
+                        if (path == _presentationPath)
+                        {
+                            primaryPresentation = pres;
                         }
                     }
-                    else
+                }
+                finally
+                {
+                    if (presentationsCollection != null)
                     {
-                        // OPEN EXISTING FILE: Validate and open
-                        bool isIrm = FileAccessValidator.IsIrmProtected(normalizedPath);
-
-                        if (isIrm)
-                        {
-                            ((dynamic)tempPowerPoint).Visible = -1 /* msoTrue */;
-                            _logger.LogDebug(
-                                "IRM-protected file detected: {FileName}. Forcing PowerPoint visible and opening read-only.",
-                                Path.GetFileName(normalizedPath));
-                        }
-                        else
-                        {
-                            // CRITICAL: Check if file is locked at OS level BEFORE attempting PowerPoint COM open
-                            FileAccessValidator.ValidateFileNotLocked(path);
-                        }
-
-                        // Open presentation with PowerPoint COM
-                        try
-                        {
-                            pres = isIrm
-                                ? ((dynamic)tempPowerPoint).Presentations.Open(normalizedPath, -1 /* msoTrue ReadOnly */)
-                                : ((dynamic)tempPowerPoint).Presentations.Open(normalizedPath);
-                        }
-                        catch (COMException ex) when (ex.HResult == unchecked((int)0x800A03EC))
-                        {
-                            // Error 1004 equivalent - File is already open or locked
-                            throw FileAccessValidator.CreateFileLockedError(path, ex);
-                        }
-                    }
-
-                    tempPresentations[normalizedPath] = pres;
-
-                    if (path == _presentationPath)
-                    {
-                        primaryPresentation = pres;
+                        ComUtilities.Release(ref presentationsCollection!);
                     }
                 }
 
@@ -383,6 +401,9 @@ internal sealed class PptBatch : IPptBatch
 
     public ILogger Logger => _logger;
 
+    /// <summary>
+    /// Gets the PowerPoint process ID captured for this session, if available.
+    /// </summary>
     public int? PowerPointProcessId => _powerPointProcessId;
 
     public TimeSpan OperationTimeout => _operationTimeout;
@@ -639,9 +660,9 @@ internal sealed class PptBatch : IPptBatch
                 "[Thread {CallingThread}] Calling Join() with {Timeout} timeout on STA={STAThread}, file={FileName}{Reason}",
                 callingThread, joinTimeout, _staThread.ManagedThreadId, Path.GetFileName(_presentationPath), reasonSuffix);
 
-            // CRITICAL: StaThreadJoinTimeout >= PowerPointQuitTimeout + margin (currently 45 seconds total).
-            // The join must wait at least as long as CloseAndQuit() can take, otherwise Dispose() returns
-            // before _pptApp has finished closing, causing "file still open" issues in subsequent operations.
+            // CRITICAL: StaThreadJoinTimeout >= PowerPointShutdownTimeout + margin (currently 45 seconds total).
+            // The join must wait at least as long as the shutdown sequence can take, otherwise Dispose()
+            // returns before _pptApp has finished closing, causing "file still open" issues later.
             if (!_staThread.Join(joinTimeout))
             {
                 // STA thread didn't exit - _pptApp cleanup is severely stuck
@@ -706,9 +727,28 @@ internal sealed class PptBatch : IPptBatch
             _logger.LogDebug("[Thread {CallingThread}] STA thread was null or not alive for {FileName}", callingThread, Path.GetFileName(_presentationPath));
         }
 
-        // Wait for _pptApp process to fully terminate to prevent CO_E_SERVER_EXEC_FAILURE
-        // on subsequent Activator.CreateInstance calls. PowerPoint.Quit() + COM release doesn't
-        // guarantee the PowerPoint.EXE process has exited — rapid create/destroy cycles can fail.
+        // Terminate the PowerPoint process.
+        //
+        // This is the designed termination path, not an emergency. PowerPoint COM refuses to
+        // hide its application window, so every session must run with Visible = msoTrue, and a
+        // visible PowerPoint does not exit when its last external COM reference is released.
+        // Application.Quit() is not a usable alternative: it returns immediately but leaves
+        // PowerPoint waiting for our application proxy to be released, while that release can no
+        // longer be serviced - a mutual wait that costs 40-60 seconds per session before COM
+        // abandons the call. Measured on a bare STA thread with no wrapper involved (issue #148):
+        //
+        //   Quit() then release : Quit 107ms, release 40075ms, process exits only afterwards
+        //   release only        :             release     3ms, process never exits
+        //
+        // So the session releases its COM references cleanly (fast, and no leaked proxies) and
+        // then ends the process. WM_CLOSE was also measured and PowerPoint ignores it.
+        //
+        // Caveat, unchanged from the previous force-kill behaviour: PowerPoint is a
+        // single-instance application, so Activator.CreateInstance attaches to an instance the
+        // user already had open instead of starting a second one. There is no reliable way to
+        // distinguish the two cases, and skipping termination for a seemingly pre-existing
+        // process is not viable - sessions would then leak a PowerPoint that every later
+        // session attaches to, holding presentation files locked indefinitely.
         if (_powerPointProcessId.HasValue)
         {
             try
@@ -716,42 +756,36 @@ internal sealed class PptBatch : IPptBatch
                 using var pptProcess = System.Diagnostics.Process.GetProcessById(_powerPointProcessId.Value);
                 if (!pptProcess.HasExited)
                 {
-                    _logger.LogDebug(
-                        "[Thread {CallingThread}] Waiting for _pptApp process {ProcessId} to exit for {FileName}",
-                        callingThread, _powerPointProcessId.Value, Path.GetFileName(_presentationPath));
-
-                    if (!pptProcess.WaitForExit(5000))
+                    // Brief grace period in case PowerPoint does exit on its own, then terminate.
+                    if (!pptProcess.WaitForExit(500))
                     {
-                        _logger.LogWarning(
-                            "[Thread {CallingThread}] _pptApp process {ProcessId} did not exit within 5s for {FileName}. Force-killing to prevent zombie accumulation.",
+                        _logger.LogDebug(
+                            "[Thread {CallingThread}] Terminating _pptApp process {ProcessId} for {FileName}",
                             callingThread, _powerPointProcessId.Value, Path.GetFileName(_presentationPath));
 
-                        // Force-kill: _pptApp was already told to Quit() and COM refs were released.
-                        // A process still running after 5s is hung and will leak desktop resources.
-                        try
+                        pptProcess.Kill();
+                        if (!pptProcess.WaitForExit(5000))
                         {
-                            pptProcess.Kill();
-                            pptProcess.WaitForExit(3000);
-                            _logger.LogInformation(
-                                "[Thread {CallingThread}] Force-killed lingering _pptApp process {ProcessId} for {FileName}",
+                            _logger.LogWarning(
+                                "[Thread {CallingThread}] _pptApp process {ProcessId} did not terminate within 5s for {FileName}",
                                 callingThread, _powerPointProcessId.Value, Path.GetFileName(_presentationPath));
-                        }
-                        catch (Exception killEx)
-                        {
-                            _logger.LogWarning(killEx,
-                                "[Thread {CallingThread}] Failed to force-kill _pptApp process {ProcessId}",
-                                callingThread, _powerPointProcessId.Value);
                         }
                     }
                 }
             }
             catch (ArgumentException)
             {
-                // Process already terminated — this is the expected fast path
+                // Process already terminated - the expected fast path
             }
             catch (InvalidOperationException)
             {
                 // Process object is not associated with a running process
+            }
+            catch (System.ComponentModel.Win32Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "[Thread {CallingThread}] Failed to terminate _pptApp process {ProcessId}",
+                    callingThread, _powerPointProcessId.Value);
             }
         }
 
