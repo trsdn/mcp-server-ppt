@@ -11,9 +11,10 @@
 #    Pass -Full to opt in deliberately.
 #
 # 2. A HARD TIMEOUT. Nothing here may run unbounded. A run that is killed or wedged
-#    keeps spawning PowerPoint for as long as nobody is watching. Note that
-#    tests\PptMcp.ComInterop.Tests takes ~34 minutes as a full assembly (measured,
-#    issue #139), so -Full on that project needs -TimeoutMinutes above the default.
+#    keeps spawning PowerPoint for as long as nobody is watching. The full
+#    tests\PptMcp.ComInterop.Tests assembly takes ~7 minutes (it was ~34 before the
+#    teardown fix in issue #148); tests\PptMcp.Core.Tests is the long one, so -Full
+#    there needs -TimeoutMinutes well above the default.
 #
 # 3. STRAY POWERPOINT CLEANUP. Only processes that appear DURING the run are killed -
 #    PIDs present beforehand are the developer's own PowerPoint and are left alone.
@@ -21,6 +22,13 @@
 # 4. The original guard: `dotnet test --filter <anything>` prints "No test matches the
 #    given testcase filter" and then exits 0, so a filter selecting nothing is
 #    indistinguishable from a run where everything passed.
+#
+# 5. STRAY pptcli DAEMON CLEANUP, before the run. The CLI integration suite hosts its
+#    own PptMcpService in-process on the CLI pipe name, and configures it through
+#    in-process test hooks. A pptcli daemon left over from an earlier suite serves the
+#    same pipe name, so the CLI under test silently talks to the daemon instead - which
+#    has none of those hooks. That produced three "Archetype not found" failures that
+#    passed in isolation and only failed when the smoke workflow had run first.
 #
 # ASCII only - see scripts/check-test-filters.ps1 for why.
 
@@ -82,10 +90,23 @@ if ($drivesPowerPoint -and -not $Filter -and -not $Full) {
     Write-Host "If you genuinely want the whole assembly, say so:"
     Write-Host "  .\scripts\Invoke-GuardedTest.ps1 -Project $Project -Full"
     Write-Host ""
-    Write-Host "Note: tests\PptMcp.ComInterop.Tests takes ~34 minutes as a full assembly"
-    Write-Host "      (measured, issue #139). Pair -Full with -TimeoutMinutes 60 there,"
-    Write-Host "      or the default 20-minute ceiling will cut it short."
+    Write-Host "Note: tests\PptMcp.Core.Tests is the long assembly; pair -Full there"
+    Write-Host "      with a generous -TimeoutMinutes, or the default 20-minute ceiling"
+    Write-Host "      will cut it short."
     exit 1
+}
+
+# ---------------------------------------------------------------- guard 5
+# A leftover daemon owns the CLI pipe and answers instead of the suite's own
+# in-process service. Unlike PowerPoint, a pptcli daemon is disposable state, not the
+# developer's open document, so it is always safe to remove.
+$strayDaemons = @(Get-Process pptcli -ErrorAction SilentlyContinue)
+if ($strayDaemons.Count -gt 0) {
+    Write-Host "guard: stopping $($strayDaemons.Count) stray pptcli daemon(s) that would hijack the CLI pipe" -ForegroundColor Yellow
+    foreach ($d in $strayDaemons) {
+        try { $d.Kill() } catch { }
+    }
+    Start-Sleep -Seconds 2
 }
 
 # Snapshot pre-existing PowerPoint so the developer's own instance is never killed.

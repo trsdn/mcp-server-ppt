@@ -45,33 +45,56 @@ jobs:
           # documentation-only PRs mergeable. A green check named
           # "integration-runner-disabled" is easy to misread as coverage, so say plainly
           # what did not happen - in the job log and in the PR's checks summary.
-          Write-Output "The PowerPoint integration suite did NOT run."
+          Write-Output "The PowerPoint integration suite did NOT run, and no CI job can run it."
           Write-Output ""
           Write-Output "This job is a placeholder. It executes no tests. It is green because a"
           Write-Output "required status check that never reports blocks every pull request."
           Write-Output ""
-          Write-Output "To activate real integration coverage, set repository variable"
-          Write-Output "ENABLE_POWERPOINT_INTEGRATION_CI=true AND register a self-hosted runner"
-          Write-Output "labeled 'powerpoint'. Both are currently absent, so the"
-          Write-Output "powerpoint-integration job is unreachable twice over - see issue #143."
-          Write-Output "See docs/AZURE_SELFHOSTED_RUNNER_SETUP.md for setup details."
+          Write-Output "These tests drive real PowerPoint through COM, which needs a self-hosted"
+          Write-Output "Windows runner with Office installed. That runner was considered and"
+          Write-Output "DECLINED - see docs/AZURE_SELFHOSTED_RUNNER_SETUP.md. This is a settled"
+          Write-Output "decision, not a pending task."
+          Write-Output ""
+          Write-Output "Integration coverage is produced on a maintainer's machine instead, and"
+          Write-Output "enforced at push time rather than in CI:"
+          Write-Output ""
+          Write-Output "  .\scripts\Invoke-LocalIntegrationGate.ps1   # runs the suite, writes evidence"
+          Write-Output "  .\scripts\install-hooks.ps1                 # pre-push hook enforcing it"
+          Write-Output ""
+          Write-Output "The evidence manifest is bound to a commit SHA, so a push of code under"
+          Write-Output "src/ or tests/ is refused unless that exact commit was verified locally."
 
           $summary = @(
             '## PowerPoint integration suite: DID NOT RUN',
             '',
-            'No test that drives PowerPoint has executed in this CI run, and none can:',
-            '',
-            '- repository variable `ENABLE_POWERPOINT_INTEGRATION_CI` is not set',
-            '- no self-hosted runner carries the `powerpoint` label',
+            'No test that drives PowerPoint has executed in this CI run, and none can. These',
+            'tests need a self-hosted Windows runner with Office installed, which was',
+            'considered and **declined** - see `docs/AZURE_SELFHOSTED_RUNNER_SETUP.md`.',
             '',
             'This job executes no tests. It reports success only so that a required',
-            'status check always reports. Do not read it as coverage - see #143.',
+            'status check always reports. Do not read it as coverage.',
+            '',
+            '### Where integration coverage actually comes from',
+            '',
+            'It runs on a maintainer machine and is enforced **at push time**, not in CI:',
+            '',
+            '```powershell',
+            '.\scripts\Invoke-LocalIntegrationGate.ps1   # runs the suite, writes an evidence manifest',
+            '.\scripts\install-hooks.ps1                 # installs the pre-push hook that requires it',
+            '```',
+            '',
+            'The manifest is bound to a commit SHA, so evidence for any other commit is',
+            'rejected and a push touching `src/` or `tests/` is refused without it.',
             '',
             'The COM-free subset does run, in the **Hosted Checks** workflow.'
           ) -join "`n"
           $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
 
   powerpoint-integration:
+    # Retained deliberately. The self-hosted runner this job needs was declined, so the
+    # job is unreachable - but it is the executable specification of what the local gate
+    # in scripts/Invoke-LocalIntegrationGate.ps1 must cover. If a runner ever appears,
+    # setting ENABLE_POWERPOINT_INTEGRATION_CI=true is the only step required.
     if: ${{ vars.ENABLE_POWERPOINT_INTEGRATION_CI == 'true' }}
     runs-on: [self-hosted, windows, powerpoint]
 

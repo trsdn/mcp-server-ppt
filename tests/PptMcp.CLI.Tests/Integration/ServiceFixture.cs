@@ -14,6 +14,25 @@ public sealed class ServiceFixture : IAsyncLifetime, IDisposable
     public async Task InitializeAsync()
     {
         var pipeName = ServiceSecurity.GetCliPipeName();
+
+        // A pptcli daemon left running by an earlier suite serves this same pipe name.
+        // Windows allows several server instances per name, so starting ours would not
+        // fail - the CLI under test would simply connect to whichever instance answers
+        // first. That daemon has none of this process's in-process test hooks (the
+        // reference-catalog override, for one), so tests would exercise the wrong
+        // service and fail in ways that vanish when re-run in isolation. Refuse loudly.
+        using (var probe = new ServiceClient(pipeName, connectTimeout: TimeSpan.FromSeconds(1)))
+        {
+            if (await probe.PingAsync())
+            {
+                throw new InvalidOperationException(
+                    $"A PptMcp service is already serving the CLI pipe '{pipeName}' (most likely a leftover " +
+                    "pptcli daemon). CLI integration tests must talk to the in-process service they configure, " +
+                    "so this run would be meaningless. Stop it first: " +
+                    "Get-Process pptcli | ForEach-Object { Stop-Process -Id $_.Id -Force }");
+            }
+        }
+
         _service = new PptMcpService();
         _ = Task.Run(() => _service.RunAsync(pipeName));
 
