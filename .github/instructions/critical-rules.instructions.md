@@ -816,6 +816,39 @@ finally
 5. **NO catch blocks** unless specific exception handling needed
 6. **NEVER** catch just to set fallback values like "(unknown)"
 
+### Enforced by a ratchet, and the one exception
+
+`scripts/check-swallowed-catches.ps1` fails the build on any **new** catch in
+`src/PptMcp.Core/Commands` that neither rethrows nor performs loop control. The 18
+that predate the gate are frozen in `scripts/swallowed-catches-baseline.txt` and paid
+down under #126; adding a nineteenth fails with its exact `file:line`.
+
+Rule 22 ("never swallow") and Rule 1b (which lists "optional property access" as a
+**safe** pattern) genuinely conflict on one shape of code, so the gate takes a
+position rather than failing code the instructions bless:
+
+```csharp
+// ALLOWED - a single-statement probe. The property may not exist on this shape;
+// its absence is a value being unavailable, not an operation failing.
+try { info.HasTable = Convert.ToInt32(shape.HasTable) != 0; } catch { info.HasTable = false; }
+
+// REPORTED - the try wraps real work, so swallowing hides a genuine failure.
+try
+{
+    if (Convert.ToInt32(ph.HasTextFrame) != 0)
+    {
+        string? text = ph.TextFrame.TextRange.Text?.ToString();
+        hasText = !string.IsNullOrWhiteSpace(text);
+    }
+}
+catch { }
+```
+
+The discriminator is the size of the guarded `try`, not the catch. There are 40 probes
+and 18 swallows today. The gate blanks comments and string literals before scanning -
+without that it reported the word "catch" inside an XML doc comment as a violation, and
+a gate that cries wolf gets switched off.
+
 **See Also:**
 - Rule 1b: Exception propagation pattern
 - ppt-com-interop.instructions.md for complete patterns

@@ -583,6 +583,30 @@ catch {
 }
 
 Write-Host ""
+Write-Host "Checking for new swallowing catch blocks..." -ForegroundColor Cyan
+
+try {
+    $swallowScript = Join-Path $rootDir "scripts\check-swallowed-catches.ps1"
+    & $swallowScript
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "New swallowing catch block(s) detected!" -ForegroundColor Red
+        Write-Host "   Let the exception propagate - batch.Execute() turns it into" -ForegroundColor Red
+        Write-Host "   OperationResult { Success = false } at the right layer (Rule 1b)," -ForegroundColor Red
+        Write-Host "   and COM cleanup belongs in finally, not catch (Rule 22)." -ForegroundColor Red
+        exit 1
+    }
+
+    Write-Host "Swallowed catch check passed - no new swallowing catches" -ForegroundColor Green
+}
+catch {
+    # A check that cannot run has not passed.
+    Write-Host "Error running swallowed catch check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
 Write-Host "Checking NuGet flat container package ids..." -ForegroundColor Cyan
 
 try {
