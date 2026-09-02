@@ -18,7 +18,7 @@ async def test_mcp_chart_workflows(aitest_run, ppt_mcp_server, ppt_mcp_skill):
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
         mcp_servers=[ppt_mcp_server],
         skill=ppt_mcp_skill,
-        allowed_tools=["chart", "table", "file", "range", "slide"],
+        allowed_tools=["chart", "slidetable", "file", "slide"],
         max_turns=20,
         retries=DEFAULT_RETRIES,
     )
@@ -42,7 +42,7 @@ Create a sales analysis chart:
     result = await aitest_run(agent, prompt, messages=messages, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
     assert result.tool_was_called("chart")
-    assert result.tool_was_called("table")
+    assert result.tool_was_called("slidetable")
     assert_regex(result.final_response, r"(?i)(salesdata|chart|created)")
     messages = result.messages
 

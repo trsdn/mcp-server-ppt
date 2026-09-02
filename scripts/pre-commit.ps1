@@ -237,6 +237,31 @@ catch {
 }
 
 Write-Host ""
+Write-Host "Checking llm-test tool names against the generated surface..." -ForegroundColor Cyan
+
+# The llm-tests were inherited from an upstream Excel project and kept naming its
+# tools - range, range_format, table, chart_config, screenshot. None exist here. That
+# does not merely break a test, it makes one vacuous: allowed_tools restricted the
+# model to a set that was mostly fictional, and tool_was_called("table") could never
+# be true. It went unnoticed because these tests have never executed (#136, #143).
+try {
+    $llmToolScript = Join-Path $rootDir "scripts\check-llm-test-tools.ps1"
+    & $llmToolScript -Quiet
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "llm-tests reference MCP tools that do not exist!" -ForegroundColor Red
+        Write-Host "   Run scripts\check-llm-test-tools.ps1 for the offending file:line list." -ForegroundColor Red
+        exit 1
+    }
+}
+catch {
+    Write-Host ""
+    Write-Host "Error running llm-test tool name check: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
 Write-Host "Checking for new inline COM member chains..." -ForegroundColor Cyan
 
 # check-com-leaks.ps1 reasons about `dynamic` locals and their Release calls, so it

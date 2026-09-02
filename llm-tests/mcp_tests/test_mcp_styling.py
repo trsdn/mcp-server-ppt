@@ -13,7 +13,7 @@ pytestmark = [pytest.mark.aitest, pytest.mark.mcp]
 
 @pytest.mark.asyncio
 async def test_mcp_styling_table_style(aitest_run, ppt_mcp_server, ppt_mcp_skill):
-    """LLM should use table(set-style) for table visual styling, not range_format on header."""
+    """LLM should use slidetable(create) then slidetable(format-cell) for table styling."""
     agent = Agent(
         name="mcp-styling-table",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
@@ -38,13 +38,13 @@ Close the presentation without saving.
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
-    assert result.tool_was_called("table")
+    assert result.tool_was_called("slidetable")
     assert_regex(result.final_response, r"(?i)(QuarterlySales|table|style)")
 
 
 @pytest.mark.asyncio
 async def test_mcp_styling_semantic_status(aitest_run, ppt_mcp_server, ppt_mcp_skill):
-    """LLM should use range_format(set-style) with Good/Bad/Neutral for status cells."""
+    """LLM should use slidetable(format-cell) to colour status cells distinctly."""
     agent = Agent(
         name="mcp-styling-status",
         provider=Provider(model="azure/gpt-4.1", rpm=10, tpm=10000),
@@ -103,5 +103,5 @@ Close the presentation without saving.
 """
     result = await aitest_run(agent, prompt, timeout_ms=DEFAULT_TIMEOUT_MS)
     assert result.success
-    assert result.tool_was_called("range_format")
+    assert result.tool_was_called("slidetable")
     assert_regex(result.final_response, r"(?i)(header|format|blue|white|bold)")
