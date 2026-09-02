@@ -547,6 +547,37 @@ resolves to zero tests. **Before inventing a filter, check the trait exists** - 
 current list is in [testing-strategy.instructions.md](testing-strategy.instructions.md)
 and in `tests/README.md`.
 
+### An unfiltered run of a PowerPoint suite is REFUSED, not merely discouraged
+
+Every one of these suites creates a PowerPoint instance **per test**, so
+`dotnet test tests\PptMcp.ComInterop.Tests` with no filter launches POWERPNT once per
+test, back to back, with no upper bound and no timeout. Running the same operation a
+hundred times in a row produces no information the first run did not already give you -
+it just seizes the machine and thrashes the COM layer.
+
+Advisory wording did not stop this happening repeatedly, so the wrapper now enforces it:
+
+```powershell
+# REFUSED - exits 1 before dotnet is ever invoked
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.ComInterop.Tests
+
+# Correct - name what you changed
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.ComInterop.Tests -Filter "RunType=OnDemand"
+
+# Deliberate whole-assembly run (CI does this) - opt in explicitly
+.\scripts\Invoke-GuardedTest.ps1 -Project tests\PptMcp.CLI.Tests -Full
+```
+
+The wrapper additionally:
+- **Timeboxes every run** (`-TimeoutMinutes`, default 20) and kills it on expiry. A hung
+  suite keeps spawning PowerPoint for as long as nobody is watching - see issue #139,
+  where `ComInterop.Tests` does not terminate as a full assembly.
+- **Cleans up PowerPoint processes the run leaked**, while leaving alone any POWERPNT
+  PID that already existed when the run started. Your own open presentation is safe.
+
+**Never invoke `dotnet test` directly on a PowerPoint-driving project** - it bypasses all
+of the above.
+
 **Why Critical:** Integration tests require PowerPoint COM automation and are SLOW. Running all tests wastes time and resources.
 
 **Enforcement:**

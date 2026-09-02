@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **`Invoke-GuardedTest.ps1` could not stop a run from launching PowerPoint hundreds of times**: the wrapper failed on zero-match filters but was otherwise indifferent to how much work it started. An unfiltered `dotnet test` on any COM suite creates a PowerPoint instance per test — dozens to hundreds of consecutive launches, with no timeout and no cleanup. Rule 16 already forbade this in prose, and prose did not hold.
+  - **Unfiltered runs of PowerPoint-driving projects are now refused**, exiting 1 before `dotnet` is invoked at all. A whole-assembly run is still possible, but requires the explicit `-Full` opt-in that CI now passes
+  - **Every run is timeboxed** (`-TimeoutMinutes`, default 20) and killed on expiry. Without this, a suite that does not terminate — `ComInterop.Tests` as a full assembly, issue #139 — keeps spawning PowerPoint for as long as nobody is watching
+  - **PowerPoint processes leaked by the run are cleaned up**, matched by PID against a snapshot taken before the run starts, so a developer's own open presentation is never killed
+  - The project allow-list is inverted deliberately: a project is assumed to drive PowerPoint unless named as safe, so a newly added COM suite is guarded on the day it lands rather than the day someone remembers to list it
+
 - **The one tool with no structural CLI/MCP parity guarantee had already diverged** (#131): every other tool is generated from a shared Core interface, so parity holds by construction. Session/file management is hand-written on both entry points — `PptFileTool.cs` says so outright — and it is the bootstrap layer every workflow calls first. MCP exposed a `test` action; the CLI did not, and `FileCommands.Test` was unreachable from the CLI entirely.
   - New `pptcli session test <FILE>` returns the same JSON shape as MCP `file(test)`. It deliberately bypasses the daemon: `FileCommands.Test` is pure file inspection and never launches PowerPoint, so routing it through a pipe would start a daemon to answer a question about the file system — and would make the preflight fail precisely when a preflight is most useful. Exit code 0 when the file is valid, 1 when it is not
   - `src/PptMcp.CLI/README.md` documented a **`file test` command that never existed** on the CLI, and listed the session verbs without `test`. Both corrected
