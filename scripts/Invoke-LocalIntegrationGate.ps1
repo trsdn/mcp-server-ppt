@@ -276,6 +276,23 @@ if ($results.Count -eq 0) {
     exit 1
 }
 
+# Re-check the tree. The start-of-run check alone leaves a hole: a suite takes ~10
+# minutes, and anything edited under src/ or tests/ during that window would still be
+# recorded against the SHA the run started on. Evidence must describe code that was
+# actually tested, so a tree that moved underneath us downgrades to binding=none.
+if ($binding -eq 'commit') {
+    $endCommit = (git rev-parse HEAD).Trim()
+    $endDirty = @(git status --porcelain -- src tests | Where-Object { $_ -ne '' })
+
+    if ($endCommit -ne $commit -or $endDirty.Count -gt 0) {
+        $binding = 'none'
+        Write-Host "WARNING: src/ or tests/ changed while the gate was running." -ForegroundColor Yellow
+        Write-Host "         This run no longer describes commit $($commit.Substring(0, 8)), so it is"
+        Write-Host "         marked binding=none. Re-run once the tree is settled."
+        Write-Host ""
+    }
+}
+
 $totalTests = ($results | Measure-Object -Property tests -Sum).Sum
 if (-not $totalTests -or $totalTests -le 0) {
     $gateFailed = $true
@@ -318,7 +335,7 @@ if ($gateFailed) {
 }
 
 if ($binding -eq 'none') {
-    $why = if ($Only.Count -gt 0) { 'partial run' } else { 'dirty tree' }
+    $why = if ($Only.Count -gt 0) { 'partial run' } else { 'tree does not match the commit' }
     Write-Host "GATE PASSED, but binding=none ($why). Pre-push will still refuse." -ForegroundColor Yellow
     exit 0
 }

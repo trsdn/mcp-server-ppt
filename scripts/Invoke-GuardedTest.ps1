@@ -23,6 +23,13 @@
 #    given testcase filter" and then exits 0, so a filter selecting nothing is
 #    indistinguishable from a run where everything passed.
 #
+# 5. STRAY pptcli DAEMON CLEANUP, before the run. The CLI integration suite hosts its
+#    own PptMcpService in-process on the CLI pipe name, and configures it through
+#    in-process test hooks. A pptcli daemon left over from an earlier suite serves the
+#    same pipe name, so the CLI under test silently talks to the daemon instead - which
+#    has none of those hooks. That produced three "Archetype not found" failures that
+#    passed in isolation and only failed when the smoke workflow had run first.
+#
 # ASCII only - see scripts/check-test-filters.ps1 for why.
 
 [CmdletBinding()]
@@ -87,6 +94,19 @@ if ($drivesPowerPoint -and -not $Filter -and -not $Full) {
     Write-Host "      with a generous -TimeoutMinutes, or the default 20-minute ceiling"
     Write-Host "      will cut it short."
     exit 1
+}
+
+# ---------------------------------------------------------------- guard 5
+# A leftover daemon owns the CLI pipe and answers instead of the suite's own
+# in-process service. Unlike PowerPoint, a pptcli daemon is disposable state, not the
+# developer's open document, so it is always safe to remove.
+$strayDaemons = @(Get-Process pptcli -ErrorAction SilentlyContinue)
+if ($strayDaemons.Count -gt 0) {
+    Write-Host "guard: stopping $($strayDaemons.Count) stray pptcli daemon(s) that would hijack the CLI pipe" -ForegroundColor Yellow
+    foreach ($d in $strayDaemons) {
+        try { $d.Kill() } catch { }
+    }
+    Start-Sleep -Seconds 2
 }
 
 # Snapshot pre-existing PowerPoint so the developer's own instance is never killed.
