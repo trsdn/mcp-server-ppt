@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using PptMcp.CLI.Infrastructure;
+using PptMcp.Core.Commands.File;
 using PptMcp.Service;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -204,3 +205,52 @@ internal sealed class SessionSaveCommand : AsyncCommand<SessionSaveCommand.Setti
 
 
 
+
+
+// ============================================================================
+// SESSION TEST
+//
+// Inspects a file without opening it. Present on the MCP 'file' tool since its
+// introduction; absent from the CLI until issue #131, which is exactly the drift
+// that can happen when a surface is hand-written on both sides rather than
+// generated from a shared interface.
+//
+// Deliberately does not go through the daemon. FileCommands.Test is pure file
+// inspection - it never launches PowerPoint - so routing it through a pipe would
+// start a daemon to answer a question about the file system, and would make the
+// preflight check fail in exactly the situations where a preflight is most useful.
+// ============================================================================
+
+internal sealed class SessionTestCommand : Command<SessionTestCommand.Settings>
+{
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(settings.FilePath))
+        {
+            AnsiConsole.MarkupLine("[red]File path is required.[/]");
+            return 1;
+        }
+
+        var info = new FileCommands().Test(settings.FilePath);
+
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            success = info.Success,
+            exists = info.Exists,
+            filePath = info.FilePath,
+            fileName = info.FileName,
+            fileSizeBytes = info.FileSizeBytes,
+            isReadOnly = info.IsReadOnly,
+            isMacroEnabled = info.IsMacroEnabled
+        }, ServiceProtocol.JsonOptions));
+
+        return info.Success ? 0 : 1;
+    }
+
+    internal sealed class Settings : CommandSettings
+    {
+        [CommandArgument(0, "<FILE>")]
+        [Description("Absolute path to the .pptx/.pptm file to inspect")]
+        public string FilePath { get; init; } = string.Empty;
+    }
+}

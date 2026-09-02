@@ -187,6 +187,7 @@ Pre-commit runs `scripts/pre-commit.ps1` which blocks commits if any check fails
 | 7 | MCP Smoke Test | `dotnet test --filter "...SmokeTest..."` | All MCP tools functional **(launches PowerPoint - see below)** |
 | 8 | Dynamic Casts | `check-dynamic-casts.ps1` | No *new* undocumented `((dynamic))` casts (per-file baseline) |
 | 9 | xunit Parallelization | `check-xunit-parallelization.ps1` | Every test project's `xunit.runner.json` reaches the build output |
+| 10 | Session Parity | `check-session-parity.ps1` | MCP `file` and CLI `session` expose the same action set |
 
 ### The two PowerPoint gates are content-gated
 
@@ -338,4 +339,18 @@ CLI ─────────► CLI Daemon (named pipe) ─────► Co
 - **CLI**: Daemon process with named pipe (`PptMcp-cli-{SID}`), sessions persist across CLI invocations
 - **Feature parity**: Every action available in MCP must be available in CLI and vice versa
 - **Parameter parity**: Same parameters, same defaults, same validation
+
+> **⚠️ Session/file management is the one escape hatch from generator-guaranteed parity.**
+> The other 32 tools are generated from a shared Core interface, so parity is structural.
+> Session management is hand-written on **both** sides — `PptFileTool.cs` (MCP, tool name
+> `file`) and `Program.cs` + `SessionCommands.cs` (CLI, branch name `session`) — and it is
+> the bootstrap layer every workflow calls first.
+>
+> It had already diverged before anyone noticed: MCP exposed `test`, the CLI did not (#131),
+> and the CLI README documented a `file test` command that never existed. `check-documented-counts.ps1`
+> could not see this, because it counts the **MCP** surface.
+>
+> `scripts/check-session-parity.ps1` now guards the action sets. **Adding an action to one
+> side without the other will fail pre-commit.** The two surfaces still differ in *name*
+> (`file` vs `session`) — that is deliberate and documented, not drift.
 

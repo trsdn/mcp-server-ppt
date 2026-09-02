@@ -52,6 +52,19 @@ jobs:
         }
       shell: pwsh
 
+    - name: Verify session/file parity between CLI and MCP
+      run: |
+        # The count gate above counts the MCP surface, so a CLI missing an action is
+        # invisible to it. Session/file management is hand-written on both entry
+        # points and has drifted before (#131).
+        Write-Output "Verifying session/file action parity..."
+        & scripts/check-session-parity.ps1
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Session/file action sets differ between the CLI and the MCP server."
+          exit 1
+        }
+      shell: pwsh
+
     - name: Verify CLI build
       run: |
         # Check pptcli main executable

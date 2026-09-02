@@ -34,6 +34,27 @@ public async Task<string> PptSlide(string action, string pptPath, ...)
 }
 ```
 
+### The `file` tool is hand-written — parity is NOT structural there
+
+Every other MCP tool is generated from a Core interface marked `[ServiceCategory]`, so
+the CLI counterpart appears by construction and cannot drift. **`PptFileTool.cs` is the
+one exception**, and its own header comment says so: *"hand-coded because session
+management is not generated."*
+
+That makes it the only tool where adding an action to MCP silently leaves the CLI behind
+— and it is the bootstrap layer every workflow calls first. This already happened: `test`
+shipped on MCP and never reached the CLI (#131), while the CLI README documented a
+`file test` command that did not exist.
+
+When you touch `PptFileAction`:
+
+1. Add the matching command in `src/PptMcp.CLI/Commands/SessionCommands.cs`
+2. Register it in the `session` branch in `src/PptMcp.CLI/Program.cs`
+3. Run `scripts\check-session-parity.ps1` — it is a pre-commit gate and will fail otherwise
+
+Note the two surfaces intentionally differ in **name**: the MCP tool is `file`, the CLI
+branch is `session`. The gate compares action sets, not names.
+
 ### Error Handling (MANDATORY)
 
 **⚠️ CRITICAL: MCP tools must return JSON responses with `isError: true` for business errors, NOT throw exceptions!**

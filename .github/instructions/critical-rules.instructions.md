@@ -850,6 +850,15 @@ When adding a NEW action to an existing tool:
 | 7. Feature Count | `FEATURES.md` - Update operation count |
 | 8. README Files | All READMEs with operation counts (main, MCP, CLI, mcpb, vscode) |
 | 9. Skills Docs | `skills/shared/ppt_*.md` - Document new action |
+| 10. Session/File | **Only for the `file`/`session` tool** - it is hand-written on both sides and NOT generated. Update `PptFileTool.cs` (MCP) AND `SessionCommands.cs` + `Program.cs` (CLI). Verify with `scripts\check-session-parity.ps1` |
+
+> **⚠️ Sync point 10 is the exception that Rule 24 exists for.** Every other tool is
+> generated from a shared Core interface, so steps 3-6 happen by construction. Session/file
+> management is hand-written on both entry points, so it is the one place where "I added it
+> to MCP" leaves the CLI silently behind. That is exactly what happened with the `test`
+> action (#131), and the CLI README even documented a `file test` command that never existed.
+> `check-documented-counts.ps1` cannot catch this - it counts the MCP surface, so a missing
+> CLI action is invisible to it. `check-session-parity.ps1` is the gate that closes it.
 
 **Quick Check Commands:**
 ```powershell
