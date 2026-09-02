@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Round-trip integration tests for the highest-traffic operations** (#133): of 218 `[ServiceAction]` methods, only 8 were genuinely executed against PowerPoint anywhere in the repository. `shape add-shape`, `shape set-fill`, `text set` and `chart create` all worked, and none had a test that would notice if they stopped.
+  - `ShapeRoundTripTests` asserts the requested `MsoAutoShapeType` and bounds actually land on the shape, that `set-fill` writes the requested colour, and that a shape plus its text and fill survive save and reopen.
+  - `TextRoundTripTests` asserts `text set` round-trips exactly, writes **only** to the named shape, and replaces rather than appends.
+  - `ChartRoundTripTests` asserts `chart create` produces the requested `XlChartType` at the requested bounds.
+  - `SlideMetadataTests` gains coverage of `slide read`, which populates layout and master names through a different code path from `slide list`, and asserts the two agree.
+  - **Two tests assert against raw COM rather than our own read path.** A mutate-then-read-back test cannot detect a symmetric error: if `SetFill` and `ReadFill` both inverted PowerPoint's `0x00BBGGRR` byte order, the round trip would agree with itself and stay green while every shape rendered the wrong colour. The colours used are deliberately asymmetric (`#112233`) for the same reason.
+  - Each assertion was verified to be load-bearing by inverting its expected value and confirming the test fails.
+
 ### Changed
 
 - **The integration gate now re-runs only the suites a change can actually affect** (#143 follow-up): a full gate run is ~11 minutes and launches PowerPoint roughly 200 times, and it ran in full for every push — including pushes that touched only documentation or a single unrelated project. A gate that expensive on every push is a gate that ends up disabled.
