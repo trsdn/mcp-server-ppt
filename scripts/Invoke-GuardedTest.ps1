@@ -53,7 +53,11 @@ $nonPowerPointProjects = @(
     'PptMcp.SkillGeneration.Tests'
 )
 
-$projectLeaf = Split-Path $Project -Leaf
+# -Project is given as either a directory (tests\Foo.Tests) or a project file
+# (tests/Foo.Tests/Foo.Tests.csproj - which is what the workflows pass). Strip the
+# extension so both spellings resolve to the same name, or the allow-list silently
+# never matches and a COM-free suite gets refused.
+$projectLeaf = [System.IO.Path]::GetFileNameWithoutExtension(($Project -replace '[\\/]+$', ''))
 $drivesPowerPoint = $projectLeaf -notin $nonPowerPointProjects
 
 # ---------------------------------------------------------------- guard 1
