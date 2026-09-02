@@ -16,7 +16,7 @@
 
 ## Features
 
-The PowerPoint MCP Server (ppt-mcp) provides **33 specialized tools with 223 operations** for comprehensive PowerPoint automation:
+The PowerPoint MCP Server (ppt-mcp) provides **33 specialized tools with 224 operations** for comprehensive PowerPoint automation:
 
 - 📁 **Files** (1 tool, 6 ops) - Session management, presentation creation, IRM/AIP-protected file support
 - 📄 **Slides** (1 tool, 15 ops) - Lifecycle, layouts, hide/unhide, thumbnails

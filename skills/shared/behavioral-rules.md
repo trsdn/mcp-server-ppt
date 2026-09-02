@@ -231,6 +231,21 @@ Call `file(action: 'close', save: true)` to persist changes:
 
 ## Error Handling Rules
 
+### Check VBA Trust Before Any VBA Action
+
+"Trust access to the VBA project object model" is **disabled by default on Windows**.
+While it is off, every `vba` action fails — including `list`, which otherwise looks
+like a harmless read.
+
+Call `vba(action: 'check-trust')` before the first VBA action in a session:
+
+- `trustEnabled: true` → proceed normally
+- `trustEnabled: false` → the `remediation` field holds the exact steps; relay them
+  to the user and stop. This is a machine setting; it cannot be fixed from the tools.
+
+Do not retry a failed VBA action without checking trust first. The failure is a
+configuration state, not a transient error, so retrying will fail identically.
+
 ### Interpret Error Messages
 
 PowerPoint MCP errors include actionable context:

@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **VBA operations failed with an unactionable COM error when the Trust Center setting was off** (#130): "Trust access to the VBA project object model" is disabled on a default Windows install, so the first `vba` action of a session — including read-only `list` — failed with a raw `COMException` naming neither the cause nor the fix. An agent receiving that message had no path forward and would retry indefinitely or conclude VBA was unsupported.
+  - New `vba check-trust` action (available identically on the CLI and the MCP server) reports `trustEnabled`, the registry location consulted, and the remediation steps — without provoking a failure first
+  - All four `Presentation.VBProject` call sites now route through a guard that converts the failure into `VbaTrustException`, whose message carries the full remediation. The catch is **filtered on the registry probe**, not on an HRESULT or message text: the COM message is localized, and matching a single HRESULT would mislabel unrelated COM failures as trust problems. When trust is enabled the filter is false and the original exception propagates untouched
+  - The remediation states the ordering trap explicitly: writing `AccessVBOM` while PowerPoint is running is silently reverted to 0 on exit, so the value must be set with PowerPoint closed
+  - `skills/shared/behavioral-rules.md` now instructs agents to check trust before the first VBA action and not to retry, since the failure is a configuration state rather than a transient error
+
 - **Pre-commit launched PowerPoint on every commit, including commits that could not affect it**: the CLI workflow test and the MCP smoke test both start a real PowerPoint instance, and both ran unconditionally. A run of documentation edits or `--amend`s would launch PowerPoint several times within a minute against byte-identical source, where every run after the first was guaranteed to reproduce the previous result.
   - Both gates are now keyed on the staged content of `src/` and `scripts/Test-CliWorkflow.ps1`, fingerprinted via `git ls-files -s` and recorded in `.git/pptmcp-smoke-cache` on success. Unchanged content skips them with an explicit message
   - Keyed on **content, not elapsed time**, so it cannot mask a regression: any edit under `src/` yields a different fingerprint and both gates run again. If the fingerprint cannot be computed the gates run, failing open
