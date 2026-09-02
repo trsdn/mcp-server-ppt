@@ -77,11 +77,29 @@ public class ShapeCommands : IShapeCommands
         return batch.Execute((ctx, ct) =>
         {
             dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
-            // msoTextOrientationHorizontal = 1
-            dynamic shape = slide.Shapes.AddTextbox(1, left, top, width, height);
+            dynamic? textboxShapes = null;
+            dynamic shape;
             try
             {
-                shape.TextFrame.TextRange.Text = text;
+                textboxShapes = slide.Shapes;
+                // msoTextOrientationHorizontal = 1
+                shape = textboxShapes.AddTextbox(1, left, top, width, height);
+            }
+            finally
+            {
+                ComUtilities.Release(ref textboxShapes!);
+            }
+            try
+            {
+                dynamic textRange = ComUtilities.GetTextRange(shape);
+                try
+                {
+                    textRange.Text = text;
+                }
+                finally
+                {
+                    ComUtilities.Release(ref textRange!);
+                }
                 string name = shape.Name?.ToString() ?? "";
                 return new OperationResult
                 {
@@ -104,7 +122,17 @@ public class ShapeCommands : IShapeCommands
         return batch.Execute((ctx, ct) =>
         {
             dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
-            dynamic shape = slide.Shapes.AddShape(autoShapeType, left, top, width, height);
+            dynamic? addShapes = null;
+            dynamic shape;
+            try
+            {
+                addShapes = slide.Shapes;
+                shape = addShapes.AddShape(autoShapeType, left, top, width, height);
+            }
+            finally
+            {
+                ComUtilities.Release(ref addShapes!);
+            }
             try
             {
                 string name = shape.Name?.ToString() ?? "";
@@ -220,17 +248,30 @@ public class ShapeCommands : IShapeCommands
             dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
-                if (colorHex.Equals("none", StringComparison.OrdinalIgnoreCase))
+                dynamic? fill = null;
+                dynamic? foreColor = null;
+                try
                 {
-                    // msoFillBackground = 5 (transparent/no fill)
-                    shape.Fill.Visible = 0; // msoFalse
+                    fill = shape.Fill;
+                    if (colorHex.Equals("none", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // msoFillBackground = 5 (transparent/no fill)
+                        fill.Visible = 0; // msoFalse
+                    }
+                    else
+                    {
+                        fill.Visible = -1; // msoTrue
+                        fill.Solid();
+                        foreColor = fill.ForeColor;
+                        foreColor.RGB = HexToOleColor(colorHex);
+                    }
                 }
-                else
+                finally
                 {
-                    shape.Fill.Visible = -1; // msoTrue
-                    shape.Fill.Solid();
-                    shape.Fill.ForeColor.RGB = HexToOleColor(colorHex);
+                    ComUtilities.Release(ref foreColor!);
+                    ComUtilities.Release(ref fill!);
                 }
+
                 return new OperationResult
                 {
                     Success = true,
@@ -258,17 +299,30 @@ public class ShapeCommands : IShapeCommands
             dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
-                if (colorHex.Equals("none", StringComparison.OrdinalIgnoreCase))
+                dynamic? shapeLine = null;
+                dynamic? lineColor = null;
+                try
                 {
-                    shape.Line.Visible = 0; // msoFalse
+                    shapeLine = shape.Line;
+                    if (colorHex.Equals("none", StringComparison.OrdinalIgnoreCase))
+                    {
+                        shapeLine.Visible = 0; // msoFalse
+                    }
+                    else
+                    {
+                        shapeLine.Visible = -1; // msoTrue
+                        lineColor = shapeLine.ForeColor;
+                        lineColor.RGB = HexToOleColor(colorHex);
+                        if (lineWidth > 0)
+                            shapeLine.Weight = lineWidth;
+                    }
                 }
-                else
+                finally
                 {
-                    shape.Line.Visible = -1; // msoTrue
-                    shape.Line.ForeColor.RGB = HexToOleColor(colorHex);
-                    if (lineWidth > 0)
-                        shape.Line.Weight = lineWidth;
+                    ComUtilities.Release(ref lineColor!);
+                    ComUtilities.Release(ref shapeLine!);
                 }
+
                 return new OperationResult
                 {
                     Success = true,
@@ -347,7 +401,16 @@ public class ShapeCommands : IShapeCommands
                         if (s != null) ComUtilities.Release(ref s!);
                     }
                 }
-                group = slide.Shapes.SelectAll();
+                dynamic? selectAllShapes = null;
+                try
+                {
+                    selectAllShapes = slide.Shapes;
+                    group = selectAllShapes.SelectAll();
+                }
+                finally
+                {
+                    ComUtilities.Release(ref selectAllShapes!);
+                }
                 // Actually we need to use the selection to group
                 dynamic? app = null;
                 dynamic? sel = null;
@@ -355,7 +418,16 @@ public class ShapeCommands : IShapeCommands
                 try
                 {
                     app = ((dynamic)ctx.Presentation).Application;
-                    sel = app.ActiveWindow.Selection;
+                    dynamic? activeWindow = null;
+                    try
+                    {
+                        activeWindow = app.ActiveWindow;
+                        sel = activeWindow.Selection;
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref activeWindow!);
+                    }
                     grouped = sel.ShapeRange.Group();
                     string groupName = grouped.Name?.ToString() ?? "";
                     return new OperationResult
@@ -537,7 +609,16 @@ public class ShapeCommands : IShapeCommands
                 float ex = Convert.ToSingle(endShape.Left) + Convert.ToSingle(endShape.Width) / 2;
                 float ey = Convert.ToSingle(endShape.Top) + Convert.ToSingle(endShape.Height) / 2;
 
-                connector = slide.Shapes.AddConnector(connectorType, sx, sy, ex, ey);
+                dynamic? connectorShapes = null;
+                try
+                {
+                    connectorShapes = slide.Shapes;
+                    connector = connectorShapes.AddConnector(connectorType, sx, sy, ex, ey);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref connectorShapes!);
+                }
                 dynamic cf = connector.ConnectorFormat;
                 try
                 {
@@ -751,7 +832,7 @@ public class ShapeCommands : IShapeCommands
                 string colorHex = "";
                 if (fillType == 1)
                 {
-                    int rgb = Convert.ToInt32(fill.ForeColor.RGB);
+                    int rgb = ComUtilities.GetForeColorRgb(fill);
                     int r = rgb & 0xFF;
                     int g = (rgb >> 8) & 0xFF;
                     int b = (rgb >> 16) & 0xFF;
@@ -800,7 +881,7 @@ public class ShapeCommands : IShapeCommands
                 float weight = 0f;
                 if (visible)
                 {
-                    int rgb = Convert.ToInt32(line.ForeColor.RGB);
+                    int rgb = ComUtilities.GetForeColorRgb(line);
                     int r = rgb & 0xFF;
                     int g = (rgb >> 8) & 0xFF;
                     int b = (rgb >> 16) & 0xFF;
@@ -855,10 +936,25 @@ public class ShapeCommands : IShapeCommands
             dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
-                // TwoColorGradient(style, variant) - variant 1 is default direction
-                shape.Fill.TwoColorGradient(gradientStyle, 1);
-                shape.Fill.ForeColor.RGB = HexToOleColor(color1);
-                shape.Fill.BackColor.RGB = HexToOleColor(color2);
+                dynamic? gradFill = null;
+                dynamic? gradFore = null;
+                dynamic? gradBack = null;
+                try
+                {
+                    gradFill = shape.Fill;
+                    // TwoColorGradient(style, variant) - variant 1 is default direction
+                    gradFill.TwoColorGradient(gradientStyle, 1);
+                    gradFore = gradFill.ForeColor;
+                    gradFore.RGB = HexToOleColor(color1);
+                    gradBack = gradFill.BackColor;
+                    gradBack.RGB = HexToOleColor(color2);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref gradBack!);
+                    ComUtilities.Release(ref gradFore!);
+                    ComUtilities.Release(ref gradFill!);
+                }
 
                 return new OperationResult
                 {
@@ -974,7 +1070,16 @@ public class ShapeCommands : IShapeCommands
             try
             {
                 // COM uses Transparency (0=opaque, 1=transparent), which is the inverse of opacity
-                shape.Fill.Transparency = 1.0f - opacity;
+                dynamic? opacityFill = null;
+                try
+                {
+                    opacityFill = shape.Fill;
+                    opacityFill.Transparency = 1.0f - opacity;
+                }
+                finally
+                {
+                    ComUtilities.Release(ref opacityFill!);
+                }
                 return new OperationResult
                 {
                     Success = true,
@@ -1291,7 +1396,16 @@ public class ShapeCommands : IShapeCommands
             {
                 // AddTextEffect(PresetTextEffect, Text, FontName, FontSize, FontBold, FontItalic, Left, Top)
                 // FontBold=0 (msoFalse), FontItalic=0 (msoFalse)
-                shape = slide.Shapes.AddTextEffect(presetEffect, text, fontName, fontSize, 0, 0, left, top);
+                dynamic? effectShapes = null;
+                try
+                {
+                    effectShapes = slide.Shapes;
+                    shape = effectShapes.AddTextEffect(presetEffect, text, fontName, fontSize, 0, 0, left, top);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref effectShapes!);
+                }
                 string name = shape.Name?.ToString() ?? "";
 
                 return new OperationResult

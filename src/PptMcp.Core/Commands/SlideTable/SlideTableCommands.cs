@@ -10,8 +10,18 @@ public class SlideTableCommands : ISlideTableCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.AddTable(rows, columns, left, top, width, height);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? shapes = null;
+            dynamic shape;
+            try
+            {
+                shapes = slide.Shapes;
+                shape = shapes.AddTable(rows, columns, left, top, width, height);
+            }
+            finally
+            {
+                ComUtilities.Release(ref shapes!);
+            }
             try
             {
                 string name = shape.Name?.ToString() ?? "";
@@ -35,14 +45,14 @@ public class SlideTableCommands : ISlideTableCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             try
             {
                 table = shape.Table;
-                int rowCount = (int)table.Rows.Count;
-                int colCount = (int)table.Columns.Count;
+                int rowCount = ComUtilities.GetTableRowCount(table);
+                int colCount = ComUtilities.GetTableColumnCount(table);
 
                 var data = new List<List<string?>>();
                 for (int r = 1; r <= rowCount; r++)
@@ -53,7 +63,7 @@ public class SlideTableCommands : ISlideTableCommands
                         dynamic cell = table.Cell(r, c);
                         try
                         {
-                            string? text = cell.Shape.TextFrame.TextRange.Text?.ToString();
+                            string? text = ComUtilities.GetCellText(cell);
                             row.Add(text);
                         }
                         finally
@@ -88,15 +98,15 @@ public class SlideTableCommands : ISlideTableCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             dynamic? cell = null;
             try
             {
                 table = shape.Table;
                 cell = table.Cell(row, column);
-                cell.Shape.TextFrame.TextRange.Text = value;
+                ComUtilities.SetCellText(cell, value);
 
                 return new OperationResult
                 {
@@ -120,8 +130,8 @@ public class SlideTableCommands : ISlideTableCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             dynamic? rows = null;
             try
@@ -153,8 +163,8 @@ public class SlideTableCommands : ISlideTableCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             dynamic? columns = null;
             try
@@ -186,14 +196,14 @@ public class SlideTableCommands : ISlideTableCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             dynamic? targetRow = null;
             try
             {
                 table = shape.Table;
-                targetRow = table.Rows.Item(row);
+                targetRow = ComUtilities.GetTableRow(table, row);
                 targetRow.Delete();
 
                 return new OperationResult
@@ -218,14 +228,14 @@ public class SlideTableCommands : ISlideTableCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             dynamic? targetCol = null;
             try
             {
                 table = shape.Table;
-                targetCol = table.Columns.Item(column);
+                targetCol = ComUtilities.GetTableColumn(table, column);
                 targetCol.Delete();
 
                 return new OperationResult
@@ -250,8 +260,8 @@ public class SlideTableCommands : ISlideTableCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             dynamic? cell1 = null;
             dynamic? cell2 = null;
@@ -287,15 +297,15 @@ public class SlideTableCommands : ISlideTableCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             dynamic? cell = null;
             try
             {
                 table = shape.Table;
                 cell = table.Cell(row, column);
-                string text = cell.Shape.TextFrame.TextRange.Text?.ToString() ?? "";
+                string text = ComUtilities.GetCellText(cell);
 
                 return new OperationResult
                 {
@@ -321,8 +331,8 @@ public class SlideTableCommands : ISlideTableCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             dynamic? cell = null;
             try
@@ -330,46 +340,71 @@ public class SlideTableCommands : ISlideTableCommands
                 table = shape.Table;
                 cell = table.Cell(row, column);
 
-                if (!string.IsNullOrEmpty(fillColor))
+                dynamic? cellShape = null;
+                try
                 {
-                    dynamic? fill = null;
-                    try
+                    cellShape = cell.Shape;
+
+                    if (!string.IsNullOrEmpty(fillColor))
                     {
-                        fill = cell.Shape.Fill;
-                        fill.Visible = -1;
-                        fill.Solid();
-                        fill.ForeColor.RGB = HexToOleColor(fillColor);
+                        dynamic? fill = null;
+                        dynamic? foreColor = null;
+                        try
+                        {
+                            fill = cellShape.Fill;
+                            fill.Visible = -1;
+                            fill.Solid();
+                            foreColor = fill.ForeColor;
+                            foreColor.RGB = HexToOleColor(fillColor);
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref foreColor!);
+                            ComUtilities.Release(ref fill!);
+                        }
                     }
-                    finally
+
+                    if (fontBold.HasValue || fontSize > 0)
                     {
-                        if (fill != null) ComUtilities.Release(ref fill!);
+                        dynamic font = ComUtilities.GetTextFont(cellShape);
+                        try
+                        {
+                            if (fontBold.HasValue) font.Bold = fontBold.Value ? -1 : 0;
+                            if (fontSize > 0) font.Size = fontSize;
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref font!);
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(textAlign))
+                    {
+                        int align = textAlign.ToLowerInvariant() switch
+                        {
+                            "left" => 1,
+                            "center" => 2,
+                            "right" => 3,
+                            _ => 1
+                        };
+                        dynamic? alignRange = null;
+                        dynamic? paraFormat = null;
+                        try
+                        {
+                            alignRange = ComUtilities.GetTextRange(cellShape);
+                            paraFormat = alignRange.ParagraphFormat;
+                            paraFormat.Alignment = align;
+                        }
+                        finally
+                        {
+                            ComUtilities.Release(ref paraFormat!);
+                            ComUtilities.Release(ref alignRange!);
+                        }
                     }
                 }
-
-                if (fontBold.HasValue || fontSize > 0)
+                finally
                 {
-                    dynamic font = cell.Shape.TextFrame.TextRange.Font;
-                    try
-                    {
-                        if (fontBold.HasValue) font.Bold = fontBold.Value ? -1 : 0;
-                        if (fontSize > 0) font.Size = fontSize;
-                    }
-                    finally
-                    {
-                        ComUtilities.Release(ref font!);
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(textAlign))
-                {
-                    int align = textAlign.ToLowerInvariant() switch
-                    {
-                        "left" => 1,
-                        "center" => 2,
-                        "right" => 3,
-                        _ => 1
-                    };
-                    cell.Shape.TextFrame.TextRange.ParagraphFormat.Alignment = align;
+                    ComUtilities.Release(ref cellShape!);
                 }
 
                 return new OperationResult
@@ -397,14 +432,14 @@ public class SlideTableCommands : ISlideTableCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             try
             {
                 table = shape.Table;
                 string[] parts = values.Split(',');
-                int colCount = (int)table.Columns.Count;
+                int colCount = ComUtilities.GetTableColumnCount(table);
                 int writeCount = Math.Min(parts.Length, colCount);
 
                 for (int c = 1; c <= writeCount; c++)
@@ -413,7 +448,7 @@ public class SlideTableCommands : ISlideTableCommands
                     try
                     {
                         cell = table.Cell(row, c);
-                        cell.Shape.TextFrame.TextRange.Text = parts[c - 1].Trim();
+                        ComUtilities.SetCellText(cell, parts[c - 1].Trim());
                     }
                     finally
                     {
@@ -444,13 +479,13 @@ public class SlideTableCommands : ISlideTableCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             try
             {
                 table = shape.Table;
-                int colCount = (int)table.Columns.Count;
+                int colCount = ComUtilities.GetTableColumnCount(table);
                 var cellValues = new List<string>();
 
                 for (int c = 1; c <= colCount; c++)
@@ -459,7 +494,7 @@ public class SlideTableCommands : ISlideTableCommands
                     try
                     {
                         cell = table.Cell(row, c);
-                        string text = cell.Shape.TextFrame.TextRange.Text?.ToString() ?? "";
+                        string text = ComUtilities.GetCellText(cell);
                         cellValues.Add(text);
                     }
                     finally
@@ -492,8 +527,8 @@ public class SlideTableCommands : ISlideTableCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? table = null;
             dynamic? cell = null;
             try

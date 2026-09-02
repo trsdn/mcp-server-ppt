@@ -907,16 +907,31 @@ public class TextCommands : ITextCommands
                                 {
                                     Text = run.Text?.ToString() ?? ""
                                 };
-                                try { runInfo.FontName = run.Font.Name?.ToString(); } catch { }
-                                try { runInfo.FontSize = Convert.ToSingle(run.Font.Size); } catch { }
-                                try { runInfo.Bold = Convert.ToInt32(run.Font.Bold) != 0; } catch { }
-                                try { runInfo.Italic = Convert.ToInt32(run.Font.Italic) != 0; } catch { }
+                                dynamic? runFont = null;
                                 try
                                 {
-                                    int rgb = Convert.ToInt32(run.Font.Color.RGB);
-                                    runInfo.Color = $"#{rgb:X6}";
+                                    runFont = run.Font;
+                                    try { runInfo.FontName = runFont.Name?.ToString(); } catch { }
+                                    try { runInfo.FontSize = Convert.ToSingle(runFont.Size); } catch { }
+                                    try { runInfo.Bold = Convert.ToInt32(runFont.Bold) != 0; } catch { }
+                                    try { runInfo.Italic = Convert.ToInt32(runFont.Italic) != 0; } catch { }
+                                    dynamic? runColor = null;
+                                    try
+                                    {
+                                        runColor = runFont.Color;
+                                        int rgb = Convert.ToInt32(runColor.RGB);
+                                        runInfo.Color = $"#{rgb:X6}";
+                                    }
+                                    catch { }
+                                    finally
+                                    {
+                                        ComUtilities.Release(ref runColor!);
+                                    }
                                 }
-                                catch { }
+                                finally
+                                {
+                                    ComUtilities.Release(ref runFont!);
+                                }
 
                                 paraInfo.Runs.Add(runInfo);
                             }
