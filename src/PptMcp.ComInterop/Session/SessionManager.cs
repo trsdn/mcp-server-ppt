@@ -31,6 +31,30 @@ public sealed class SessionManager : IDisposable
     private readonly ConcurrentDictionary<string, DateTime> _sessionCreatedAt = new();
     private readonly Polly.ResiliencePipeline _sessionCreationPipeline = ResiliencePipelines.CreateSessionCreationPipeline();
     private readonly ILogger<SessionManager> _logger;
+
+    /// <summary>
+    /// Serialises the single-instance check with the reservation that follows it.
+    /// </summary>
+    /// <remarks>
+    /// The invariant "at most one session" was previously enforced by testing
+    /// <c>_activeSessions.IsEmpty</c> and, some 2.5 seconds of file I/O and COM bootstrap
+    /// later, calling <c>TryAdd</c>. Each dictionary operation is atomic on its own, but
+    /// the sequence is not, so two callers arriving inside that window both saw an empty
+    /// dictionary and both went on to create a session. <c>TryAdd</c> could not catch it:
+    /// the key is a freshly generated GUID and never collides.
+    ///
+    /// The window is closed by reserving the single slot before the bootstrap starts, so
+    /// the loser is rejected immediately rather than after paying for a PowerPoint launch
+    /// it is not allowed to keep.
+    /// </remarks>
+    private readonly Lock _creationGate = new();
+
+    /// <summary>
+    /// True while a caller holds the single session slot but has not yet published it to
+    /// <see cref="_activeSessions"/>. Read and written only under <see cref="_creationGate"/>.
+    /// </summary>
+    private bool _creationInProgress;
+
     private bool _disposed;
 
     /// <summary>
@@ -40,6 +64,39 @@ public sealed class SessionManager : IDisposable
     public SessionManager(ILogger<SessionManager>? logger = null)
     {
         _logger = logger ?? NullLogger<SessionManager>.Instance;
+    }
+
+    /// <summary>
+    /// Atomically claims the one available session slot, or throws if it is already taken
+    /// by a live session or by another caller currently bootstrapping one.
+    /// </summary>
+    /// <param name="message">The rejection message for the losing caller.</param>
+    /// <exception cref="InvalidOperationException">A session is active or being created.</exception>
+    private void ReserveSingleSessionSlot(string message)
+    {
+        lock (_creationGate)
+        {
+            if (_creationInProgress || !_activeSessions.IsEmpty)
+            {
+                throw new InvalidOperationException(message);
+            }
+
+            _creationInProgress = true;
+        }
+    }
+
+    /// <summary>
+    /// Releases the reservation. Safe to call unconditionally in a finally block: on the
+    /// success path the session has already been published to
+    /// <see cref="_activeSessions"/> by the time this runs, so the slot never appears
+    /// free in between.
+    /// </summary>
+    private void ReleaseSingleSessionSlot()
+    {
+        lock (_creationGate)
+        {
+            _creationInProgress = false;
+        }
     }
 
     /// <summary>
@@ -60,12 +117,26 @@ public sealed class SessionManager : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // CRITICAL: PowerPoint COM is single-instance — only one session at a time
-        if (!_activeSessions.IsEmpty)
-        {
-            throw new InvalidOperationException("PowerPoint COM is single-instance. Only one session can be active at a time. Close the current session before opening another file.");
-        }
+        const string singleInstanceMessage =
+            "PowerPoint COM is single-instance. Only one session can be active at a time. Close the current session before opening another file.";
 
+        // CRITICAL: PowerPoint COM is single-instance - only one session at a time.
+        // Claimed atomically, before the ~2.5s bootstrap below, so a concurrent caller is
+        // rejected immediately instead of racing us to create a second session (#132).
+        ReserveSingleSessionSlot(singleInstanceMessage);
+
+        try
+        {
+            return CreateSessionCore(filePath, show, operationTimeout, origin);
+        }
+        finally
+        {
+            ReleaseSingleSessionSlot();
+        }
+    }
+
+    private string CreateSessionCore(string filePath, bool show, TimeSpan? operationTimeout, SessionOrigin origin)
+    {
         if (!File.Exists(filePath))
         {
             throw new FileNotFoundException($"PowerPoint file not found: {filePath}. To create a new file, use the 'create' action instead of 'open'.", filePath);
@@ -153,12 +224,25 @@ public sealed class SessionManager : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // CRITICAL: PowerPoint COM is single-instance — only one session at a time
-        if (!_activeSessions.IsEmpty)
-        {
-            throw new InvalidOperationException("PowerPoint COM is single-instance. Only one session can be active at a time. Close the current session before creating a new file.");
-        }
+        const string singleInstanceMessage =
+            "PowerPoint COM is single-instance. Only one session can be active at a time. Close the current session before creating a new file.";
 
+        // Same reservation as CreateSession - this path carries its own copy of the
+        // check-then-act and its own slow bootstrap (#132).
+        ReserveSingleSessionSlot(singleInstanceMessage);
+
+        try
+        {
+            return CreateSessionForNewFileCore(filePath, show, operationTimeout, origin);
+        }
+        finally
+        {
+            ReleaseSingleSessionSlot();
+        }
+    }
+
+    private string CreateSessionForNewFileCore(string filePath, bool show, TimeSpan? operationTimeout, SessionOrigin origin)
+    {
         string normalizedPath = Path.GetFullPath(filePath);
 
         // Validate extension
