@@ -11,9 +11,10 @@ public class TransitionCommands : ITransitionCommands
         return batch.Execute((ctx, ct) =>
         {
             dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic? trans = null;
             try
             {
-                dynamic trans = slide.SlideShowTransition;
+                trans = slide.SlideShowTransition;
                 return new TransitionResult
                 {
                     Success = true,
@@ -27,6 +28,7 @@ public class TransitionCommands : ITransitionCommands
             }
             finally
             {
+                if (trans != null) ComUtilities.Release(ref trans!);
                 ComUtilities.Release(ref slide!);
             }
         });
@@ -100,9 +102,10 @@ public class TransitionCommands : ITransitionCommands
             dynamic pres = ctx.Presentation;
             dynamic srcSlide = pres.Slides.Item(slideIndex);
             dynamic slides = pres.Slides;
+            dynamic? srcTrans = null;
             try
             {
-                dynamic srcTrans = srcSlide.SlideShowTransition;
+                srcTrans = srcSlide.SlideShowTransition;
                 int effect = Convert.ToInt32(srcTrans.EntryEffect);
                 float duration = Convert.ToSingle(srcTrans.Duration);
                 int advClick = Convert.ToInt32(srcTrans.AdvanceOnClick);
@@ -115,9 +118,10 @@ public class TransitionCommands : ITransitionCommands
                 {
                     if (i == slideIndex) continue;
                     dynamic slide = slides.Item(i);
+                    dynamic? trans = null;
                     try
                     {
-                        dynamic trans = slide.SlideShowTransition;
+                        trans = slide.SlideShowTransition;
                         trans.EntryEffect = effect;
                         trans.Duration = duration;
                         trans.AdvanceOnClick = advClick;
@@ -127,6 +131,7 @@ public class TransitionCommands : ITransitionCommands
                     }
                     finally
                     {
+                        if (trans != null) ComUtilities.Release(ref trans!);
                         ComUtilities.Release(ref slide!);
                     }
                 }
@@ -141,6 +146,7 @@ public class TransitionCommands : ITransitionCommands
             }
             finally
             {
+                if (srcTrans != null) ComUtilities.Release(ref srcTrans!);
                 ComUtilities.Release(ref slides!);
                 ComUtilities.Release(ref srcSlide!);
             }

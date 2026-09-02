@@ -349,11 +349,12 @@ public class ShapeCommands : IShapeCommands
                 }
                 group = slide.Shapes.SelectAll();
                 // Actually we need to use the selection to group
-                dynamic app = ((dynamic)ctx.Presentation).Application;
+                dynamic? app = null;
                 dynamic? sel = null;
                 dynamic? grouped = null;
                 try
                 {
+                    app = ((dynamic)ctx.Presentation).Application;
                     sel = app.ActiveWindow.Selection;
                     grouped = sel.ShapeRange.Group();
                     string groupName = grouped.Name?.ToString() ?? "";
@@ -369,6 +370,7 @@ public class ShapeCommands : IShapeCommands
                 {
                     if (grouped != null) ComUtilities.Release(ref grouped!);
                     if (sel != null) ComUtilities.Release(ref sel!);
+                    if (app != null) ComUtilities.Release(ref app!);
                 }
             }
             finally
