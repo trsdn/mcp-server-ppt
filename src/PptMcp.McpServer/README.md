@@ -55,7 +55,7 @@ dotnet tool install --global PptMcp.CLI
 
 ## 🛠️ What You Can Do
 
-**33 specialized tools with 223 operations:**
+**33 specialized tools with 224 operations:**
 
 - 📁 **Files** (1 tool, 6 ops) - Session management, open/create/save/close presentations
 - 📄 **Slides** (1 tool, 15 ops) - Lifecycle, layouts, hide/unhide, thumbnails, clone-with-replace
@@ -91,7 +91,7 @@ dotnet tool install --global PptMcp.CLI
 - ⚙️ **VBA** (1 tool, 5 ops) - Modules, import, execution
 - 🪟 **Window Management** (1 tool, 7 ops) - Show/arrange PowerPoint, zoom, view mode
 
-📚 **[Complete Feature Reference →](../../FEATURES.md)** - Detailed documentation of all 223 operations
+📚 **[Complete Feature Reference →](../../FEATURES.md)** - Detailed documentation of all 224 operations
 
 **AI-Powered Workflows:**
 - 💬 Natural language PowerPoint commands through GitHub Copilot, Claude, or ChatGPT

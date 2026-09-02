@@ -52,4 +52,14 @@ public interface IVbaCommands
     /// <param name="macroName">Fully qualified macro name (e.g., "Module1.MyMacro")</param>
     [ServiceAction("run")]
     OperationResult Run(IPptBatch batch, string macroName);
+
+    /// <summary>
+    /// Report whether "Trust access to the VBA project object model" is enabled.
+    /// Use this before other VBA actions: the setting is disabled by default on
+    /// Windows, and when it is off every other action in this tool fails.
+    /// Returns the remediation steps when trust is disabled.
+    /// </summary>
+    /// <param name="batch">Batch context</param>
+    [ServiceAction("check-trust")]
+    VbaTrustResult CheckTrust(IPptBatch batch);
 }

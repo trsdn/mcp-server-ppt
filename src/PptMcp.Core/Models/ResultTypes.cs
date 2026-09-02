@@ -318,6 +318,22 @@ public class VbaModuleCodeResult : ResultBase
     public int LineCount { get; set; }
 }
 
+/// <summary>
+/// Whether "Trust access to the VBA project object model" is enabled, plus the
+/// remediation when it is not.
+/// </summary>
+public class VbaTrustResult : ResultBase
+{
+    /// <summary>True when the setting is enabled and VBA actions can run.</summary>
+    public bool TrustEnabled { get; set; }
+
+    /// <summary>The registry location(s) consulted, so the diagnosis can be verified.</summary>
+    public string RegistryPath { get; set; } = string.Empty;
+
+    /// <summary>Steps to enable trust. Empty when trust is already enabled.</summary>
+    public string Remediation { get; set; } = string.Empty;
+}
+
 // ── Window ────────────────────────────────────────────────
 
 public class WindowInfoResult : ResultBase

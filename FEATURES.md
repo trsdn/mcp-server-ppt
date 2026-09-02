@@ -1,6 +1,6 @@
 # PptMcp - Complete Feature Reference
 
-**33 specialized tools with 223 operations for comprehensive PowerPoint automation**
+**33 specialized tools with 224 operations for comprehensive PowerPoint automation**
 
 > Generated from the source of truth: the action enums emitted by the source generators
 > (`ServiceRegistry.*.g.cs`) plus the hand-written `file` tool. Do not edit counts by hand.
@@ -450,7 +450,7 @@ MCP tool / CLI command: `printoptions`
 
 ---
 
-## ⚙️ VBA Macros Operations (5 operations)
+## ⚙️ VBA Macros Operations (6 operations)
 
 MCP tool / CLI command: `vba`
 
@@ -459,6 +459,7 @@ MCP tool / CLI command: `vba`
 - `import`
 - `delete`
 - `run`
+- `check-trust`
 
 ---
 
@@ -511,9 +512,9 @@ MCP tool / CLI command: `window`
 | `proofing` | 3 |
 | `export` | 9 |
 | `printoptions` | 2 |
-| `vba` | 5 |
+| `vba` | 6 |
 | `window` | 7 |
-| **Total (33 tools)** | **223** |
+| **Total (33 tools)** | **224** |
 
 ---
 

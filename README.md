@@ -30,7 +30,7 @@ For multi-phase build / verify / repair workflows from source, the repo also inc
 
 ## 🎯 What You Can Do
 
-**33 specialized tools with 223 operations:**
+**33 specialized tools with 224 operations:**
 
 - 📁 **Files** (1 tool, 6 ops) — Open, close, create, save, list, validate presentations
 - 📄 **Slides** (1 tool, 15 ops) — Create, duplicate, move, delete, apply layouts, hide/unhide, thumbnails, clone-with-replace
@@ -66,7 +66,7 @@ For multi-phase build / verify / repair workflows from source, the repo also inc
 - ⚙️ **VBA** (1 tool, 5 ops) — List, view, import, delete, run macros
 - 🪟 **Window** (1 tool, 7 ops) — Info, minimize, restore, maximize, zoom, view mode
 
-📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 223 operations
+📚 **[Complete Feature Reference →](FEATURES.md)** — Detailed documentation of all 224 operations
 
 
 ## 💬 Example Prompts

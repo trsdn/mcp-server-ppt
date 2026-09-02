@@ -757,7 +757,7 @@ Slide transition effects: get, set, remove.
 
 VBA macro operations: list modules, view/import/delete code, run macros. Requires VBA trust settings enabled in PowerPoint.
 
-**Actions:** `list`, `view`, `import`, `delete`, `run`
+**Actions:** `list`, `view`, `import`, `delete`, `run`, `check-trust`
 
 | Parameter | Description |
 |-----------|-------------|

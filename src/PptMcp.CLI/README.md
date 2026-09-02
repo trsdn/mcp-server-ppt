@@ -8,7 +8,7 @@
 
 > **Published as its own .NET tool** - Install `PptMcp.CLI` to get the `pptcli` command. Install `PptMcp.McpServer` separately when you also need the MCP server (`mcp-ppt`).
 
-The CLI provides 33 command categories with 223 operations matching the MCP Server. Uses **64% fewer tokens** than MCP Server because it wraps all operations in a single tool with skill-based guidance instead of loading 33 tool schemas into context.
+The CLI provides 33 command categories with 224 operations matching the MCP Server. Uses **64% fewer tokens** than MCP Server because it wraps all operations in a single tool with skill-based guidance instead of loading 33 tool schemas into context.
 
 | Interface | Best For | Why |
 |-----------|----------|-----|
@@ -102,7 +102,7 @@ Descriptions are kept in sync with the CLI source so the help output always refl
 
 ## 📋 Command Categories
 
-PptMcp.CLI provides **223 operations** across 33 command categories:
+PptMcp.CLI provides **224 operations** across 33 command categories:
 
 📚 **[Complete Feature Reference →](../../FEATURES.md)** - Full documentation with all operations
 

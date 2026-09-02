@@ -13,7 +13,7 @@ PowerPoint MCP Server lets you automate PowerPoint through conversation with Cla
 - **Automate** - VBA macros, batch operations
 - **Agent Mode** - Say "show me PowerPoint" and watch AI work in real-time, side-by-side with Claude
 
-**33 tools with 223 operations** for comprehensive PowerPoint automation.
+**33 tools with 224 operations** for comprehensive PowerPoint automation.
 
 ## Requirements
 
