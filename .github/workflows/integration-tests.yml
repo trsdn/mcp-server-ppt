@@ -91,6 +91,7 @@ jobs:
         run: >
           ./scripts/Invoke-GuardedTest.ps1
           -Project tests/PptMcp.CLI.Tests/PptMcp.CLI.Tests.csproj
+          -Full
           -LoggerFileName cli-integration.trx
 
       - name: Run MCP integration suite
@@ -98,6 +99,7 @@ jobs:
         run: >
           ./scripts/Invoke-GuardedTest.ps1
           -Project tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj
+          -Full
           -LoggerFileName mcp-integration.trx
 
       - name: Run OnDemand COM/session suite
