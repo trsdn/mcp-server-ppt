@@ -2,19 +2,16 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Polly;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 
 namespace PptMcp.ComInterop.Session;
 
 /// <summary>
 /// Centralized service for PowerPoint presentation close and application quit operations.
-/// Implements resilient shutdown with exponential backoff for COM busy conditions.
+/// Shutdown terminates PowerPoint by releasing the last COM reference rather than calling Quit().
 /// </summary>
 public static class PptShutdownService
 {
-    private static readonly ResiliencePipeline _quitPipeline = ResiliencePipelines.CreatePowerPointQuitPipeline();
-
     /// <summary>
     /// Saves a PowerPoint presentation on the calling STA thread.
     /// Must be called from within <c>PptBatch.Execute()</c> so the Save() COM call
@@ -139,97 +136,45 @@ public static class PptShutdownService
                 }
                 finally
                 {
-                    // Step 3: Release presentation COM reference
-                    Marshal.ReleaseComObject(presentation);
+                    // Step 3: Release presentation COM reference.
+                    // FinalReleaseComObject, not ReleaseComObject: the same COM object can be
+                    // marshalled to us more than once, and each marshalling increments the RCW
+                    // reference count. Decrementing by one would leave the proxy alive.
+                    Marshal.FinalReleaseComObject(presentation);
                     presentation = null;
                 }
             }
 
-            // Step 4: Quit PowerPoint application with resilient retry + overall timeout
+            // Step 4: Release the PowerPoint application reference.
+            //
+            // This deliberately does NOT call Application.Quit(). Quit() returns almost
+            // immediately but puts PowerPoint into a shutdown state in which it stops
+            // servicing COM calls, so the subsequent Release of our application proxy
+            // deadlocks until COM's own call timeout expires. Measured on a plain STA
+            // thread with no wrapper involved (issue #148):
+            //
+            //   Quit() then Release(app) : Quit 15ms, Release 60042ms, process exits after
+            //   Release(app) only        :            Release    18ms, process exits after
+            //
+            // Dropping the last external reference is what actually terminates PowerPoint,
+            // and it is what Quit() was ultimately waiting for. Releasing directly is both
+            // faster and safer: if this process attached to a PowerPoint instance the user
+            // already had open, Quit() would have torn down their session.
+            //
+            // If PowerPoint fails to exit anyway, the caller force-kills the captured
+            // process id as a last resort.
             if (powerPoint != null)
             {
-                int attemptNumber = 0;
-                Exception? lastException = null;
+                Marshal.FinalReleaseComObject(powerPoint);
+                powerPoint = null;
 
-                // Outer timeout catches truly hung PowerPoint (modal dialogs, deadlocks)
-                using var quitTimeout = new CancellationTokenSource(ComInteropConstants.PowerPointQuitTimeout);
+                // Release any straggler proxies still held by RCWs awaiting finalization,
+                // otherwise PowerPoint keeps running because a reference remains outstanding.
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
 
-                try
-                {
-                    logger.LogDebug("Attempting to quit PowerPoint for {FileName} with resilient retry ({Timeout} timeout)", fileName, ComInteropConstants.PowerPointQuitTimeout);
-
-                    // Inner retry pipeline handles transient COM busy errors within the timeout
-                    _quitPipeline.Execute(cancellationToken =>
-                    {
-                        attemptNumber++;
-                        try
-                        {
-                            logger.LogDebug("Quit attempt {Attempt} for {FileName}", attemptNumber, fileName);
-                            powerPoint.Quit();
-                            logger.LogDebug("Quit attempt {Attempt} succeeded for {FileName}", attemptNumber, fileName);
-                        }
-                        catch (COMException ex)
-                        {
-                            lastException = ex;
-                            logger.LogWarning(ex,
-                                "Quit attempt {Attempt} failed for {FileName} (HResult: 0x{HResult:X8})",
-                                attemptNumber, fileName, ex.HResult);
-                            throw; // Let pipeline decide if retry
-                        }
-                    }, quitTimeout.Token);
-
-                    logger.LogInformation("PowerPoint quit succeeded for {FileName} after {Attempts} attempt(s) in {Elapsed}ms",
-                        fileName, attemptNumber, stopwatch.ElapsedMilliseconds);
-                }
-                catch (OperationCanceledException) when (quitTimeout.Token.IsCancellationRequested)
-                {
-                    // Overall timeout reached - PowerPoint is truly hung
-                    logger.LogError(
-                        "PowerPoint quit TIMED OUT after {Timeout} for {FileName} (Attempts: {Attempts}). " +
-                        "PowerPoint is likely hung (modal dialog or deadlock). Proceeding with forced COM cleanup.",
-                        ComInteropConstants.PowerPointQuitTimeout, fileName, attemptNumber);
-                    lastException = new TimeoutException($"PowerPoint.Quit() timed out after {ComInteropConstants.PowerPointQuitTimeout} for {fileName}");
-                }
-                catch (COMException ex) when (ex.HResult == ResiliencePipelines.RPC_E_CALL_FAILED)
-                {
-                    // Fatal RPC connection failure - PowerPoint is unreachable
-                    logger.LogError(ex,
-                        "PowerPoint RPC connection FAILED (0x800706BE) for {FileName}. " +
-                        "PowerPoint is unreachable - this is a FATAL error that cannot be retried. " +
-                        "Proceeding with forced COM cleanup. PowerPoint process should be force-killed by caller.",
-                        fileName);
-                    lastException = ex;
-                }
-                catch (COMException ex)
-                {
-                    // All retry attempts exhausted or non-retriable error
-                    logger.LogError(ex,
-                        "PowerPoint quit failed for {FileName} after {Attempts} attempt(s) (HResult: 0x{HResult:X8}, Elapsed: {Elapsed}ms) - proceeding with COM cleanup",
-                        fileName, attemptNumber, ex.HResult, stopwatch.ElapsedMilliseconds);
-                    lastException = ex;
-                }
-                catch (MissingMemberException ex)
-                {
-                    logger.LogWarning(ex,
-                        "PowerPoint COM proxy was disconnected while calling Quit for {FileName} - proceeding with COM cleanup",
-                        fileName);
-                    lastException = ex;
-                }
-                finally
-                {
-                    // Step 5: Release PowerPoint COM reference (even if Quit failed/timed out)
-                    Marshal.ReleaseComObject(powerPoint);
-                    powerPoint = null;
-                }
-
-                // Additional diagnostic if quit failed
-                if (lastException != null)
-                {
-                    logger.LogWarning(
-                        "PowerPoint quit unsuccessful for {FileName} (Elapsed: {Elapsed}s, Type: {ExceptionType}). " +
-                        "COM cleanup completed. Process may leak if PowerPoint remains hung.",
-                        fileName, stopwatch.Elapsed.TotalSeconds, lastException.GetType().Name);
-                }
+                logger.LogDebug("PowerPoint application reference released for {FileName} after {Elapsed}ms",
+                    fileName, stopwatch.ElapsedMilliseconds);
             }
         }
         finally
@@ -239,5 +184,3 @@ public static class PptShutdownService
         }
     }
 }
-
-
