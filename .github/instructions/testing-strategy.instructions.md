@@ -29,6 +29,18 @@ applyTo: "tests/**/*.cs"
 >   ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique
 > ```
 
+> **A leftover `pptcli` daemon makes CLI integration tests lie.** `ServiceFixture` hosts
+> a `PptMcpService` **in-process** on the CLI pipe name and configures it through
+> in-process test hooks. Windows allows several server instances per pipe name, so a
+> daemon left running by an earlier suite answers the CLI's connection instead - with
+> none of those hooks. The result is ordering-dependent failures that pass on re-run in
+> isolation, which is the most expensive kind. `Invoke-GuardedTest.ps1` now stops stray
+> daemons before every run (guard 5) and the fixture refuses to start if the pipe is
+> already served, but if you invoke `dotnet test` directly, clear them yourself:
+> ```powershell
+> Get-Process pptcli -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.Id -Force }
+> ```
+
 ### Core.Tests (Business Logic)
 ```powershell
 # Everything that does not need an interactive session
