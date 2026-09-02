@@ -13,8 +13,8 @@ public class HyperlinkCommands : IHyperlinkCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? actionSettings = null;
             dynamic? actionSetting = null;
             dynamic? hyperlink = null;
@@ -56,8 +56,8 @@ public class HyperlinkCommands : IHyperlinkCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? actionSettings = null;
             dynamic? actionSetting = null;
             dynamic? hyperlink = null;
@@ -107,8 +107,8 @@ public class HyperlinkCommands : IHyperlinkCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? actionSettings = null;
             dynamic? actionSetting = null;
             try

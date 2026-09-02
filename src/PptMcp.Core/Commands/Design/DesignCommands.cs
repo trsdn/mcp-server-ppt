@@ -29,7 +29,7 @@ public partial class DesignCommands : IDesignCommands
                         int layoutCount = 0;
                         try
                         {
-                            layoutCount = (int)design.SlideMaster.CustomLayouts.Count;
+                            layoutCount = ComUtilities.GetCustomLayoutCount(design);
                         }
                         catch { }
 

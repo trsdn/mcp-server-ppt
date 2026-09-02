@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **The command layer no longer abandons COM proxies anywhere: the inline-chain ratchet reaches zero** (#137, #126): a second sweep took the remaining 63 chains across 20 files to **0**. Together with the previous sweep the repository ratchet has gone **173 to 0**.
+  - The worst remaining offender was speaker notes. `slide.NotesPage.Shapes.Placeholders.Item(2).TextFrame.TextRange.Text` abandons five COM proxies in a single expression, and it appeared five times across read, set, append and read-all. It is now `ComUtilities.GetNotesText` / `SetNotesText`.
+  - `BackgroundCommands` re-walked `slide.Background.Fill` for every operation, abandoning two proxies per statement and up to six in `SetGradient` alone.
+  - `ImageCommands`, `MediaCommands`, `PlaceholderCommands` and `CommentCommands` abandoned the `Shapes`/`Comments` collection *and* discarded the newly created shape proxy returned by `AddPicture`, `AddMediaObject2` and `Comments.Add2`.
+  - Adds fifteen further `ComUtilities` accessors: `GetShapeText`, `SetShapeText`, `GetPlaceholders`, `GetPlaceholderAt`, `GetNotesText`, `SetNotesText`, `GetSlideCount`, `GetShapeCount`, `GetBackgroundFill`, `SetForeColorRgb`, `SetBackColorRgb`, `GetSlideShowTransition`, `GetNamedSlideShows`, `GetCustomLayoutCount`, `GetSlideDesignName` and `GetPlaceholderTypeInt`.
+  - Tracked COM acquisitions rise from 253 to **267**, and the undocumented `((dynamic))` cast baseline falls from 70 to **29** as a side effect of routing access through named helpers.
+
 - **Four command files no longer abandon a COM proxy on every slide, shape, table-cell and colour access** (#137, #126): `ShapeCommands` (52), `TextCommands` (26), `SlideTableCommands` (19) and `ChartCommands` (13) all reached COM objects through inline chains such as `slide.Shapes.Item(name)`, `cell.Shape.TextFrame.TextRange.Text` or `fill.ForeColor.RGB`. Each hop materialises an RCW that is never bound to a local, so `ComUtilities.Release` could not be called on it **even in principle** — the try/finally pattern Rule 22 mandates cannot express a release for an object you never named.
   - This is not only hygiene. #148 established by measurement that a single leaked collection proxy is enough to stop the STA thread exiting, turning session teardown into a 45-second timeout (leaky 45093ms vs clean 5501ms).
   - Adds ten accessors to `ComUtilities` — `GetSlide`, `GetShape`, `GetShapeAt`, `GetTextRange`, `GetTextFont`, `GetCellText`, `SetCellText`, `GetTableRow`, `GetTableColumn`, `GetTableRowCount`, `GetTableColumnCount`, `GetForeColorRgb` — each binding the intermediate and releasing it in a `finally`.

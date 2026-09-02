@@ -20,7 +20,7 @@ public class PlaceholderCommands : IPlaceholderCommands
                     SlideIndex = slideIndex
                 };
 
-                dynamic placeholders = slide.Shapes.Placeholders;
+                dynamic placeholders = ComUtilities.GetPlaceholders(slide);
                 try
                 {
                     int count = (int)placeholders.Count;
@@ -43,7 +43,7 @@ public class PlaceholderCommands : IPlaceholderCommands
                                 info.HasTextFrame = Convert.ToInt32(ph.HasTextFrame) != 0;
                                 if (info.HasTextFrame)
                                 {
-                                    info.Text = ph.TextFrame.TextRange.Text?.ToString();
+                                    info.Text = ComUtilities.GetShapeText(ph);
                                 }
                             }
                             catch { info.HasTextFrame = false; }
@@ -78,11 +78,11 @@ public class PlaceholderCommands : IPlaceholderCommands
             dynamic? ph = null;
             try
             {
-                ph = slide.Shapes.Placeholders.Item(placeholderIndex);
+                ph = ComUtilities.GetPlaceholderAt(slide, placeholderIndex);
                 if (Convert.ToInt32(ph.HasTextFrame) == 0)
                     throw new InvalidOperationException($"Placeholder {placeholderIndex} on slide {slideIndex} does not have a text frame.");
 
-                ph.TextFrame.TextRange.Text = text;
+                ComUtilities.SetShapeText(ph, text);
                 return new OperationResult
                 {
                     Success = true,
@@ -110,7 +110,7 @@ public class PlaceholderCommands : IPlaceholderCommands
             dynamic? ph = null;
             try
             {
-                ph = slide.Shapes.Placeholders.Item(placeholderIndex);
+                ph = ComUtilities.GetPlaceholderAt(slide, placeholderIndex);
 
                 // Capture placeholder position and size
                 float left = (float)ph.Left;
@@ -126,8 +126,18 @@ public class PlaceholderCommands : IPlaceholderCommands
                 // Insert picture at the same position
                 // AddPicture(FileName, LinkToFile, SaveWithDocument, Left, Top, Width, Height)
                 // msoFalse = 0, msoTrue = -1
-                dynamic pic = slide.Shapes.AddPicture(imagePath, 0, -1, left, top, width, height);
-                ComUtilities.Release(ref pic!);
+                dynamic? shapes = null;
+                dynamic? pic = null;
+                try
+                {
+                    shapes = slide.Shapes;
+                    pic = shapes.AddPicture(imagePath, 0, -1, left, top, width, height);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref pic!);
+                    ComUtilities.Release(ref shapes!);
+                }
 
                 return new OperationResult
                 {

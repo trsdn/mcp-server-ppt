@@ -55,7 +55,7 @@ public class ProofingCommands : IProofingCommands
 
             if (slideIndex > 0)
             {
-                dynamic slide = pres.Slides.Item(slideIndex);
+                dynamic slide = ComUtilities.GetSlide(pres, slideIndex);
                 try
                 {
                     affected += SetLanguageOnSlide(slide, shapeName, languageId);
@@ -108,8 +108,8 @@ public class ProofingCommands : IProofingCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 if (Convert.ToInt32(shape.HasTextFrame) == 0)
@@ -155,7 +155,7 @@ public class ProofingCommands : IProofingCommands
                 {
                     if (Convert.ToInt32(shape.HasTextFrame) != 0)
                     {
-                        dynamic textRange = shape.TextFrame.TextRange;
+                        dynamic textRange = ComUtilities.GetTextRange(shape);
                         try
                         {
                             string text = textRange.Text?.ToString() ?? "";
@@ -191,7 +191,7 @@ public class ProofingCommands : IProofingCommands
 
         if (!string.IsNullOrEmpty(shapeName))
         {
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 SetLanguageOnShape(shape, languageId);

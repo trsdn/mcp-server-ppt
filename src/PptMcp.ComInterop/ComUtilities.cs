@@ -389,6 +389,330 @@ public static class ComUtilities
     }
 
     /// <summary>
+    /// Reads a shape's text without abandoning the intermediate <c>TextFrame</c> and
+    /// <c>TextRange</c>. See <see cref="GetSlide"/> for why the inline form leaks.
+    /// </summary>
+    /// <param name="shape">Shape COM object.</param>
+    /// <returns>The shape text, or null when the shape carries none.</returns>
+    public static string? GetShapeText(dynamic shape)
+    {
+        dynamic? textRange = null;
+        try
+        {
+            textRange = GetTextRange(shape);
+            return textRange.Text?.ToString();
+        }
+        finally
+        {
+            ComUtilities.Release(ref textRange!);
+        }
+    }
+
+    /// <summary>
+    /// Writes a shape's text without abandoning the intermediate <c>TextFrame</c> and
+    /// <c>TextRange</c>. See <see cref="GetSlide"/> for why the inline form leaks.
+    /// </summary>
+    /// <param name="shape">Shape COM object.</param>
+    /// <param name="text">Text to write.</param>
+    public static void SetShapeText(dynamic shape, string text)
+    {
+        dynamic? textRange = null;
+        try
+        {
+            textRange = GetTextRange(shape);
+            textRange.Text = text;
+        }
+        finally
+        {
+            ComUtilities.Release(ref textRange!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a slide's <c>Placeholders</c> collection without abandoning the intermediate
+    /// <c>Shapes</c> collection. See <see cref="GetSlide"/> for why the inline form leaks.
+    /// </summary>
+    /// <param name="slide">Slide COM object.</param>
+    /// <returns>The placeholders collection. The caller owns it and must release it.</returns>
+    public static dynamic GetPlaceholders(dynamic slide)
+    {
+        dynamic? shapes = null;
+        try
+        {
+            shapes = slide.Shapes;
+            return shapes.Placeholders;
+        }
+        finally
+        {
+            ComUtilities.Release(ref shapes!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a single placeholder by 1-based index without abandoning the intermediate
+    /// <c>Shapes</c> and <c>Placeholders</c> collections.
+    /// </summary>
+    /// <param name="slide">Slide COM object.</param>
+    /// <param name="placeholderIndex">1-based placeholder index.</param>
+    /// <returns>The placeholder shape. The caller owns it and must release it.</returns>
+    public static dynamic GetPlaceholderAt(dynamic slide, int placeholderIndex)
+    {
+        dynamic? placeholders = null;
+        try
+        {
+            placeholders = GetPlaceholders(slide);
+            return placeholders.Item(placeholderIndex);
+        }
+        finally
+        {
+            ComUtilities.Release(ref placeholders!);
+        }
+    }
+
+    /// <summary>
+    /// Reads a slide's speaker notes.
+    ///
+    /// <para>
+    /// The inline form of this read - <c>slide.NotesPage.Shapes.Placeholders.Item(2)
+    /// .TextFrame.TextRange.Text</c> - abandons five COM proxies in a single expression
+    /// and was the worst individual leak in the command layer.
+    /// </para>
+    /// </summary>
+    /// <param name="slide">Slide COM object.</param>
+    /// <returns>The notes text, or empty string when the slide has no notes placeholder.</returns>
+    public static string GetNotesText(dynamic slide)
+    {
+        dynamic? notesPage = null;
+        dynamic? placeholder = null;
+        try
+        {
+            notesPage = slide.NotesPage;
+            placeholder = GetPlaceholderAt(notesPage, 2);
+            return GetShapeText(placeholder) ?? string.Empty;
+        }
+        finally
+        {
+            ComUtilities.Release(ref placeholder!);
+            ComUtilities.Release(ref notesPage!);
+        }
+    }
+
+    /// <summary>
+    /// Writes a slide's speaker notes. See <see cref="GetNotesText"/> for why the inline
+    /// form leaks.
+    /// </summary>
+    /// <param name="slide">Slide COM object.</param>
+    /// <param name="text">Notes text to write.</param>
+    public static void SetNotesText(dynamic slide, string text)
+    {
+        dynamic? notesPage = null;
+        dynamic? placeholder = null;
+        try
+        {
+            notesPage = slide.NotesPage;
+            placeholder = GetPlaceholderAt(notesPage, 2);
+            SetShapeText(placeholder, text);
+        }
+        finally
+        {
+            ComUtilities.Release(ref placeholder!);
+            ComUtilities.Release(ref notesPage!);
+        }
+    }
+
+    /// <summary>
+    /// Counts a presentation's slides without abandoning the <c>Slides</c> collection.
+    /// </summary>
+    /// <param name="presentation">Presentation COM object.</param>
+    /// <returns>Slide count.</returns>
+    public static int GetSlideCount(dynamic presentation)
+    {
+        dynamic? slides = null;
+        try
+        {
+            slides = presentation.Slides;
+            return (int)slides.Count;
+        }
+        finally
+        {
+            ComUtilities.Release(ref slides!);
+        }
+    }
+
+    /// <summary>
+    /// Counts a slide's shapes without abandoning the <c>Shapes</c> collection.
+    /// </summary>
+    /// <param name="slide">Slide COM object.</param>
+    /// <returns>Shape count.</returns>
+    public static int GetShapeCount(dynamic slide)
+    {
+        dynamic? shapes = null;
+        try
+        {
+            shapes = slide.Shapes;
+            return (int)shapes.Count;
+        }
+        finally
+        {
+            ComUtilities.Release(ref shapes!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a slide's background <c>Fill</c> without abandoning the intermediate
+    /// <c>Background</c> shape. See <see cref="GetSlide"/> for why the inline form leaks.
+    /// </summary>
+    /// <param name="slide">Slide COM object.</param>
+    /// <returns>The fill format. The caller owns it and must release it.</returns>
+    public static dynamic GetBackgroundFill(dynamic slide)
+    {
+        dynamic? background = null;
+        try
+        {
+            background = slide.Background;
+            return background.Fill;
+        }
+        finally
+        {
+            ComUtilities.Release(ref background!);
+        }
+    }
+
+    /// <summary>
+    /// Writes a fill or line <c>ForeColor.RGB</c> without abandoning the intermediate
+    /// <c>ColorFormat</c>. Counterpart to <see cref="GetForeColorRgb"/>.
+    /// </summary>
+    /// <param name="fillOrLine">Fill or line format COM object.</param>
+    /// <param name="rgb">OLE colour value (0x00BBGGRR).</param>
+    public static void SetForeColorRgb(dynamic fillOrLine, int rgb)
+    {
+        dynamic? color = null;
+        try
+        {
+            color = fillOrLine.ForeColor;
+            color.RGB = rgb;
+        }
+        finally
+        {
+            ComUtilities.Release(ref color!);
+        }
+    }
+
+    /// <summary>
+    /// Writes a fill <c>BackColor.RGB</c> without abandoning the intermediate
+    /// <c>ColorFormat</c>.
+    /// </summary>
+    /// <param name="fill">Fill format COM object.</param>
+    /// <param name="rgb">OLE colour value (0x00BBGGRR).</param>
+    public static void SetBackColorRgb(dynamic fill, int rgb)
+    {
+        dynamic? color = null;
+        try
+        {
+            color = fill.BackColor;
+            color.RGB = rgb;
+        }
+        finally
+        {
+            ComUtilities.Release(ref color!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a slide's <c>SlideShowTransition</c> as a bound local so callers can set
+    /// properties on it without abandoning the proxy.
+    /// </summary>
+    /// <param name="slide">Slide COM object.</param>
+    /// <returns>The transition object. The caller owns it and must release it.</returns>
+    public static dynamic GetSlideShowTransition(dynamic slide)
+    {
+        return slide.SlideShowTransition;
+    }
+
+    /// <summary>
+    /// Gets the presentation's named custom slide shows without abandoning the
+    /// intermediate <c>SlideShowSettings</c>.
+    /// </summary>
+    /// <param name="presentation">Presentation COM object.</param>
+    /// <returns>The named slide shows collection. The caller owns it and must release it.</returns>
+    public static dynamic GetNamedSlideShows(dynamic presentation)
+    {
+        dynamic? settings = null;
+        try
+        {
+            settings = presentation.SlideShowSettings;
+            return settings.NamedSlideShows;
+        }
+        finally
+        {
+            ComUtilities.Release(ref settings!);
+        }
+    }
+
+    /// <summary>
+    /// Counts a design's custom layouts without abandoning the intermediate
+    /// <c>SlideMaster</c> and <c>CustomLayouts</c> proxies.
+    /// </summary>
+    /// <param name="design">Design COM object.</param>
+    /// <returns>Custom layout count.</returns>
+    public static int GetCustomLayoutCount(dynamic design)
+    {
+        dynamic? slideMaster = null;
+        dynamic? layouts = null;
+        try
+        {
+            slideMaster = design.SlideMaster;
+            layouts = slideMaster.CustomLayouts;
+            return (int)layouts.Count;
+        }
+        finally
+        {
+            ComUtilities.Release(ref layouts!);
+            ComUtilities.Release(ref slideMaster!);
+        }
+    }
+
+    /// <summary>
+    /// Reads the name of the design applied to a slide without abandoning the
+    /// intermediate <c>Design</c> proxy.
+    /// </summary>
+    /// <param name="slide">Slide COM object.</param>
+    /// <returns>The design name, or empty string when unavailable.</returns>
+    public static string GetSlideDesignName(dynamic slide)
+    {
+        dynamic? design = null;
+        try
+        {
+            design = slide.Design;
+            return design.Name?.ToString() ?? string.Empty;
+        }
+        finally
+        {
+            ComUtilities.Release(ref design!);
+        }
+    }
+
+    /// <summary>
+    /// Reads a shape's placeholder type without abandoning the intermediate
+    /// <c>PlaceholderFormat</c> proxy.
+    /// </summary>
+    /// <param name="shape">Shape COM object.</param>
+    /// <returns>The placeholder type as an integer.</returns>
+    public static int GetPlaceholderTypeInt(dynamic shape)
+    {
+        dynamic? format = null;
+        try
+        {
+            format = shape.PlaceholderFormat;
+            return Convert.ToInt32(format.Type);
+        }
+        finally
+        {
+            ComUtilities.Release(ref format!);
+        }
+    }
+
+    /// <summary>
     /// Safely gets a string property from a COM object, returning empty string if null
     /// </summary>
     /// <param name="obj">COM object</param>

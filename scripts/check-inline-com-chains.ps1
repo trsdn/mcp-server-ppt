@@ -92,6 +92,11 @@ if ($UpdateBaseline) {
         '# Counts may only go down. Regenerate with -UpdateBaseline.',
         "# Total at last update: $total"
     )
+    # A baseline with no per-file entries is ambiguous: it looks identical to a
+    # truncated or empty file, which is exactly what the "a gate that inspects
+    # nothing must fail" rule exists to catch. Zero is now a real, achieved state,
+    # so record it explicitly rather than as an absence.
+    if ($current.Count -eq 0) { $out += 'CLEAN=0' }
     foreach ($k in ($current.Keys | Sort-Object)) { $out += "$k=$($current[$k])" }
     Set-Content -Path $baselineFile -Value $out -Encoding ASCII
     Write-Host "Baseline written: $total chain(s) across $($current.Count) file(s)." -ForegroundColor Yellow
@@ -111,8 +116,14 @@ foreach ($line in (Get-Content $baselineFile)) {
     $baseline[$line.Substring(0, $idx)] = [int]$line.Substring($idx + 1)
 }
 
-if ($baseline.Count -eq 0) {
-    Write-Host "FAIL: baseline file contains no entries." -ForegroundColor Red
+# CLEAN=0 is the sentinel meaning "zero chains, verified" as opposed to "file is
+# empty or truncated". Remove it before comparison so it cannot match a real path.
+$isDeclaredClean = $baseline.ContainsKey('CLEAN')
+if ($isDeclaredClean) { $baseline.Remove('CLEAN') }
+
+if ($baseline.Count -eq 0 -and -not $isDeclaredClean) {
+    Write-Host "FAIL: baseline file contains no entries and no CLEAN sentinel." -ForegroundColor Red
+    Write-Host "      An empty baseline cannot be distinguished from a truncated one."
     exit 1
 }
 

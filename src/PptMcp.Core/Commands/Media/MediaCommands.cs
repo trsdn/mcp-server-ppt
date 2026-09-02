@@ -13,7 +13,8 @@ public class MediaCommands : IMediaCommands
             if (!System.IO.File.Exists(filePath))
                 throw new FileNotFoundException($"Audio file not found: {filePath}");
 
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? shapes = null;
             dynamic? shape = null;
             try
             {
@@ -21,7 +22,8 @@ public class MediaCommands : IMediaCommands
                 // -1 = msoTrue, 0 = msoFalse
                 int link = linkToFile ? -1 : 0;
                 int saveWith = saveWithDocument ? -1 : 0;
-                shape = slide.Shapes.AddMediaObject2(filePath, link, saveWith, left, top);
+                shapes = slide.Shapes;
+                shape = shapes.AddMediaObject2(filePath, link, saveWith, left, top);
                 string name = shape.Name?.ToString() ?? "";
 
                 return new OperationResult
@@ -35,6 +37,7 @@ public class MediaCommands : IMediaCommands
             finally
             {
                 if (shape != null) ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref shapes!);
                 ComUtilities.Release(ref slide!);
             }
         });
@@ -47,13 +50,15 @@ public class MediaCommands : IMediaCommands
             if (!System.IO.File.Exists(filePath))
                 throw new FileNotFoundException($"Video file not found: {filePath}");
 
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? shapes = null;
             dynamic? shape = null;
             try
             {
                 int link = linkToFile ? -1 : 0;
                 // saveWithDocument = msoTrue (-1) by default for videos
-                shape = slide.Shapes.AddMediaObject2(filePath, link, -1, left, top, width > 0 ? width : -1, height > 0 ? height : -1);
+                shapes = slide.Shapes;
+                shape = shapes.AddMediaObject2(filePath, link, -1, left, top, width > 0 ? width : -1, height > 0 ? height : -1);
                 string name = shape.Name?.ToString() ?? "";
 
                 return new OperationResult
@@ -67,6 +72,7 @@ public class MediaCommands : IMediaCommands
             finally
             {
                 if (shape != null) ComUtilities.Release(ref shape!);
+                ComUtilities.Release(ref shapes!);
                 ComUtilities.Release(ref slide!);
             }
         });
@@ -78,8 +84,8 @@ public class MediaCommands : IMediaCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 // ppMediaTypeMovie = 3, ppMediaTypeSound = 1
@@ -130,8 +136,8 @@ public class MediaCommands : IMediaCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 dynamic mediaFormat = shape.MediaFormat;

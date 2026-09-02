@@ -195,7 +195,7 @@ public class AccessibilityCommands : IAccessibilityCommands
         dynamic? placeholders = null;
         try
         {
-            placeholders = slide.Shapes.Placeholders;
+            placeholders = ComUtilities.GetPlaceholders(slide);
             int phCount = (int)placeholders.Count;
             for (int pi = 1; pi <= phCount; pi++)
             {
@@ -214,7 +214,7 @@ public class AccessibilityCommands : IAccessibilityCommands
                         {
                             if (Convert.ToInt32(ph.HasTextFrame) != 0)
                             {
-                                string? text = ph.TextFrame.TextRange.Text?.ToString();
+                                string? text = ComUtilities.GetShapeText(ph);
                                 hasText = !string.IsNullOrWhiteSpace(text);
                             }
                         }
@@ -238,7 +238,7 @@ public class AccessibilityCommands : IAccessibilityCommands
                         {
                             if (Convert.ToInt32(ph.HasTextFrame) != 0)
                             {
-                                string? text = ph.TextFrame.TextRange.Text?.ToString();
+                                string? text = ComUtilities.GetShapeText(ph);
                                 if (string.IsNullOrWhiteSpace(text))
                                 {
                                     issues.Add(new AccessibilityIssue

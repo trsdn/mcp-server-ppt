@@ -15,7 +15,7 @@ public class CommentCommands : ICommentCommands
 
             if (slideIndex > 0)
             {
-                dynamic slide = pres.Slides.Item(slideIndex);
+                dynamic slide = ComUtilities.GetSlide(pres, slideIndex);
                 try
                 {
                     ReadCommentsFromSlide(slide, slideIndex, result);
@@ -61,14 +61,17 @@ public class CommentCommands : ICommentCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic? comments = null;
+            dynamic? comment = null;
             try
             {
                 // Comments.Add2(Left, Top, Author, AuthorInitials, Text)
                 string initials = author.Length >= 2
                     ? string.Concat(author.AsSpan(0, 1).ToString().ToUpperInvariant(), author.AsSpan(1, 1))
                     : author.ToUpperInvariant();
-                slide.Comments.Add2(left, top, author, initials, text);
+                comments = slide.Comments;
+                comment = comments.Add2(left, top, author, initials, text);
 
                 return new OperationResult
                 {
@@ -80,6 +83,8 @@ public class CommentCommands : ICommentCommands
             }
             finally
             {
+                ComUtilities.Release(ref comment!);
+                ComUtilities.Release(ref comments!);
                 ComUtilities.Release(ref slide!);
             }
         });
@@ -89,7 +94,7 @@ public class CommentCommands : ICommentCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? comments = null;
             dynamic? comment = null;
             try
@@ -143,7 +148,7 @@ public class CommentCommands : ICommentCommands
 
             if (slideIndex > 0)
             {
-                dynamic slide = pres.Slides.Item(slideIndex);
+                dynamic slide = ComUtilities.GetSlide(pres, slideIndex);
                 try { ClearSlide(slide); }
                 finally { ComUtilities.Release(ref slide!); }
             }
