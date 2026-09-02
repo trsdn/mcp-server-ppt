@@ -7,6 +7,7 @@ namespace PptMcp.ComInterop.Tests.Unit;
 /// These tests verify the low-level COM interop utility functions.
 /// </summary>
 [Trait("Category", "Unit")]
+[Trait("Feature", "ComUtilities")]
 [Trait("Speed", "Fast")]
 [Trait("Layer", "ComInterop")]
 public class ComUtilitiesTests

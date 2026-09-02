@@ -6,6 +6,7 @@ namespace PptMcp.ComInterop.Tests.Unit;
 /// Extended tests for ComUtilities - tests error handling and edge cases.
 /// </summary>
 [Trait("Category", "Unit")]
+[Trait("Feature", "ComUtilities")]
 [Trait("Speed", "Fast")]
 [Trait("Layer", "ComInterop")]
 public class ComUtilitiesExtendedTests

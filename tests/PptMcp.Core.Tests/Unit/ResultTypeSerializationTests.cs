@@ -8,6 +8,11 @@ namespace PptMcp.Core.Tests.Unit;
 /// Validates JSON serialization behavior of result types,
 /// ensuring null properties are omitted and camelCase naming works correctly.
 /// </summary>
+[Trait("Category", "Unit")]
+[Trait("Layer", "Core")]
+[Trait("Feature", "ResultTypes")]
+[Trait("RequiresPowerPoint", "false")]
+[Trait("Speed", "Fast")]
 public class ResultTypeSerializationTests
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

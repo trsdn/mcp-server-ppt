@@ -62,7 +62,8 @@ jobs:
             'check-cli-settings-usage.ps1',
             'check-test-filters.ps1',
             'check-xunit-parallelization.ps1',
-            'check-llm-test-tools.ps1'
+            'check-llm-test-tools.ps1',
+            'check-test-traits.ps1'
           )
           $failed = @()
           foreach ($g in $gates) {
@@ -118,7 +119,7 @@ jobs:
             'Ran on `windows-latest`, which has no Microsoft Office installed.',
             '',
             '- 37 COM-free tests (skill generation, parameter transforms, service registry parsing, action enum completeness)',
-            '- 10 static gates',
+            '- 11 static gates',
             '',
             '**This is not the integration suite.** The ~580 tests that drive PowerPoint',
             'through COM did not run here and cannot - see #143.'

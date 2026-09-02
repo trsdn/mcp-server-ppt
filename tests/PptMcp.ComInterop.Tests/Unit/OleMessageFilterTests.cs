@@ -10,6 +10,7 @@ namespace PptMcp.ComInterop.Tests.Unit;
 /// COM retry behavior (that requires PowerPoint and would be OnDemand tests).
 /// </summary>
 [Trait("Category", "Unit")]
+[Trait("Feature", "OleMessageFilter")]
 [Trait("Speed", "Fast")]
 [Trait("Layer", "ComInterop")]
 public class OleMessageFilterTests

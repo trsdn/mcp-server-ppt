@@ -29,6 +29,11 @@ namespace PptMcp.Core.Tests.Unit;
 /// These tests verify that ArgumentException/ArgumentNullException is thrown
 /// for null/empty required parameters WITHOUT needing a PowerPoint COM connection.
 /// </summary>
+[Trait("Category", "Unit")]
+[Trait("Layer", "Core")]
+[Trait("Feature", "ParameterValidation")]
+[Trait("RequiresPowerPoint", "false")]
+[Trait("Speed", "Fast")]
 public class ParameterValidationTests
 {
     // ── Hyperlink Commands ───────────────────────────────────

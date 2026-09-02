@@ -6,6 +6,11 @@ namespace PptMcp.Core.Tests.Unit;
 /// <summary>
 /// Unit tests for ShapeHelpers utility methods.
 /// </summary>
+[Trait("Category", "Unit")]
+[Trait("Layer", "Core")]
+[Trait("Feature", "ShapeHelpers")]
+[Trait("RequiresPowerPoint", "false")]
+[Trait("Speed", "Fast")]
 public class ShapeHelpersTests
 {
     [Theory]

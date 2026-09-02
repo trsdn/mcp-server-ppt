@@ -7,6 +7,11 @@ namespace PptMcp.Core.Tests.Unit;
 /// Validates invariants on result types to prevent Rule 1 violations
 /// (Success=true with ErrorMessage set).
 /// </summary>
+[Trait("Category", "Unit")]
+[Trait("Layer", "Core")]
+[Trait("Feature", "ResultTypes")]
+[Trait("RequiresPowerPoint", "false")]
+[Trait("Speed", "Fast")]
 public class ResultTypeInvariantTests
 {
     [Fact]

@@ -44,6 +44,11 @@ namespace PptMcp.McpServer.Tests.Integration;
 /// CRITICAL: Automated verification that all Core Commands methods are exposed via generated actions.
 /// These tests PREVENT regression by ensuring compile-time and runtime coverage.
 /// </summary>
+[Trait("Category", "Unit")]
+[Trait("Layer", "McpServer")]
+[Trait("Feature", "CoreCoverage")]
+[Trait("RequiresPowerPoint", "false")]
+[Trait("Speed", "Fast")]
 public class CoreCommandsCoverageTests
 {
     // ── Existing coverage tests ──────────────────────────────
