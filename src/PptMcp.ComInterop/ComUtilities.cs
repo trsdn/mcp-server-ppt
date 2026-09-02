@@ -146,6 +146,249 @@ public static class ComUtilities
     }
 
     /// <summary>
+    /// Gets a shape's <c>TextRange</c> without abandoning the intermediate
+    /// <c>TextFrame</c>. See <see cref="GetSlide"/> for why the inline form leaks.
+    ///
+    /// <para>
+    /// The caller is responsible for checking <c>HasTextFrame</c> first; this method
+    /// deliberately does not guard, because a shape that cannot hold text is a caller
+    /// error rather than something to paper over with a null return.
+    /// </para>
+    /// </summary>
+    /// <param name="shape">Shape COM object.</param>
+    /// <returns>The text range COM object. The caller owns it and must release it.</returns>
+    public static dynamic GetTextRange(dynamic shape)
+    {
+        dynamic? textFrame = null;
+        try
+        {
+            textFrame = shape.TextFrame;
+            return textFrame.TextRange;
+        }
+        finally
+        {
+            ComUtilities.Release(ref textFrame!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a shape's text <c>Font</c> without abandoning the intermediate
+    /// <c>TextFrame</c> and <c>TextRange</c>. See <see cref="GetSlide"/> for why the
+    /// inline form leaks.
+    /// </summary>
+    /// <param name="shape">Shape COM object.</param>
+    /// <returns>The font COM object. The caller owns it and must release it.</returns>
+    public static dynamic GetTextFont(dynamic shape)
+    {
+        dynamic? textRange = null;
+        try
+        {
+            textRange = GetTextRange(shape);
+            return textRange.Font;
+        }
+        finally
+        {
+            ComUtilities.Release(ref textRange!);
+        }
+    }
+
+    /// <summary>
+    /// Reads the text of a table cell without abandoning the intermediate
+    /// <c>Shape</c>, <c>TextFrame</c> and <c>TextRange</c> proxies.
+    ///
+    /// <para>
+    /// The inline form <c>cell.Shape.TextFrame.TextRange.Text</c> abandons three RCWs
+    /// per call, and table reads call it once per cell - so the leak scales with the
+    /// area of the table. See <see cref="GetSlide"/> for why the inline form cannot be
+    /// released.
+    /// </para>
+    /// </summary>
+    /// <param name="cell">Table cell COM object.</param>
+    /// <returns>The cell text, or an empty string when the cell has none.</returns>
+    public static string GetCellText(dynamic cell)
+    {
+        dynamic? cellShape = null;
+        dynamic? textRange = null;
+        try
+        {
+            cellShape = cell.Shape;
+            textRange = GetTextRange(cellShape);
+            return textRange.Text?.ToString() ?? string.Empty;
+        }
+        finally
+        {
+            ComUtilities.Release(ref textRange!);
+            ComUtilities.Release(ref cellShape!);
+        }
+    }
+
+    /// <summary>
+    /// Writes the text of a table cell without abandoning the intermediate
+    /// <c>Shape</c>, <c>TextFrame</c> and <c>TextRange</c> proxies. See
+    /// <see cref="GetCellText"/>.
+    /// </summary>
+    /// <param name="cell">Table cell COM object.</param>
+    /// <param name="text">Text to write.</param>
+    public static void SetCellText(dynamic cell, string text)
+    {
+        dynamic? cellShape = null;
+        dynamic? textRange = null;
+        try
+        {
+            cellShape = cell.Shape;
+            textRange = GetTextRange(cellShape);
+            textRange.Text = text;
+        }
+        finally
+        {
+            ComUtilities.Release(ref textRange!);
+            ComUtilities.Release(ref cellShape!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a table row by 1-based index without abandoning the intermediate
+    /// <c>Rows</c> collection. See <see cref="GetSlide"/>.
+    /// </summary>
+    /// <param name="table">Table COM object.</param>
+    /// <param name="rowIndex">1-based row index.</param>
+    /// <returns>The row COM object. The caller owns it and must release it.</returns>
+    public static dynamic GetTableRow(dynamic table, int rowIndex)
+    {
+        dynamic? rows = null;
+        try
+        {
+            rows = table.Rows;
+            return rows.Item(rowIndex);
+        }
+        finally
+        {
+            ComUtilities.Release(ref rows!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a table column by 1-based index without abandoning the intermediate
+    /// <c>Columns</c> collection. See <see cref="GetSlide"/>.
+    /// </summary>
+    /// <param name="table">Table COM object.</param>
+    /// <param name="columnIndex">1-based column index.</param>
+    /// <returns>The column COM object. The caller owns it and must release it.</returns>
+    public static dynamic GetTableColumn(dynamic table, int columnIndex)
+    {
+        dynamic? columns = null;
+        try
+        {
+            columns = table.Columns;
+            return columns.Item(columnIndex);
+        }
+        finally
+        {
+            ComUtilities.Release(ref columns!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a table's row count without abandoning the intermediate <c>Rows</c>
+    /// collection. See <see cref="GetSlide"/>.
+    /// </summary>
+    /// <param name="table">Table COM object.</param>
+    /// <returns>Number of rows.</returns>
+    public static int GetTableRowCount(dynamic table)
+    {
+        dynamic? rows = null;
+        try
+        {
+            rows = table.Rows;
+            return (int)rows.Count;
+        }
+        finally
+        {
+            ComUtilities.Release(ref rows!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a table's column count without abandoning the intermediate <c>Columns</c>
+    /// collection. See <see cref="GetSlide"/>.
+    /// </summary>
+    /// <param name="table">Table COM object.</param>
+    /// <returns>Number of columns.</returns>
+    public static int GetTableColumnCount(dynamic table)
+    {
+        dynamic? columns = null;
+        try
+        {
+            columns = table.Columns;
+            return (int)columns.Count;
+        }
+        finally
+        {
+            ComUtilities.Release(ref columns!);
+        }
+    }
+
+    /// <summary>
+    /// Reads the <c>ForeColor.RGB</c> of a fill or line without abandoning the
+    /// intermediate <c>ForeColor</c> proxy. See <see cref="GetSlide"/>.
+    /// </summary>
+    /// <param name="fillOrLine">A <c>FillFormat</c> or <c>LineFormat</c> COM object.</param>
+    /// <returns>The OLE colour value, in PowerPoint's 0x00BBGGRR order.</returns>
+    public static int GetForeColorRgb(dynamic fillOrLine)
+    {
+        dynamic? foreColor = null;
+        try
+        {
+            foreColor = fillOrLine.ForeColor;
+            return Convert.ToInt32(foreColor.RGB);
+        }
+        finally
+        {
+            ComUtilities.Release(ref foreColor!);
+        }
+    }
+
+    /// <summary>
+    /// Reads a chart's title text without abandoning the intermediate
+    /// <c>ChartTitle</c> proxy. See <see cref="GetSlide"/>.
+    /// </summary>
+    /// <param name="chart">Chart COM object.</param>
+    /// <returns>The chart title text, or null when it has none.</returns>
+    public static string? GetChartTitleText(dynamic chart)
+    {
+        dynamic? chartTitle = null;
+        try
+        {
+            chartTitle = chart.ChartTitle;
+            return chartTitle.Text?.ToString();
+        }
+        finally
+        {
+            ComUtilities.Release(ref chartTitle!);
+        }
+    }
+
+    /// <summary>
+    /// Sets a chart's title text without abandoning the intermediate
+    /// <c>ChartTitle</c> proxy. See <see cref="GetSlide"/>.
+    /// </summary>
+    /// <param name="chart">Chart COM object.</param>
+    /// <param name="title">Title text.</param>
+    public static void SetChartTitleText(dynamic chart, string title)
+    {
+        dynamic? chartTitle = null;
+        try
+        {
+            chartTitle = chart.ChartTitle;
+            chartTitle.Text = title;
+        }
+        finally
+        {
+            ComUtilities.Release(ref chartTitle!);
+        }
+    }
+
+    /// <summary>
     /// Safely gets a string property from a COM object, returning empty string if null
     /// </summary>
     /// <param name="obj">COM object</param>

@@ -10,12 +10,21 @@ public class ChartCommands : IChartCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
             dynamic? shape = null;
             try
             {
                 // AddChart(Type, Left, Top, Width, Height)
-                shape = slide.Shapes.AddChart(chartType, left, top, width, height);
+                dynamic? shapes = null;
+                try
+                {
+                    shapes = slide.Shapes;
+                    shape = shapes.AddChart(chartType, left, top, width, height);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref shapes!);
+                }
                 string name = shape?.Name?.ToString() ?? "";
                 return new OperationResult
                 {
@@ -39,8 +48,8 @@ public class ChartCommands : IChartCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? chart = null;
             try
             {
@@ -49,7 +58,7 @@ public class ChartCommands : IChartCommands
                 try
                 {
                     if ((bool)chart.HasTitle)
-                        title = chart.ChartTitle.Text?.ToString();
+                        title = ComUtilities.GetChartTitleText(chart);
                 }
                 catch { /* Title not accessible */ }
 
@@ -59,9 +68,16 @@ public class ChartCommands : IChartCommands
                 int seriesCount = 0;
                 try
                 {
-                    dynamic seriesCol = chart.SeriesCollection();
-                    seriesCount = (int)seriesCol.Count;
-                    ComUtilities.Release(ref seriesCol!);
+                    dynamic? seriesCol = null;
+                    try
+                    {
+                        seriesCol = chart.SeriesCollection();
+                        seriesCount = (int)seriesCol.Count;
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref seriesCol!);
+                    }
                 }
                 catch { }
 
@@ -95,14 +111,14 @@ public class ChartCommands : IChartCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? chart = null;
             try
             {
                 chart = shape.Chart;
                 chart.HasTitle = true;
-                chart.ChartTitle.Text = title;
+                ComUtilities.SetChartTitleText(chart, title);
 
                 return new OperationResult
                 {
@@ -127,8 +143,8 @@ public class ChartCommands : IChartCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? chart = null;
             try
             {
@@ -158,8 +174,8 @@ public class ChartCommands : IChartCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             try
             {
                 shape.Delete();
@@ -186,8 +202,8 @@ public class ChartCommands : IChartCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? chart = null;
             dynamic? chartData = null;
             dynamic? workbook = null;
@@ -285,8 +301,8 @@ public class ChartCommands : IChartCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? chart = null;
             try
             {
@@ -294,7 +310,16 @@ public class ChartCommands : IChartCommands
                 chart.HasLegend = visible;
                 if (visible)
                 {
-                    chart.Legend.Position = position;
+                    dynamic? legend = null;
+                    try
+                    {
+                        legend = chart.Legend;
+                        legend.Position = position;
+                    }
+                    finally
+                    {
+                        ComUtilities.Release(ref legend!);
+                    }
                 }
 
                 string posName = position switch
@@ -332,8 +357,8 @@ public class ChartCommands : IChartCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? chart = null;
             dynamic? chartData = null;
             dynamic? workbook = null;
@@ -402,8 +427,8 @@ public class ChartCommands : IChartCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? chart = null;
             dynamic? axis = null;
             try
@@ -445,8 +470,8 @@ public class ChartCommands : IChartCommands
 
         return batch.Execute((ctx, ct) =>
         {
-            dynamic slide = ((dynamic)ctx.Presentation).Slides.Item(slideIndex);
-            dynamic shape = slide.Shapes.Item(shapeName);
+            dynamic slide = ComUtilities.GetSlide(ctx.Presentation, slideIndex);
+            dynamic shape = ComUtilities.GetShape(slide, shapeName);
             dynamic? chart = null;
             try
             {
