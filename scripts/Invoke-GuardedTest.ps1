@@ -10,9 +10,10 @@
 #    what you changed; this makes it structural instead of advisory.
 #    Pass -Full to opt in deliberately.
 #
-# 2. A HARD TIMEOUT. tests\PptMcp.ComInterop.Tests does not terminate as a full
-#    assembly (issue #139), and an un-timeboxed hang keeps spawning PowerPoint for as
-#    long as nobody is watching. Nothing here may run unbounded.
+# 2. A HARD TIMEOUT. Nothing here may run unbounded. A run that is killed or wedged
+#    keeps spawning PowerPoint for as long as nobody is watching. Note that
+#    tests\PptMcp.ComInterop.Tests takes ~34 minutes as a full assembly (measured,
+#    issue #139), so -Full on that project needs -TimeoutMinutes above the default.
 #
 # 3. STRAY POWERPOINT CLEANUP. Only processes that appear DURING the run are killed -
 #    PIDs present beforehand are the developer's own PowerPoint and are left alone.
@@ -42,7 +43,12 @@ param(
     [switch]$Full,
 
     # Hard ceiling on wall-clock time. Guard 2.
-    [int]$TimeoutMinutes = 20
+    [int]$TimeoutMinutes = 20,
+
+    # Extra arguments appended verbatim to the dotnet test command, e.g.
+    # --blame-hang --blame-hang-timeout 120s. Routed through the guard rather than
+    # invoked directly so that the timebox and the POWERPNT cleanup still apply.
+    [string[]]$ExtraArgs = @()
 )
 
 $ErrorActionPreference = 'Stop'
@@ -76,8 +82,9 @@ if ($drivesPowerPoint -and -not $Filter -and -not $Full) {
     Write-Host "If you genuinely want the whole assembly, say so:"
     Write-Host "  .\scripts\Invoke-GuardedTest.ps1 -Project $Project -Full"
     Write-Host ""
-    Write-Host "Note: tests\PptMcp.ComInterop.Tests does not terminate as a full assembly"
-    Write-Host "      (issue #139). -Full will hit the timeout there."
+    Write-Host "Note: tests\PptMcp.ComInterop.Tests takes ~34 minutes as a full assembly"
+    Write-Host "      (measured, issue #139). Pair -Full with -TimeoutMinutes 60 there,"
+    Write-Host "      or the default 20-minute ceiling will cut it short."
     exit 1
 }
 
@@ -88,6 +95,7 @@ $testArgs = @('test', $Project, '-c', $Configuration)
 if ($Filter)         { $testArgs += @('--filter', $Filter) }
 if ($LoggerFileName) { $testArgs += @('--logger', "trx;LogFileName=$LoggerFileName") }
 if ($NoBuild)        { $testArgs += '--no-build' }
+if ($ExtraArgs.Count -gt 0) { $testArgs += $ExtraArgs }
 
 Write-Host "dotnet $($testArgs -join ' ')"
 if ($drivesPowerPoint) {
@@ -100,6 +108,47 @@ $timedOut = $false
 $testExit = 1
 $output = @()
 
+# Kill a process and every descendant, deepest first.
+#
+# Stop-Process -Force terminates ONLY the named process. "dotnet test" spawns a
+# vstest console which spawns "testhost", and testhost is the process that actually
+# runs the tests and creates PowerPoint instances. Killing just the parent orphans
+# testhost, which keeps running the suite and keeps launching POWERPNT with nothing
+# left watching it - observed directly while investigating issue #139, where a killed
+# run went on spawning PowerPoint afterwards. Always kill the tree.
+function Stop-ProcessTree {
+    param([int]$ProcessId)
+
+    $descendants = @()
+    $frontier = @($ProcessId)
+
+    while ($frontier.Count -gt 0) {
+        $next = @()
+        foreach ($parentId in $frontier) {
+            $kids = @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $parentId" -ErrorAction SilentlyContinue |
+                ForEach-Object { [int]$_.ProcessId })
+            foreach ($k in $kids) {
+                if ($k -ne 0 -and $k -notin $descendants) {
+                    $descendants += $k
+                    $next += $k
+                }
+            }
+        }
+        $frontier = $next
+    }
+
+    # Children before parents, so nothing re-parents and escapes.
+    foreach ($target in ($descendants + $ProcessId)) {
+        try {
+            $p = Get-Process -Id $target -ErrorAction SilentlyContinue
+            if ($p) { $p.Kill() }
+        }
+        catch { }
+    }
+
+    return $descendants.Count
+}
+
 try {
     $proc = Start-Process -FilePath 'dotnet' -ArgumentList $testArgs -NoNewWindow -PassThru `
         -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
@@ -109,8 +158,9 @@ try {
         $timedOut = $true
         Write-Host ""
         Write-Host "TIMEOUT: the run exceeded $TimeoutMinutes minute(s). Killing it." -ForegroundColor Red
-        try { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue } catch { }
-        Start-Sleep -Seconds 2
+        $killed = Stop-ProcessTree -ProcessId $proc.Id
+        Write-Host "         killed the process tree ($killed descendant process(es), incl. testhost)"
+        Start-Sleep -Seconds 3
         $testExit = 124
     }
     else {
@@ -125,15 +175,30 @@ finally {
     $output | ForEach-Object { Write-Host $_ }
 
     # ------------------------------------------------------------ guard 3
-    $strays = @(Get-Process POWERPNT -ErrorAction SilentlyContinue |
-        Where-Object { $_.Id -notin $preExistingPids })
+    # Re-check after killing, because a surviving test runner can spawn a fresh
+    # PowerPoint in the gap between the sweep and the exit. Converge or report.
+    $sweep = 0
+    do {
+        $strays = @(Get-Process POWERPNT -ErrorAction SilentlyContinue |
+            Where-Object { $_.Id -notin $preExistingPids })
 
-    if ($strays.Count -gt 0) {
-        Write-Host ""
-        Write-Host "Cleaning up $($strays.Count) PowerPoint process(es) left behind by this run..." -ForegroundColor Yellow
-        foreach ($p in $strays) {
-            try { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } catch { }
+        if ($strays.Count -gt 0) {
+            if ($sweep -eq 0) {
+                Write-Host ""
+                Write-Host "Cleaning up $($strays.Count) PowerPoint process(es) left behind by this run..." -ForegroundColor Yellow
+            }
+            foreach ($p in $strays) {
+                try { $p.Kill() } catch { }
+            }
+            Start-Sleep -Seconds 2
         }
+        $sweep++
+    } while ($strays.Count -gt 0 -and $sweep -lt 5)
+
+    $remaining = @(Get-Process POWERPNT -ErrorAction SilentlyContinue |
+        Where-Object { $_.Id -notin $preExistingPids })
+    if ($remaining.Count -gt 0) {
+        Write-Host "WARNING: $($remaining.Count) PowerPoint process(es) survived cleanup: $($remaining.Id -join ', ')" -ForegroundColor Red
     }
 }
 
