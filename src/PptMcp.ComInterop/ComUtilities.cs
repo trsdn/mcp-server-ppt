@@ -73,6 +73,79 @@ public static class ComUtilities
     }
 
     /// <summary>
+    /// Gets a slide from a presentation without abandoning the intermediate
+    /// <c>Slides</c> collection.
+    ///
+    /// <para>
+    /// Writing <c>presentation.Slides.Item(i)</c> inline materialises a <c>Slides</c>
+    /// RCW that is never bound to a local, so <see cref="Release{T}"/> cannot be called
+    /// on it even in principle. The proxy survives until a garbage collection that may
+    /// never come while the STA thread is alive, which is the leak class tracked by
+    /// GitHub #137 - and, per #148, a leaked collection proxy is enough to stop the STA
+    /// thread exiting and turn session teardown into a 45-second timeout.
+    /// </para>
+    /// </summary>
+    /// <param name="presentation">Presentation COM object.</param>
+    /// <param name="slideIndex">1-based slide index. PowerPoint collections are not zero-based.</param>
+    /// <returns>The slide COM object. The caller owns it and must release it.</returns>
+    public static dynamic GetSlide(dynamic presentation, int slideIndex)
+    {
+        dynamic? slides = null;
+        try
+        {
+            slides = presentation.Slides;
+            return slides.Item(slideIndex);
+        }
+        finally
+        {
+            ComUtilities.Release(ref slides!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a shape from a slide by name without abandoning the intermediate
+    /// <c>Shapes</c> collection. See <see cref="GetSlide"/> for why the inline form
+    /// leaks.
+    /// </summary>
+    /// <param name="slide">Slide COM object.</param>
+    /// <param name="shapeName">Shape name.</param>
+    /// <returns>The shape COM object. The caller owns it and must release it.</returns>
+    public static dynamic GetShape(dynamic slide, string shapeName)
+    {
+        dynamic? shapes = null;
+        try
+        {
+            shapes = slide.Shapes;
+            return shapes.Item(shapeName);
+        }
+        finally
+        {
+            ComUtilities.Release(ref shapes!);
+        }
+    }
+
+    /// <summary>
+    /// Gets a shape from a slide by 1-based position. See <see cref="GetSlide"/> for
+    /// why the inline form leaks.
+    /// </summary>
+    /// <param name="slide">Slide COM object.</param>
+    /// <param name="shapeIndex">1-based shape index.</param>
+    /// <returns>The shape COM object. The caller owns it and must release it.</returns>
+    public static dynamic GetShapeAt(dynamic slide, int shapeIndex)
+    {
+        dynamic? shapes = null;
+        try
+        {
+            shapes = slide.Shapes;
+            return shapes.Item(shapeIndex);
+        }
+        finally
+        {
+            ComUtilities.Release(ref shapes!);
+        }
+    }
+
+    /// <summary>
     /// Safely gets a string property from a COM object, returning empty string if null
     /// </summary>
     /// <param name="obj">COM object</param>
