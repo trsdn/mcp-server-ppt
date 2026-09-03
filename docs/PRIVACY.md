@@ -37,8 +37,17 @@ GET https://api.nuget.org/v3-flatcontainer/pptmcp.cli/index.json         (CLI)
 - If the request fails, it is ignored and the tool continues normally.
 - The request times out after 5 seconds.
 
-There is currently **no setting to disable this check**. Blocking `api.nuget.org` at
-the network level is safe: the check fails silently and nothing else depends on it.
+To disable the check entirely, set `PPTMCP_NO_UPDATE_CHECK` to `1` (or `true`, `yes`,
+`on`) in the environment PptMcp runs under. When set, no request is made at all - the
+check returns immediately rather than waiting out the 5-second timeout.
+
+```powershell
+$env:PPTMCP_NO_UPDATE_CHECK = '1'
+```
+
+Blocking `api.nuget.org` at the network level is also safe: the check fails silently and
+nothing else depends on it. Setting the variable is preferable where the block is
+deliberate policy, because it avoids paying the timeout on every startup.
 See [VERSION-CHECKING.md](VERSION-CHECKING.md) for the implementation.
 
 ## Macros and VBA
