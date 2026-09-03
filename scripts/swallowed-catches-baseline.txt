@@ -1,6 +1,5 @@
 src/PptMcp.Core/Commands/Background/BackgroundCommands.cs:39
-src/PptMcp.Core/Commands/Design/DesignCommands.cs:114
-src/PptMcp.Core/Commands/Design/DesignCommands.cs:163
+src/PptMcp.Core/Commands/Design/DesignCommands.cs:165
 src/PptMcp.Core/Commands/DocumentProperty/DocumentPropertyCommands.cs:105
 src/PptMcp.Core/Commands/DocumentProperty/DocumentPropertyCommands.cs:160
 src/PptMcp.Core/Commands/DocumentProperty/DocumentPropertyCommands.cs:87
