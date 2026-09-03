@@ -126,6 +126,7 @@ info: PptMcp.McpServer.Program[0]
 **Components:**
 
 1. **`NuGetVersionChecker.cs`** - NuGet API client
+   - Returns immediately with `null` when `PPTMCP_NO_UPDATE_CHECK` is set (see below)
    - Queries `https://api.nuget.org/v3-flatcontainer/pptmcp.mcpserver/index.json`
      (the flat container API requires the package id lowercased; any other casing returns 404)
    - Returns latest non-prerelease version
@@ -148,13 +149,17 @@ info: PptMcp.McpServer.Program[0]
 4. **MCP-compliant**: Uses stderr for logging (stdio reserved for protocol)
 5. **Actionable**: Message includes exact command to update
 
+### Disabling the version check
+
+Set `PPTMCP_NO_UPDATE_CHECK` to switch the check off for both entry points — see
+[Configuration](#configuration) below.
+
 ### Future Enhancements (Optional)
 
 For MCP Server, considerations for future improvements:
 
-1. **Configuration**: Allow disabling version check via environment variable
-2. **Check frequency**: Track last check time, only check once per day
-3. **MCP notification**: Consider adding a custom notification mechanism via MCP protocol
+1. **Check frequency**: Track last check time, only check once per day
+2. **MCP notification**: Consider adding a custom notification mechanism via MCP protocol
 
 ## MCP Server Version Handling (Protocol)
 
@@ -248,10 +253,23 @@ dotnet test tests/PptMcp.McpServer.Tests/PptMcp.McpServer.Tests.csproj --filter 
 
 ## Configuration
 
-Currently, version checking is enabled by default with no configuration options.
+Version checking is enabled by default. The one supported setting is the opt-out:
+
+| Variable | Values | Effect |
+| --- | --- | --- |
+| `PPTMCP_NO_UPDATE_CHECK` | `1`, `true`, `yes`, `on` (case-insensitive) | No request is made to nuget.org, by either the CLI or the MCP Server. `GetLatestVersionAsync` returns `null` before an `HttpClient` is constructed, so the 5-second timeout is never paid. |
+
+Any other value, including unset and empty, leaves the check enabled.
+
+```powershell
+$env:PPTMCP_NO_UPDATE_CHECK = '1'
+```
+
+This exists because some environments block public package registries as deliberate
+policy rather than as a transient network fault. There the check can never succeed, and
+without an opt-out its only effect is to delay startup.
 
 **Future options could include:**
-- Disable version check entirely
 - Adjust check frequency for service
 - Opt-out of notifications (check only on manual request)
 

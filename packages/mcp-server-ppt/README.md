@@ -73,6 +73,7 @@ than left behind — otherwise the next run would find no executable, re-downloa
 | `MCP_SERVER_PPT_HOME` | Use an existing extracted build at this path and skip the download entirely. |
 | `MCP_SERVER_PPT_CACHE` | Base directory for the cached runtime. Defaults to `%LOCALAPPDATA%\mcp-server-ppt`. |
 | `MCP_SERVER_PPT_ASSET_URL` | Download from somewhere other than the GitHub release, for mirrors and testing. |
+| `PPTMCP_NO_UPDATE_CHECK` | Set to `1` to stop the server contacting nuget.org to check for a newer version. |
 
 ## Other ways to install
 

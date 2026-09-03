@@ -16,8 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - The package is **stamped but not yet published** by the release workflow. It does not exist on npm, and a trusted publisher can only be bound to an existing package, so the first publish has to be manual. See `docs/RELEASE-STRATEGY.md`.
 - **`glama.json` maintainer claim** (#105): declares `trsdn` as maintainer so the Glama.ai listing can be claimed rather than left as an unowned crawl result. The schema at `https://glama.ai/mcp/schemas/server.json` accepts only `maintainers`, so the platform constraint the issue wanted stated there has to live in the README instead.
 - **One-click MCP install badges in the README** (#113): VS Code, VS Code Insiders and Cursor deeplinks that register the server as `ppt-mcp` running the `mcp-ppt` command. Every link was round-trip decoded to confirm it produces exactly `{"name":"ppt-mcp","command":"mcp-ppt"}` before merging, rather than trusting the encoding by eye.
-
-### Fixed
+- **`PPTMCP_NO_UPDATE_CHECK` disables the nuget.org update check**: set it to `1`, `true`, `yes` or `on` and neither the CLI nor the MCP Server contacts `api.nuget.org` at all. `docs/PRIVACY.md` previously stated there was no way to switch the check off, leaving network-level blocking as the only option.
+  - The opt-out returns before an `HttpClient` is constructed, so an environment that blocks public package registries **as policy** no longer pays the 5-second timeout on every startup to learn something it can never learn. Blocking at the network level always worked, but it cost that timeout each time.
+  - The existing test `CheckForUpdateAsync_WhenCalled_DoesNotThrow` made a **real request to nuget.org on every test run** and then asserted `if (result != null) Assert.NotEmpty(result)` — an "accept both" assertion (Rule 12) that passes whatever happens. Replaced with deterministic, offline tests around the opt-out.
 
 ### Fixed
 
