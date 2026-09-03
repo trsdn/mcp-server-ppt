@@ -65,21 +65,17 @@ public class ChartCommands : IChartCommands
                 bool hasLegend = false;
                 try { hasLegend = (bool)chart.HasLegend; } catch { }
 
-                int seriesCount = 0;
+                int seriesCount;
+                dynamic? seriesCol = null;
                 try
                 {
-                    dynamic? seriesCol = null;
-                    try
-                    {
-                        seriesCol = chart.SeriesCollection();
-                        seriesCount = (int)seriesCol.Count;
-                    }
-                    finally
-                    {
-                        ComUtilities.Release(ref seriesCol!);
-                    }
+                    seriesCol = chart.SeriesCollection();
+                    seriesCount = (int)seriesCol.Count;
                 }
-                catch { }
+                finally
+                {
+                    ComUtilities.Release(ref seriesCol!);
+                }
 
                 int chartTypeVal = Convert.ToInt32(chart.ChartType);
 
