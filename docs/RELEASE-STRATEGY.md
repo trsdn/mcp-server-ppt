@@ -209,11 +209,13 @@ The wrapper depends on the `PptMcp-MCP-Server-<version>-win-x64.zip` release ass
 by the `build-mcp-server` job. That asset name is asserted by `npm test` in the package,
 so renaming it on either side fails a check instead of 404-ing on a user's machine.
 
-Do not try to publish from a corporate workstation. `registry.npmjs.org` is not
-reachable here: it fails during the TLS handshake, while the configured mirror
-`packagefeedproxy.microsoft.io` answers normally. Publishing only works from the
-runner. The same mirror also serves `npm view`, so a freshly published version may not
-show up there for a while - confirm a publish on npmjs.com, not through the mirror.
+Do not try to publish from a corporate workstation, and do not try to work around it.
+Access to `registry.npmjs.org` is blocked **by design** - the connection fails during
+the TLS handshake, while the configured mirror `packagefeedproxy.microsoft.io` answers
+normally. This is policy, not a transient fault, so it is not something to retry or
+route around: publishing has to happen from the runner or another sanctioned
+environment. The same mirror also serves `npm view`, so a freshly published version may
+not show up there for a while - confirm a publish on npmjs.com, not through the mirror.
 The provenance attestation is a mirror-independent proof that a publish happened:
 
 ```powershell
