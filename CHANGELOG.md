@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **One-click MCP install badges in the README** (#113): VS Code, VS Code Insiders and Cursor deeplinks that register the server as `ppt-mcp` running the `mcp-ppt` command. Every link was round-trip decoded to confirm it produces exactly `{"name":"ppt-mcp","command":"mcp-ppt"}` before merging, rather than trusting the encoding by eye.
+
 ### Fixed
 
 - **`dotnet pack` on the solution no longer fails, and no longer produces packages that were never meant to ship** (#122): `PptMcp.Core` and `PptMcp.ComInterop` carry a `PackageId` but never set `IsPackable`, so a solution-level pack produced `PptMcp.Core.1.0.0` and `PptMcp.ComInterop.1.0.0` — the exact stale versions sitting orphaned on NuGet while the tools ship 1.1.0. The release workflow packs the two tool projects individually, so nothing was mispublished, but any rewrite towards a solution-level pack would have pushed them, and a higher version number would then have presented them as the current state.
