@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **`glama.json` maintainer claim** (#105): declares `trsdn` as maintainer so the Glama.ai listing can be claimed rather than left as an unowned crawl result. The schema at `https://glama.ai/mcp/schemas/server.json` accepts only `maintainers`, so the platform constraint the issue wanted stated there has to live in the README instead.
 - **One-click MCP install badges in the README** (#113): VS Code, VS Code Insiders and Cursor deeplinks that register the server as `ppt-mcp` running the `mcp-ppt` command. Every link was round-trip decoded to confirm it produces exactly `{"name":"ppt-mcp","command":"mcp-ppt"}` before merging, rather than trusting the encoding by eye.
 
 ### Fixed
