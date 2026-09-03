@@ -22,6 +22,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Theme colour reads could return a silently incomplete palette** (#126): `DesignCommands.GetColors` builds its twelve-entry colour map one read at a time, each wrapped in a catch-all. A failed read simply **omitted its key**, so the caller got a shorter map rather than an error — and the result still carried `Success = true`. Callers index this map by name, so a missing `Accent3` reads as a theme that has no `Accent3`.
+  - The same catch hid a **COM leak**: `ComUtilities.Release(ref colorItem!)` was the last statement *inside* the `try`, so any failing read skipped it. Restructured to acquire before the `try` and release in a `finally`.
+  - Added `DesignColorRoundTripTests`, which pins the **exact twelve-key set** rather than a count — a walk that dropped one role would still satisfy "at least eight colours" — and validates every value as `#RRGGBB`. Confirmed passing against the unmodified code before the catch was removed.
+  - `scripts/swallowed-catches-baseline.txt` lowered from 12 to 11.
+
 - **The accessibility audit could report findings that were not true, and miss ones that were** (#126): `AccessibilityCommands.AuditSlide` wrapped both of its enumeration loops in catch-alls, and a failure part-way through either produced a *plausible* wrong answer while the result still carried `Success = true`.
   - The placeholder walk sets `hasTitle`. Aborting before it reached the title placeholder left that false, so the audit reported **`MissingTitle` for a slide that has a title** — a fabricated finding, presented as fact. A swallowed text read did the same for `EmptyTitlePlaceholder`.
   - The shape walk is what raises `MissingAltText`. Aborting mid-walk silently dropped every remaining finding, so the audit **under-reported**. That is the worse direction: a user acts on "No accessibility issues found." and ships an inaccessible deck.

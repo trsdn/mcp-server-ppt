@@ -100,18 +100,20 @@ public partial class DesignCommands : IDesignCommands
 
                 for (int i = 1; i <= Math.Min(12, colorNames.Length); i++)
                 {
+                    dynamic colorItem = colorScheme.Colors(i);
                     try
                     {
-                        dynamic colorItem = colorScheme.Colors(i);
                         int rgb = (int)colorItem.RGB;
                         // COM returns BGR, convert to #RRGGBB
                         int r = rgb & 0xFF;
                         int g = (rgb >> 8) & 0xFF;
                         int b = (rgb >> 16) & 0xFF;
                         colors[colorNames[i - 1]] = $"#{r:X2}{g:X2}{b:X2}";
+                    }
+                    finally
+                    {
                         ComUtilities.Release(ref colorItem!);
                     }
-                    catch { }
                 }
 
                 return new ThemeColorResult
