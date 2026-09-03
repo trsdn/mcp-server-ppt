@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PptMcp.Generators.Shared</RootNamespace>
+    <!-- Build-time component, never shipped as a package (issue #122) -->
+    <IsPackable>false</IsPackable>
 
     <!-- This is a shared library for generators - not a generator itself -->
     <IsRoslynComponent>false</IsRoslynComponent>

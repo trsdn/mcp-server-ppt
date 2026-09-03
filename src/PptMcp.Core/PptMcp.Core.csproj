@@ -15,6 +15,12 @@
     <FileVersion>1.0.0.0</FileVersion>
 
     <!-- Package Information -->
+    <!-- Not a standalone package - bundled with CLI and MCP Server, both of which are
+         PackAsTool and therefore carry this assembly inside the tool package rather than
+         taking a NuGet dependency on it. See issue #122: the 220 [ServiceAction] methods on
+         these interfaces each generate exactly one CLI command and one MCP tool, so every new
+         tool would be a breaking change on a published API. -->
+    <IsPackable>false</IsPackable>
     <PackageId>PptMcp.Core</PackageId>
     <Title>PptMcp Core Library</Title>
     <Description>Core library for PowerPoint automation operations via COM interop. Provides high-level commands for slides, shapes, text, charts, and more. Shared by PptMcp.McpServer and PptMcp.CLI.</Description>
