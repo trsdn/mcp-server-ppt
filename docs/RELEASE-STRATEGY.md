@@ -181,6 +181,34 @@ If a *new* skill package is ever added, break that deadlock outside CI: publish 
 first version manually from a machine that can reach `registry.npmjs.org`, bind a
 trusted publisher to it in the npm UI, and only then wire it into the workflow.
 
+#### `mcp-server-ppt` is stamped but not yet published
+
+`packages/mcp-server-ppt` is the npx wrapper for the MCP server (#110). It is in exactly
+the deadlock described above: it does not exist on npm, so no trusted publisher can be
+bound to it, so the workflow cannot publish it. It is therefore **version-stamped by the
+release workflow but deliberately absent from the publish job** — adding it there would
+trip the preflight and fail every release until the package existed.
+
+Version stamping matters more for this package than for the skills: the wrapper builds
+its download URL from its own version, so a mis-stamped package would ask GitHub for a
+release asset that does not exist.
+
+To bootstrap it, from a machine that can reach `registry.npmjs.org`:
+
+```powershell
+git checkout v<version>          # so package.json carries the release version
+cd packages/mcp-server-ppt
+npm publish --access public
+```
+
+Then bind a trusted publisher (repository `trsdn/mcp-server-ppt`, workflow `release.yml`)
+in the npm UI, add the package to the preflight list and to a `npm publish --provenance
+--access public` step in the `publish` job.
+
+The wrapper depends on the `PptMcp-MCP-Server-<version>-win-x64.zip` release asset built
+by the `build-mcp-server` job. That asset name is asserted by `npm test` in the package,
+so renaming it on either side fails a check instead of 404-ing on a user's machine.
+
 Do not try to publish from a corporate workstation. `registry.npmjs.org` is not
 reachable here: it fails during the TLS handshake, while the configured mirror
 `packagefeedproxy.microsoft.io` answers normally. Publishing only works from the

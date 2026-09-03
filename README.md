@@ -121,7 +121,8 @@ For multi-phase build / verify / repair workflows from source, the repo also inc
 
 | Platform | Installation |
 |----------|-------------|
-| **Any MCP Client** | `dotnet tool install --global PptMcp.McpServer` |
+| **Any MCP Client (no .NET)** | `npx -y mcp-server-ppt` |
+| **Any MCP Client (.NET tool)** | `dotnet tool install --global PptMcp.McpServer` |
 | **Details** | 📖 [Installation Guide](docs/INSTALLATION.md) |
 
 **⚠️ Important:** Close all PowerPoint files before using. The server requires exclusive access to presentations during automation.
@@ -142,6 +143,10 @@ This package provides both **CLI** and **MCP Server** interfaces. Choose based o
 dotnet tool install --global PptMcp.McpServer
 dotnet tool install --global PptMcp.CLI
 ```
+
+**Without .NET installed:** the MCP server is also published to npm as a wrapper that
+downloads a self-contained build on first use. Point any client at `npx -y mcp-server-ppt`
+instead of `mcp-ppt`. Windows x64 only; the CLI (`pptcli`) remains a .NET tool.
 
 
 ## 🤖 Optional: Official Agent Client from Source

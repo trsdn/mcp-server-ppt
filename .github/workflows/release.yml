@@ -255,6 +255,31 @@ jobs:
         Compress-Archive -Path "release/PptMcp-MCP-Server-$version/*" -DestinationPath "PptMcp-MCP-Server-$version-windows.zip"
       shell: pwsh
 
+    # Self-contained build for the npm wrapper (packages/mcp-server-ppt).
+    # The -windows.zip above is framework-dependent and needs the .NET runtime
+    # installed; the whole point of the npm route is that it does not.
+    # The archive name is asserted by that package's `npm test`, so renaming it
+    # here fails a check rather than 404-ing on a user's machine.
+    - name: Create Self-Contained Release Package
+      run: |
+        $version = $env:VERSION
+        dotnet publish src/PptMcp.McpServer/PptMcp.McpServer.csproj `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained true `
+          -p:Version=$version -p:AssemblyVersion="$version.0" -p:FileVersion="$version.0" `
+          --output "release/selfcontained-$version"
+        Copy-Item "README.md" "release/selfcontained-$version/"
+        Copy-Item "LICENSE" "release/selfcontained-$version/"
+        Compress-Archive -Path "release/selfcontained-$version/*" -DestinationPath "PptMcp-MCP-Server-$version-win-x64.zip"
+      shell: pwsh
+
+    - name: Upload Self-Contained ZIP Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mcp-server-selfcontained-zip
+        path: PptMcp-MCP-Server-*-win-x64.zip
+
     - name: Upload ZIP Artifact
       uses: actions/upload-artifact@v4
       with:
@@ -546,7 +571,15 @@ jobs:
         }
 
         # Update versions in package.json files
-        foreach ($pkg in @("packages/ppt-mcp-skill/package.json", "packages/ppt-cli-skill/package.json")) {
+        #
+        # mcp-server-ppt is stamped but NOT published by this workflow. It does not
+        # exist on npm yet, and a trusted publisher can only be bound to a package
+        # that already has a version, so the first publish has to be manual (see
+        # docs/RELEASE-STRATEGY.md, "npm publishing"). Stamping it here means that
+        # manual publish, done from a release-tagged checkout, carries the right
+        # version - which matters more for this package than for the skills,
+        # because the wrapper derives its download URL from its own version.
+        foreach ($pkg in @("packages/ppt-mcp-skill/package.json", "packages/ppt-cli-skill/package.json", "packages/mcp-server-ppt/package.json")) {
           $content = Get-Content $pkg -Raw
           $content = $content -replace '"version":\s*"[\d\.]+"', "`"version`": `"$version`""
           Set-Content $pkg $content
@@ -1064,6 +1097,13 @@ jobs:
         dotnet tool install --global PptMcp.CLI
         ```
 
+        **npm / npx** (no .NET required)
+        ```powershell
+        npx -y mcp-server-ppt
+        ```
+        - Downloads the self-contained `PptMcp-MCP-Server-${{ env.VERSION }}-win-x64.zip` below on first run and caches it
+        - Windows x64 only; `npm` refuses to install it elsewhere
+
         **Agent Skills** (for AI coding assistants)
         - VS Code Extension includes both skills automatically (ppt-mcp + ppt-cli)
         ${{ inputs.publish_npm && '- Install via npm: `npx skillpm install ppt-mcp-skill` or `npx skillpm install ppt-cli-skill`' || '' }}
@@ -1083,6 +1123,7 @@ jobs:
         # Collect all artifacts
         ARTIFACTS=""
         for f in artifacts/mcp-server-zip/*.zip; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
+        for f in artifacts/mcp-server-selfcontained-zip/*.zip; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
         for f in artifacts/cli-nupkg/*.nupkg; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
         for f in artifacts/vscode-vsix/*.vsix; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
         for f in artifacts/mcpb-bundle/*.mcpb; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done

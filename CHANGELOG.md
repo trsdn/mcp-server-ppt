@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **`npx -y mcp-server-ppt`: install the MCP server without .NET** (#110): a new npm package, `packages/mcp-server-ppt`, that downloads a self-contained Windows build from the matching GitHub release on first use and caches it under `%LOCALAPPDATA%`. Most MCP clients document `npx` as the default command form, so requiring a .NET tool install was an adoption barrier for anyone who is not a .NET developer.
+  - The name the issue proposed, `ppt-mcp`, is **taken on npm by an unrelated PowerPoint MCP server**. Published as `mcp-server-ppt` instead, matching the repository name, rather than shipping something a user could confuse with someone else's project.
+  - The release workflow now also builds `PptMcp-MCP-Server-<version>-win-x64.zip`, a self-contained publish. The existing `-windows.zip` is framework-dependent and still needs the .NET runtime installed, which would have defeated the point.
+  - Downloads lazily on first run rather than from a `postinstall` hook: npm 12 blocks dependency install scripts by default and `npx` installs this package as a dependency, so a `postinstall` hook is not something that can be relied on. `npx -y mcp-server-ppt --install` pre-warms the cache.
+  - Marked `os: ["win32"]`, `cpu: ["x64"]`, so npm refuses to install it where COM interop cannot exist.
+  - The package is **stamped but not yet published** by the release workflow. It does not exist on npm, and a trusted publisher can only be bound to an existing package, so the first publish has to be manual. See `docs/RELEASE-STRATEGY.md`.
 - **`glama.json` maintainer claim** (#105): declares `trsdn` as maintainer so the Glama.ai listing can be claimed rather than left as an unowned crawl result. The schema at `https://glama.ai/mcp/schemas/server.json` accepts only `maintainers`, so the platform constraint the issue wanted stated there has to live in the README instead.
 - **One-click MCP install badges in the README** (#113): VS Code, VS Code Insiders and Cursor deeplinks that register the server as `ppt-mcp` running the `mcp-ppt` command. Every link was round-trip decoded to confirm it produces exactly `{"name":"ppt-mcp","command":"mcp-ppt"}` before merging, rather than trusting the encoding by eye.
 
