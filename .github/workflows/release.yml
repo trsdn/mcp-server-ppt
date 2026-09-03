@@ -617,10 +617,32 @@ jobs:
       run: |
         $version = $env:VERSION
         $serverJsonPath = "src/PptMcp.McpServer/.mcp/server.json"
-        $serverContent = Get-Content $serverJsonPath -Raw
-        $serverContent = $serverContent -replace '("version":\s*)"[\d\.]+"(\s*,\s*\n\s*"packages")' , "`$1`"$version`"`$2"
-        $serverContent = $serverContent -replace '("identifier":\s*"Trsdn\.PptMcp\.McpServer",\s*\n\s*"version":\s*)"[\d\.]+"', "`$1`"$version`""
-        Set-Content $serverJsonPath $serverContent
+
+        # Parse the document instead of pattern-matching it. The previous version used
+        # two regexes; the second looked for an identifier of "Trsdn.PptMcp.McpServer",
+        # but the file has only ever said "PptMcp.McpServer". It therefore never matched,
+        # and every release published a registry entry pinning the NuGet package at
+        # 1.0.0 - confirmed live for 1.0.1, 1.0.2, 1.0.3 and 1.1.0.
+        $server = Get-Content $serverJsonPath -Raw | ConvertFrom-Json
+        $server.version = $version
+        foreach ($pkg in $server.packages) { $pkg.version = $version }
+        $server | ConvertTo-Json -Depth 10 | Set-Content $serverJsonPath -Encoding utf8
+
+        # A stamp that quietly does nothing is precisely the failure being fixed here,
+        # so read the file back and fail loudly if any version did not take.
+        $check = Get-Content $serverJsonPath -Raw | ConvertFrom-Json
+        if (-not $check.packages -or @($check.packages).Count -eq 0) {
+          throw "server.json lists no packages - nothing was stamped"
+        }
+        if ($check.version -ne $version) {
+          throw "server.json version is '$($check.version)', expected '$version'"
+        }
+        foreach ($pkg in $check.packages) {
+          if ($pkg.version -ne $version) {
+            throw "package '$($pkg.identifier)' version is '$($pkg.version)', expected '$version'"
+          }
+        }
+        Write-Output "Stamped server.json and $(@($check.packages).Count) package(s) to $version"
       shell: pwsh
 
     - name: Wait for NuGet Propagation

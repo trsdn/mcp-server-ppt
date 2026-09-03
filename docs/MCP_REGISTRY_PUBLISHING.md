@@ -18,19 +18,22 @@ This is the MCP registry metadata file that describes the server:
 
 ```json
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.trsdn/mcp-server-ppt",
-  "title": "PowerPoint COM Automation",
-  "description": "PowerPoint COM automation - Slides, shapes, text, charts, tables, animations, transitions, VBA",
-  "version": "1.0.0",
+  "title": "MCP Server for PowerPoint",
+  "description": "PowerPoint automation for AI - Slides, Shapes, Text, Charts and more. Windows only.",
+  "version": "1.1.0",
   "packages": [
     {
       "registryType": "nuget",
       "identifier": "PptMcp.McpServer",
-      "version": "1.0.0",
+      "version": "1.1.0",
+      "runtimeHint": "dnx",
       "transport": {
         "type": "stdio"
-      }
+      },
+      "packageArguments": [],
+      "environmentVariables": []
     }
   ],
   "repository": {
@@ -43,9 +46,30 @@ This is the MCP registry metadata file that describes the server:
 Key fields:
 - `name`: Registry namespace (uses GitHub namespace `io.github.trsdn/*`)
 - `title`: Human-readable name
-- `description`: Brief description of capabilities
-- `version`: Server version (automatically updated by release workflow)
-- `packages`: Array of deployment options (NuGet package in this case)
+- `description`: Brief description of capabilities. **The schema caps this at 100
+  characters** - a longer string is rejected at publish time, so it cannot simply
+  mirror the much longer NuGet `<Description>`.
+- `version`: Server version (stamped by the release workflow)
+- `packages`: Array of deployment options (NuGet package in this case).
+  `runtimeHint: "dnx"` tells clients how to launch the .NET tool.
+
+### Both version fields are stamped, and the stamp is checked
+
+`server.json` carries the version twice: once at the top level for the server, and
+once inside each `packages[]` entry for the artifact to install. **Both** must be
+updated at release time, and they are independent - a release can publish a correct
+server version while pointing clients at a stale package.
+
+That is not hypothetical. The stamping step originally used two regexes, and the one
+targeting the package version searched for an identifier of `Trsdn.PptMcp.McpServer`
+while the file has only ever said `PptMcp.McpServer`. It never matched, silently, so
+releases 1.0.1, 1.0.2, 1.0.3 and 1.1.0 all published registry entries pinning the
+NuGet package at `1.0.0`.
+
+The step now parses the JSON, updates every `packages[].version`, then reads the file
+back and throws if any version did not take or if the package list is empty. A stamp
+that quietly does nothing was the entire defect, so it must not be able to report
+success without evidence.
 
 ### Package Validation
 
