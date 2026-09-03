@@ -63,6 +63,48 @@ That's it! The MCPB bundle includes everything needed - no .NET installation req
 
 ---
 
+## npm / npx Setup (No .NET Required)
+
+**Best for:** anyone who does not already have .NET installed, and any client whose
+documentation defaults to an `npx` command.
+
+```powershell
+npx -y mcp-server-ppt
+```
+
+The wrapper downloads a self-contained build of the MCP server (about 64 MB compressed)
+from the matching GitHub release on first use and caches it under
+`%LOCALAPPDATA%\mcp-server-ppt`. No .NET runtime or SDK is involved.
+
+Point any client's configuration at it:
+
+```json
+{
+  "servers": {
+    "ppt-mcp": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-ppt"]
+    }
+  }
+}
+```
+
+Clients that use the `mcpServers` key instead (Claude Desktop, Cursor, Cline, Windsurf)
+take the same `command` / `args` pair.
+
+To download ahead of time rather than during the first MCP request:
+
+```powershell
+npx -y mcp-server-ppt --install
+```
+
+Windows x64 only — `npm` refuses to install the package on other platforms, because COM
+interop does not exist there. PowerPoint 2016+ is still required. See
+[`packages/mcp-server-ppt/README.md`](https://github.com/trsdn/mcp-server-ppt/blob/main/packages/mcp-server-ppt/README.md)
+for the cache and mirror environment variables.
+
+---
+
 ## Manual MCP Setup (All MCP Clients)
 
 **Best for:** Other MCP clients (Cursor, Windsurf, Cline, Claude Code, Codex), advanced users
