@@ -9,6 +9,13 @@
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://github.com/trsdn/mcp-server-ppt)
 [![Built with Copilot](https://img.shields.io/badge/Built%20with-GitHub%20Copilot-0366d6.svg)](https://copilot.github.com/)
 
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=flat-square)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522ppt-mcp%2522%252C%2522command%2522%253A%2522mcp-ppt%2522%257D)
+[![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Server-24bfa5?style=flat-square)](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522ppt-mcp%2522%252C%2522command%2522%253A%2522mcp-ppt%2522%257D)
+[![Install in Cursor](https://img.shields.io/badge/Cursor-Install_Server-000000?style=flat-square)](https://cursor.com/en/install-mcp?name=ppt-mcp&config=eyJjb21tYW5kIjoibWNwLXBwdCJ9)
+
+> The install badges register the server as `ppt-mcp` running the `mcp-ppt` command. Install the tool
+> first with `dotnet tool install --global PptMcp.McpServer`, otherwise the client has nothing to launch.
+
 **Automate PowerPoint with AI — A Model Context Protocol (MCP) server for comprehensive PowerPoint automation through conversational AI.**
 
 **PptMcp** enables AI assistants such as GitHub Copilot, Claude, and ChatGPT to automate Microsoft PowerPoint through natural language commands. It covers real presentation work end to end: create slides, edit text, place shapes and images, build charts and tables, apply themes, run VBA, export to PDF or video, and manage live PowerPoint windows safely through the native COM API.
