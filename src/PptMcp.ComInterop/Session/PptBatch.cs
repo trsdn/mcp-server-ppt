@@ -27,6 +27,83 @@ internal sealed class PptBatch : IPptBatch
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
+    /// <summary>
+    /// Counts presentations open in the attached PowerPoint that this session did not open.
+    /// Must be called on the STA thread while the Application reference is still alive.
+    /// Returns null when the count cannot be established, which is treated as "the user may have
+    /// work open" so the process is left running.
+    /// </summary>
+    private int? CountForeignPresentations()
+    {
+        if (_powerPoint == null)
+        {
+            return null;
+        }
+
+        dynamic? presentations = null;
+        try
+        {
+            presentations = _powerPoint.Presentations;
+            int total = (int)presentations.Count;
+            int ours = _presentations?.Count ?? (_presentation != null ? 1 : 0);
+            int foreign = Math.Max(0, total - ours);
+
+            _logger.LogDebug(
+                "Attached PowerPoint has {Total} presentation(s) open, {Ours} opened by this session, {Foreign} foreign",
+                total, ours, foreign);
+
+            return foreign;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Could not count presentations on the attached PowerPoint instance. Treating it as holding the " +
+                "user's work, so it will not be terminated.");
+            return null;
+        }
+        finally
+        {
+            if (presentations != null)
+            {
+                ComUtilities.Release(ref presentations!);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Whether this session may terminate the PowerPoint process it was using.
+    ///
+    /// Always true for a process this session started. For a process it merely attached to, true
+    /// only once every presentation the user had open is gone: terminating then destroys no
+    /// unsaved work, and leaving such a process running would strand an instance that every later
+    /// session attaches to, holding presentation files locked.
+    /// </summary>
+    private bool MayTerminatePowerPointProcess =>
+        _ownsPowerPointProcess || _foreignPresentationCount == 0;
+
+    /// <summary>
+    /// Returns the process IDs of every POWERPNT.exe currently running.
+    /// Used to tell a PowerPoint this session started from one the user already had open.
+    /// </summary>
+    private static HashSet<int> GetRunningPowerPointProcessIds()
+    {
+        var pids = new HashSet<int>();
+
+        foreach (var process in System.Diagnostics.Process.GetProcessesByName("POWERPNT"))
+        {
+            try
+            {
+                pids.Add(process.Id);
+            }
+            finally
+            {
+                process.Dispose();
+            }
+        }
+
+        return pids;
+    }
+
     private readonly string _presentationPath; // Primary presentation path
     private readonly string[] _allPresentationPaths; // All presentation paths (includes primary)
     private readonly bool _showPowerPoint; // Whether to show PowerPoint window
@@ -39,6 +116,8 @@ internal sealed class PptBatch : IPptBatch
     private readonly CancellationTokenSource _shutdownCts;
     private int _disposed; // 0 = not disposed, 1 = disposed (using int for Interlocked.CompareExchange)
     private int? _powerPointProcessId; // POWERPNT.exe process ID, terminated during Dispose
+    private bool _ownsPowerPointProcess; // True only when this session started POWERPNT.exe itself
+    private int? _foreignPresentationCount; // Presentations open that this session did not open; null = unknown
     private bool _operationTimedOut; // Track if an operation timed out for aggressive cleanup
 
     // COM state (STA thread only)
@@ -116,6 +195,13 @@ internal sealed class PptBatch : IPptBatch
                     throw new InvalidOperationException("Microsoft PowerPoint is not installed on this system.");
                 }
 
+                // Snapshot the PowerPoint processes that already exist, before creating the
+                // Application object. PowerPoint is single-instance, so Activator.CreateInstance
+                // attaches to one of these rather than starting its own whenever the user already
+                // has PowerPoint open. Comparing the captured process ID against this snapshot is
+                // what distinguishes "ours to terminate" from "the user's, hands off" (issue #160).
+                var preExistingPowerPointPids = GetRunningPowerPointProcessIds();
+
                 PowerPoint.Application tempPowerPoint = (PowerPoint.Application)Activator.CreateInstance(pptType)!;
                 // PowerPoint COM does NOT allow hiding the application window (unlike Excel).
                 // Setting Visible = msoFalse (0) throws "Hiding the application window is not allowed."
@@ -140,7 +226,22 @@ internal sealed class PptBatch : IPptBatch
                         if (processId != 0)
                         {
                             _powerPointProcessId = (int)processId;
-                            _logger.LogDebug("Captured PowerPoint process ID via HWND: {ProcessId}", _powerPointProcessId);
+                            _ownsPowerPointProcess = !preExistingPowerPointPids.Contains((int)processId);
+
+                            if (_ownsPowerPointProcess)
+                            {
+                                _logger.LogDebug(
+                                    "Captured PowerPoint process ID via HWND: {ProcessId} (started by this session)",
+                                    _powerPointProcessId);
+                            }
+                            else
+                            {
+                                _logger.LogInformation(
+                                    "Attached to pre-existing PowerPoint process {ProcessId}. This session will not " +
+                                    "terminate it on disposal, because doing so would discard unsaved work in decks " +
+                                    "opened outside this session.",
+                                    _powerPointProcessId);
+                            }
                         }
                     }
 
@@ -328,6 +429,14 @@ internal sealed class PptBatch : IPptBatch
                 // Cleanup COM objects on STA thread exit
                 _logger.LogDebug("STA thread cleanup starting for {FileName}", Path.GetFileName(_presentationPath));
 
+                // If this session attached to a PowerPoint it did not start, find out whether the
+                // user actually has anything open in it before deciding whether it may be
+                // terminated. This must happen on the STA thread, while _powerPoint is still alive.
+                if (!_ownsPowerPointProcess)
+                {
+                    _foreignPresentationCount = CountForeignPresentations();
+                }
+
                 // For multi-Presentation batches, close all Presentations individually before quitting PowerPoint
                 if (_presentations != null && _presentations.Count > 1)
                 {
@@ -350,13 +459,27 @@ internal sealed class PptBatch : IPptBatch
                     }
                     _presentations.Clear();
 
-                    // Quit _pptApp after all Presentations closed
+                    // Quit _pptApp after all Presentations closed.
+                    //
+                    // Only safe when this session started PowerPoint. Quit() on an instance the
+                    // user already had open tears down their whole session, and DisplayAlerts is
+                    // ppAlertsNone here, so unsaved changes are discarded without a prompt.
+                    // The single-presentation path below never calls Quit() for the same reason.
                     if (_powerPoint != null)
                     {
                         try
                         {
-                            _logger.LogDebug("Quitting _pptApp application");
-                            _powerPoint.Quit();
+                            if (_ownsPowerPointProcess)
+                            {
+                                _logger.LogDebug("Quitting _pptApp application");
+                                _powerPoint.Quit();
+                            }
+                            else
+                            {
+                                _logger.LogDebug(
+                                    "Skipping Quit() on pre-existing PowerPoint process {ProcessId}",
+                                    _powerPointProcessId);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -620,7 +743,15 @@ internal sealed class PptBatch : IPptBatch
 
         // When operation timed out, the STA thread is stuck in IDispatch.Invoke (unmanaged COM call
         // that cannot be cancelled). Kill the _pptApp process FIRST to unblock the STA thread, then wait.
-        if (_operationTimedOut && _powerPointProcessId.HasValue && _staThread != null && _staThread.IsAlive)
+        // Only ever applies to a process this session started - see issue #160.
+        if (_operationTimedOut && _powerPointProcessId.HasValue && !_ownsPowerPointProcess)
+        {
+            _logger.LogWarning(
+                "[Thread {CallingThread}] Operation timed out, but PowerPoint process {ProcessId} was already running " +
+                "before this session started. Not force-killing it for {FileName} - the STA thread may stay blocked.",
+                callingThread, _powerPointProcessId.Value, Path.GetFileName(_presentationPath));
+        }
+        else if (_operationTimedOut && _powerPointProcessId.HasValue && _staThread != null && _staThread.IsAlive)
         {
             _logger.LogWarning(
                 "[Thread {CallingThread}] Operation timed out — force-killing _pptApp process {ProcessId} BEFORE waiting for STA thread to unblock IDispatch.Invoke for {FileName}",
@@ -672,8 +803,18 @@ internal sealed class PptBatch : IPptBatch
                     "_pptApp cleanup is severely stuck{Reason}. Attempting force-kill.",
                     callingThread, _staThread.ManagedThreadId, joinTimeout, Path.GetFileName(_presentationPath), reasonForError);
 
-                // Force-kill the hung _pptApp process
-                if (_powerPointProcessId.HasValue)
+                // Force-kill the hung _pptApp process, but only if this session started it.
+                // A pre-existing process belongs to the user; killing it discards their unsaved
+                // work. A stuck STA thread is the lesser harm (issue #160).
+                if (_powerPointProcessId.HasValue && !MayTerminatePowerPointProcess)
+                {
+                    _logger.LogWarning(
+                        "[Thread {CallingThread}] STA thread is stuck but PowerPoint process {ProcessId} was already " +
+                        "running before this session started and still has {Count} presentation(s) open. Not " +
+                        "force-killing it - the user's unsaved work takes priority over reclaiming the thread. Thread leak.",
+                        callingThread, _powerPointProcessId.Value, _foreignPresentationCount);
+                }
+                else if (_powerPointProcessId.HasValue)
                 {
                     try
                     {
@@ -743,13 +884,32 @@ internal sealed class PptBatch : IPptBatch
         // So the session releases its COM references cleanly (fast, and no leaked proxies) and
         // then ends the process. WM_CLOSE was also measured and PowerPoint ignores it.
         //
-        // Caveat, unchanged from the previous force-kill behaviour: PowerPoint is a
-        // single-instance application, so Activator.CreateInstance attaches to an instance the
-        // user already had open instead of starting a second one. There is no reliable way to
-        // distinguish the two cases, and skipping termination for a seemingly pre-existing
-        // process is not viable - sessions would then leak a PowerPoint that every later
-        // session attaches to, holding presentation files locked indefinitely.
-        if (_powerPointProcessId.HasValue)
+        // Caveat: PowerPoint is a single-instance application, so Activator.CreateInstance attaches
+        // to an instance the user already had open instead of starting a second one. Terminating
+        // that process would discard every unsaved change in every deck the user had open, with no
+        // prompt and no recovery entry (issue #160).
+        //
+        // Two signals decide this. The session snapshots the running POWERPNT.exe process IDs before
+        // creating the Application object, which identifies a process it started itself. For a
+        // process it merely attached to, it counts the presentations still open after closing its
+        // own during STA cleanup. Termination is withheld only when the user genuinely still has
+        // something open - an attached instance with nothing left in it is terminated, because
+        // stranding it would leave an instance every later session attaches to, holding presentation
+        // files locked. That count is also what makes the decision self-correcting when a previous
+        // session's PowerPoint is still shutting down as this one starts.
+        //
+        // Leaving such a process running does not strand file handles either way: STA cleanup closes
+        // every presentation this session opened before this point, and closing a presentation is
+        // what releases its lock. Termination makes a process we started exit; it is not what
+        // unlocks files.
+        if (_powerPointProcessId.HasValue && !MayTerminatePowerPointProcess)
+        {
+            _logger.LogInformation(
+                "[Thread {CallingThread}] Leaving PowerPoint process {ProcessId} running for {FileName}: it was open " +
+                "before this session started and still has {Count} presentation(s) open, which may hold unsaved work.",
+                callingThread, _powerPointProcessId.Value, Path.GetFileName(_presentationPath), _foreignPresentationCount);
+        }
+        else if (_powerPointProcessId.HasValue)
         {
             try
             {
