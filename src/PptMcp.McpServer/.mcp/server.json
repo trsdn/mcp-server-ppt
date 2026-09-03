@@ -3,12 +3,13 @@
   "name": "io.github.trsdn/mcp-server-ppt",
   "title": "MCP Server for PowerPoint",
   "description": "PowerPoint automation for AI - Slides, Shapes, Text, Charts and more. Windows only.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "packages": [
     {
       "registryType": "nuget",
       "identifier": "PptMcp.McpServer",
-      "version": "1.0.0",
+      "version": "1.1.0",
+      "runtimeHint": "dnx",
       "transport": {
         "type": "stdio"
       },

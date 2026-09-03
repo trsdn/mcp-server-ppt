@@ -19,6 +19,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+### Fixed
+
+- **The MCP Registry no longer advertises a stale NuGet package version** (#108): every registry entry we have ever published — 1.0.1, 1.0.2, 1.0.3 and the current `isLatest` 1.1.0 — tells clients to install `PptMcp.McpServer` **1.0.0**. Anyone discovering the server through `registry.modelcontextprotocol.io` therefore got a build four releases behind, while the entry itself claimed to be the current version.
+  - `server.json` carries the version twice: once for the server, once inside `packages[]` for the artifact to install. The release workflow stamped them with two separate regexes, and the one targeting the package version searched for an identifier of `Trsdn.PptMcp.McpServer`. The file has only ever said `PptMcp.McpServer`, so that regex could never match. It failed silently and the release continued.
+  - The step now parses the JSON, updates every `packages[].version`, then reads the file back and throws if any version did not take or if the package list is empty. The previous behaviour was a stamp that reported success while doing nothing, which is exactly the failure mode the repository's other gates are written to avoid.
+  - Also added `runtimeHint: "dnx"` so clients know how to launch the .NET tool, and corrected the stale example in `docs/MCP_REGISTRY_PUBLISHING.md`, which still showed the October schema revision and a `description` that no longer matched the shipped file.
+  - Existing published entries are immutable; the correction takes effect from the next release.
+
 - **`dotnet pack` on the solution no longer fails, and no longer produces packages that were never meant to ship** (#122): `PptMcp.Core` and `PptMcp.ComInterop` carry a `PackageId` but never set `IsPackable`, so a solution-level pack produced `PptMcp.Core.1.0.0` and `PptMcp.ComInterop.1.0.0` — the exact stale versions sitting orphaned on NuGet while the tools ship 1.1.0. The release workflow packs the two tool projects individually, so nothing was mispublished, but any rewrite towards a solution-level pack would have pushed them, and a higher version number would then have presented them as the current state.
   - Both are implementation details rather than a public contract. Their interfaces carry **220 `[ServiceAction]` methods**, each generating exactly one CLI command and one MCP tool, so every new tool would be a breaking change on a published API. `PptMcp.Service` and `PptMcp.Build.Tasks` already set `IsPackable=false` for the same reason; these two were the outliers.
   - Nothing depends on them being packable: `PptMcp.CLI` and `PptMcp.McpServer` are both `PackAsTool`, so they bundle these assemblies inside the tool package rather than taking a NuGet dependency on them.
