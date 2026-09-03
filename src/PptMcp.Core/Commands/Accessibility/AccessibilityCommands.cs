@@ -210,15 +210,11 @@ public class AccessibilityCommands : IAccessibilityCommands
 
                         // Check if title placeholder has text
                         bool hasText = false;
-                        try
+                        if (Convert.ToInt32(ph.HasTextFrame) != 0)
                         {
-                            if (Convert.ToInt32(ph.HasTextFrame) != 0)
-                            {
-                                string? text = ComUtilities.GetShapeText(ph);
-                                hasText = !string.IsNullOrWhiteSpace(text);
-                            }
+                            string? text = ComUtilities.GetShapeText(ph);
+                            hasText = !string.IsNullOrWhiteSpace(text);
                         }
-                        catch { }
 
                         if (!hasText)
                         {
@@ -234,24 +230,20 @@ public class AccessibilityCommands : IAccessibilityCommands
                     else
                     {
                         // Check other placeholders for empty text
-                        try
+                        if (Convert.ToInt32(ph.HasTextFrame) != 0)
                         {
-                            if (Convert.ToInt32(ph.HasTextFrame) != 0)
+                            string? text = ComUtilities.GetShapeText(ph);
+                            if (string.IsNullOrWhiteSpace(text))
                             {
-                                string? text = ComUtilities.GetShapeText(ph);
-                                if (string.IsNullOrWhiteSpace(text))
+                                issues.Add(new AccessibilityIssue
                                 {
-                                    issues.Add(new AccessibilityIssue
-                                    {
-                                        SlideIndex = slideIndex,
-                                        IssueType = "EmptyPlaceholder",
-                                        ShapeName = ph.Name?.ToString(),
-                                        Description = "Placeholder has no text content."
-                                    });
-                                }
+                                    SlideIndex = slideIndex,
+                                    IssueType = "EmptyPlaceholder",
+                                    ShapeName = ph.Name?.ToString(),
+                                    Description = "Placeholder has no text content."
+                                });
                             }
                         }
-                        catch { }
                     }
                 }
                 finally
@@ -260,7 +252,6 @@ public class AccessibilityCommands : IAccessibilityCommands
                 }
             }
         }
-        catch { }
         finally
         {
             if (placeholders != null) ComUtilities.Release(ref placeholders!);
@@ -292,8 +283,7 @@ public class AccessibilityCommands : IAccessibilityCommands
                     if (shapeType == 14 || shapeType == 4 || shapeType == 9)
                         continue;
 
-                    string? altText = null;
-                    try { altText = shape.AlternativeText?.ToString(); } catch { }
+                    string? altText = shape.AlternativeText?.ToString();
 
                     if (string.IsNullOrWhiteSpace(altText))
                     {
@@ -313,7 +303,6 @@ public class AccessibilityCommands : IAccessibilityCommands
                 }
             }
         }
-        catch { }
         finally
         {
             if (shapes != null) ComUtilities.Release(ref shapes!);

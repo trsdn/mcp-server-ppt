@@ -1,7 +1,3 @@
-src/PptMcp.Core/Commands/Accessibility/AccessibilityCommands.cs:221
-src/PptMcp.Core/Commands/Accessibility/AccessibilityCommands.cs:254
-src/PptMcp.Core/Commands/Accessibility/AccessibilityCommands.cs:263
-src/PptMcp.Core/Commands/Accessibility/AccessibilityCommands.cs:316
 src/PptMcp.Core/Commands/Background/BackgroundCommands.cs:39
 src/PptMcp.Core/Commands/Design/DesignCommands.cs:114
 src/PptMcp.Core/Commands/Design/DesignCommands.cs:163
