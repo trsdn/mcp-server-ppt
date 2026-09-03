@@ -65,6 +65,12 @@ public class PptBatchTimeoutTests : IAsyncLifetime
             try { File.Delete(_testFileCopy); } catch (Exception) { /* file may still be locked */ }
 #pragma warning restore CA1031
         }
+
+        // Pay for this suite's own wreckage here, so the next test does not.
+        // See AbandonedComProxies for why this is per test rather than per class.
+        var drained = AbandonedComProxies.Drain();
+        _output.WriteLine($"Drained abandoned COM proxies in {drained.TotalSeconds:F1}s.");
+
         return Task.CompletedTask;
     }
 

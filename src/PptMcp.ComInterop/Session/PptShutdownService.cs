@@ -165,16 +165,30 @@ public static class PptShutdownService
             // process id as a last resort.
             if (powerPoint != null)
             {
+                // Timed separately from the finalizer drain below. The two used to share a
+                // single elapsed figure, which attributed the drain's cost to this release
+                // and made the log actively misleading: see issue #161, where a 13.5s
+                // "application reference released" was almost entirely the drain.
+                long beforeRelease = stopwatch.ElapsedMilliseconds;
                 Marshal.FinalReleaseComObject(powerPoint);
                 powerPoint = null;
+                long releaseMs = stopwatch.ElapsedMilliseconds - beforeRelease;
 
                 // Release any straggler proxies still held by RCWs awaiting finalization,
                 // otherwise PowerPoint keeps running because a reference remains outstanding.
+                //
+                // The finalizer queue is process-wide, so this drains RCWs abandoned by
+                // *other* sessions too. If one of those points at a PowerPoint that was
+                // force-killed, its release blocks on RPC to a dead endpoint and this
+                // session pays for wreckage it did not create.
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
+                long drainMs = stopwatch.ElapsedMilliseconds - beforeRelease - releaseMs;
 
-                logger.LogDebug("PowerPoint application reference released for {FileName} after {Elapsed}ms",
-                    fileName, stopwatch.ElapsedMilliseconds);
+                logger.LogDebug(
+                    "PowerPoint application reference released for {FileName} after {Elapsed}ms " +
+                    "(proxy release {ReleaseMs}ms, finalizer drain {DrainMs}ms)",
+                    fileName, stopwatch.ElapsedMilliseconds, releaseMs, drainMs);
             }
         }
         finally
