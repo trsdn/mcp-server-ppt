@@ -70,6 +70,13 @@ public sealed class ChartRoundTripTests : IClassFixture<TempDirectoryFixture>
             Assert.True(info.Success, info.ErrorMessage);
             Assert.Equal(XlBarClustered, info.ChartType);
             Assert.False(string.IsNullOrEmpty(info.ChartTypeName));
+
+            // SeriesCount used to be read inside a catch-all that left it at 0 on
+            // failure, which is indistinguishable from a chart that genuinely has no
+            // series - and GetInfo still reported Success. A new chart is created from
+            // PowerPoint's default worksheet, so it always has at least one series.
+            Assert.True(info.SeriesCount > 0,
+                $"Expected the default chart to report at least one series, got {info.SeriesCount}.");
         }
         finally
         {

@@ -61,9 +61,13 @@ internal static class ShapeHelpers
         // Group items
         if (info.IsGroup)
         {
+            // groupItems is acquired before the try so the finally can always release
+            // it. It previously sat inside the try with its Release as the last
+            // statement, so a child that failed to read skipped the Release entirely -
+            // and the enclosing catch-all hid both the leak and the short child list.
+            dynamic groupItems = shape.GroupItems;
             try
             {
-                dynamic groupItems = shape.GroupItems;
                 int count = (int)groupItems.Count;
                 info.GroupItems = new List<ShapeInfo>(count);
                 for (int i = 1; i <= count; i++)
@@ -78,9 +82,11 @@ internal static class ShapeHelpers
                         ComUtilities.Release(ref child!);
                     }
                 }
+            }
+            finally
+            {
                 ComUtilities.Release(ref groupItems!);
             }
-            catch { }
         }
 
         return info;
