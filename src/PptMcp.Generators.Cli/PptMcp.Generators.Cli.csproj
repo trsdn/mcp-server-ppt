@@ -8,6 +8,8 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
     <RootNamespace>PptMcp.Generators.Cli</RootNamespace>
+    <!-- Build-time component, never shipped as a package (issue #122) -->
+    <IsPackable>false</IsPackable>
 
     <!-- Analyzer/Generator specific settings -->
     <IncludeBuildOutput>false</IncludeBuildOutput>

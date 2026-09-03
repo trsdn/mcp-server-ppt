@@ -16,6 +16,10 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
 
+    <!-- Not a standalone package - bundled with CLI and MCP Server, both of which are
+         PackAsTool and therefore carry this assembly inside the tool package rather than
+         taking a NuGet dependency on it. See issue #122. -->
+    <IsPackable>false</IsPackable>
     <PackageId>PptMcp.ComInterop</PackageId>
     <Title>PptMcp COM Interop Library</Title>
     <Description>COM interop utilities for PowerPoint automation. Provides low-level COM object lifecycle management, STA threading, OLE message filtering, and PowerPoint session management. Foundation library for robust PowerPoint COM automation.</Description>
