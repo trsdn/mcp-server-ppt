@@ -51,6 +51,14 @@ internal sealed class SuiteOwnedPowerPoint
     }
 
     /// <summary>
+    /// POWERPNT processes running right now. A caller that needs to reason about the snapshot
+    /// itself - for example to decline to run at all while a foreign instance is open - takes it
+    /// from here and passes it to the constructor, so the guard and the decision cannot disagree
+    /// about which processes were pre-existing.
+    /// </summary>
+    public static IReadOnlyList<int> RunningProcessIds() => RunningPowerPointProcessIds();
+
+    /// <summary>
     /// POWERPNT processes running now that were not running when the snapshot was taken.
     /// </summary>
     public IReadOnlyList<int> Survivors() =>

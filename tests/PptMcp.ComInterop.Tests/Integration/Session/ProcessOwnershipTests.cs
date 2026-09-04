@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Win32;
 using PptMcp.ComInterop.Session;
+using PptMcp.ComInterop.Tests.Integration.Session;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,6 +17,18 @@ namespace PptMcp.ComInterop.Tests.Integration;
 /// Both directions are asserted deliberately. Skipping termination unconditionally would leak a
 /// PowerPoint process that every later session attaches to, so the owned-process path must keep
 /// terminating as before (issue #148).
+///
+/// <para><b>These tests skip rather than run when the user has PowerPoint open (issue #181).</b>
+/// They are not merely inconvenienced by a foreign instance - they are incompatible with one.
+/// PowerPoint is single-instance, so <see cref="StartPowerPointOutsideSession"/> would hand off to
+/// the user's process instead of creating a stand-in, and
+/// <see cref="Dispose_ProcessStartedBySession_IsTerminated"/> would then be asserting that the
+/// user's PowerPoint <i>was killed</i>. A test that cannot run without destroying the user's work
+/// must decline to run.</para>
+///
+/// <para>This class previously opened by killing every POWERPNT on the machine - the exact damage
+/// it exists to prevent - and still reported three passes while doing it. Green tests are not
+/// evidence of a harmless suite.</para>
 /// </summary>
 [Trait("Category", "Integration")]
 [Trait("Speed", "Medium")]
@@ -28,6 +41,7 @@ public class ProcessOwnershipTests : IAsyncLifetime
     private readonly ITestOutputHelper _output;
     private readonly string _tempDir;
     private readonly List<string> _testFiles = new();
+    private readonly SuiteOwnedPowerPoint _ownedPowerPoint;
 
     private static readonly string TemplateFilePath = Path.Combine(
         AppContext.BaseDirectory,
@@ -36,19 +50,28 @@ public class ProcessOwnershipTests : IAsyncLifetime
     public ProcessOwnershipTests(ITestOutputHelper output)
     {
         _output = output;
+
+        // Snapshot before anything runs. Everything already running belongs to the user and is
+        // off limits for the whole class; anything that appears later is ours to reclaim.
+        // SkipWhenForeignPowerPointRunning reads the same source at discovery, so if this snapshot
+        // is non-empty the tests will already have skipped.
+        _ownedPowerPoint = new SuiteOwnedPowerPoint(SuiteOwnedPowerPoint.RunningProcessIds());
+
         _tempDir = Path.Combine(Path.GetTempPath(), $"ProcessOwnershipTests_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDir);
     }
 
-    public Task InitializeAsync()
-    {
-        KillAllPowerPoint();
-        return Task.CompletedTask;
-    }
+    public Task InitializeAsync() => Task.CompletedTask;
 
     public Task DisposeAsync()
     {
-        KillAllPowerPoint();
+        // Reclaim only what this class started. A PID from the constructor snapshot is never
+        // touched - it may be the user's PowerPoint, holding unsaved work in every open deck.
+        var reclaimed = _ownedPowerPoint.Reclaim();
+        if (reclaimed.Count > 0)
+        {
+            _output.WriteLine($"Reclaimed suite-owned PowerPoint process(es): {string.Join(", ", reclaimed)}");
+        }
 
         foreach (var file in _testFiles)
         {
@@ -82,10 +105,9 @@ public class ProcessOwnershipTests : IAsyncLifetime
     /// This guards the issue #148 teardown win against being silently disabled by the
     /// ownership check.
     /// </summary>
-    [Fact]
+    [SkipWhenForeignPowerPointRunning]
     public void Dispose_ProcessStartedBySession_IsTerminated()
     {
-        Assert.Empty(Process.GetProcessesByName("POWERPNT"));
 
         var testFile = CreateTestFile(nameof(Dispose_ProcessStartedBySession_IsTerminated));
 
@@ -108,10 +130,9 @@ public class ProcessOwnershipTests : IAsyncLifetime
     /// the user's own presentation open, must survive disposal. Killing it discards unsaved work in
     /// every deck the user had open.
     /// </summary>
-    [Fact]
+    [SkipWhenForeignPowerPointRunning]
     public void Dispose_PreExistingProcessHoldingUserWork_IsNotTerminated()
     {
-        Assert.Empty(Process.GetProcessesByName("POWERPNT"));
 
         var userDeck = CreateTestFile("UserDeck");
         var preExistingPid = StartPowerPointOutsideSession(userDeck);
@@ -144,10 +165,9 @@ public class ProcessOwnershipTests : IAsyncLifetime
     /// observed failure mode, not a hypothetical: it broke unrelated tests when termination was
     /// withheld on the attach signal alone.
     /// </summary>
-    [Fact]
+    [SkipWhenForeignPowerPointRunning]
     public void Dispose_AttachedProcessWithNoUserWork_IsTerminated()
     {
-        Assert.Empty(Process.GetProcessesByName("POWERPNT"));
 
         var preExistingPid = StartPowerPointOutsideSession(documentPath: null);
         _output.WriteLine($"Pre-existing empty PowerPoint process {preExistingPid}");
@@ -243,26 +263,6 @@ public class ProcessOwnershipTests : IAsyncLifetime
         {
             // No such process - it exited and was reaped
             return true;
-        }
-    }
-
-    private void KillAllPowerPoint()
-    {
-        foreach (var process in Process.GetProcessesByName("POWERPNT"))
-        {
-            try
-            {
-                process.Kill(entireProcessTree: true);
-                process.WaitForExit(5000);
-            }
-            catch (Exception ex)
-            {
-                _output.WriteLine($"Warning: failed to kill PowerPoint {process.Id}: {ex.Message}");
-            }
-            finally
-            {
-                process.Dispose();
-            }
         }
     }
 }
