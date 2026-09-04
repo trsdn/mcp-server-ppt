@@ -31,16 +31,17 @@ internal static class ShapeHelpers
 
         try { info.AlternativeText = shape.AlternativeText?.ToString(); } catch { }
 
-        // HasTextFrame
-        try
+        // HasTextFrame is a standard Shape property present on every shape, and it
+        // answers msoFalse - it does not throw - for shapes without a text frame. A
+        // catch here could therefore only ever fire on a genuine failure, and it
+        // answered "false", which is indistinguishable from that legitimate msoFalse.
+        // A caller checking HasTextFrame before writing text would silently skip a
+        // shape it could perfectly well write to (#126).
+        info.HasTextFrame = Convert.ToInt32(shape.HasTextFrame) != 0; // msoTrue = -1
+        if (info.HasTextFrame)
         {
-            info.HasTextFrame = Convert.ToInt32(shape.HasTextFrame) != 0; // msoTrue = -1
-            if (info.HasTextFrame)
-            {
-                try { info.Text = ComUtilities.GetShapeText(shape); } catch { }
-            }
+            info.Text = ComUtilities.GetShapeText(shape);
         }
-        catch { info.HasTextFrame = false; }
 
         // HasTable
         try { info.HasTable = Convert.ToInt32(shape.HasTable) != 0; } catch { info.HasTable = false; }

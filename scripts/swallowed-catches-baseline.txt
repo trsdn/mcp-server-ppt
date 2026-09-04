@@ -2,8 +2,6 @@ src/PptMcp.Core/Commands/Background/BackgroundCommands.cs:39
 src/PptMcp.Core/Commands/Design/DesignCommands.cs:165
 src/PptMcp.Core/Commands/DocumentProperty/DocumentPropertyCommands.cs:162
 src/PptMcp.Core/Commands/Media/MediaCommands.cs:107
-src/PptMcp.Core/Commands/Placeholder/PlaceholderCommands.cs:49
-src/PptMcp.Core/Commands/Slide/ShapeHelpers.cs:43
 src/PptMcp.Core/Commands/Slideshow/SlideshowCommands.cs:142
 src/PptMcp.Core/Commands/Slideshow/SlideshowCommands.cs:73
 src/PptMcp.Core/Commands/Text/TextCommands.cs:925
