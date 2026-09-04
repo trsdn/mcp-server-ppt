@@ -22,6 +22,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **`PptBatchTimeoutTests` could strand a PowerPoint process that nothing could then reclaim** (#172): a survivor from a force-killing test is inherited by the next session, because PowerPoint is single-instance. That session reports `_ownsPowerPointProcess = false`, so if it also times out, teardown declines to force-kill (correctly — the process might be the user's, #160), its STA thread stays wedged, STA cleanup never runs, and `_foreignPresentationCount` is therefore never computed. The terminate-on-disposal check is `_ownsPowerPointProcess || _foreignPresentationCount == 0`, which is then false on both sides. The instance becomes permanently un-terminable and every later session attaches to it.
+  - Production behaviour is unchanged and deliberate: an unknown foreign-presentation count means the user may have unsaved work open, and the safe answer is to leave the process alone.
+  - The fix is in the suite that creates the survivors. `SuiteOwnedPowerPoint` snapshots the running POWERPNT process IDs before the suite's first test; anything appearing afterwards is the suite's, and anything in the snapshot — the user's own instance included — is left strictly alone. `PptBatchTimeoutTests` now reclaims its own survivors and then **asserts there were none**, so the leak is surfaced rather than silently absorbed.
+  - Reclaim runs before the finalizer drain: ending a wedged process first turns an RCW finalise that would block for COM's full call timeout into a fast RPC failure.
+
 - **Two colour read paths returned the colour byte-reversed** (#126): PowerPoint stores colours as `0x00BBGGRR`, so formatting the raw value with `:X6` yields `#BBGGRR`. `background get-info` and the run colours in `text get` both did exactly that, while five neighbouring reads open-coded the shift-and-mask correctly. The failure is quiet by construction — the output is a well-formed hex colour, just not the one that was set. Setting `#0B3D91` read back as `#913D0B`.
   - Added `ComUtilities.FormatOleColorAsHex` and routed all seven sites through it, so the two spellings cannot diverge again.
   - Found by writing the coverage #126 required, not by inspection.

@@ -31,6 +31,14 @@ public class PptBatchTimeoutTests : IAsyncLifetime
 {
     private readonly ITestOutputHelper _output;
     private static string? _staticTestFile;
+
+    /// <summary>
+    /// Snapshot of the POWERPNT processes that existed before this suite's first test, taken once
+    /// for the whole class. Anything running afterwards that is not in it appeared while this
+    /// suite was force-killing PowerPoint, and is this suite's to reclaim (issue #172).
+    /// </summary>
+    private static SuiteOwnedPowerPoint? _powerPointGuard;
+
     private string? _testFileCopy;
 
     public PptBatchTimeoutTests(ITestOutputHelper output)
@@ -40,6 +48,10 @@ public class PptBatchTimeoutTests : IAsyncLifetime
 
     public Task InitializeAsync()
     {
+        // Taken before the first test, so a PowerPoint the machine already had open - the user's
+        // own, or one an earlier class left behind - is recorded as not ours and stays untouched.
+        _powerPointGuard ??= new SuiteOwnedPowerPoint();
+
         if (_staticTestFile == null)
         {
             var testFolder = Path.Join(AppContext.BaseDirectory, "Integration", "Session", "TestFiles");
@@ -59,6 +71,13 @@ public class PptBatchTimeoutTests : IAsyncLifetime
 
     public Task DisposeAsync()
     {
+        // Reclaim first. A survivor holds this test's file open, and it is a live PowerPoint this
+        // suite wedged - finalising an RCW that points at a live-but-wedged endpoint blocks for
+        // COM's full call timeout. Ending the process first releases the handle and turns that
+        // wait into a fast RPC failure, so the drain below measures abandoned proxies rather than
+        // a hung server.
+        var reclaimed = _powerPointGuard!.Reclaim();
+
         if (_testFileCopy != null && File.Exists(_testFileCopy))
         {
 #pragma warning disable CA1031 // Intentional: best-effort test cleanup
@@ -70,6 +89,17 @@ public class PptBatchTimeoutTests : IAsyncLifetime
         // See AbandonedComProxies for why this is per test rather than per class.
         var drained = AbandonedComProxies.Drain();
         _output.WriteLine($"Drained abandoned COM proxies in {drained.TotalSeconds:F1}s.");
+
+        // Cleaning up is not the same as being clean. A survivor means session teardown failed to
+        // end a process it started, and the next session would have attached to it instead of
+        // starting its own - at which point it is no longer terminable by anything, because
+        // teardown correctly refuses to force-kill a process it did not start (issue #172).
+        Assert.True(
+            reclaimed.Count == 0,
+            $"This suite left {reclaimed.Count} PowerPoint process(es) running: " +
+            $"{string.Join(", ", reclaimed)}. They have been terminated so the rest of the run is " +
+            "unaffected, but session teardown should have ended them. A survivor is inherited by " +
+            "every later session and cannot be reclaimed by any of them.");
 
         return Task.CompletedTask;
     }
