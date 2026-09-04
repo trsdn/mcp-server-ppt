@@ -22,6 +22,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **A failed `HasTextFrame` read was reported as "this shape has no text frame"** (#126): `ShapeHelpers.ReadShapeInfo` and `PlaceholderCommands.List` both guarded that read with `catch { info.HasTextFrame = false; }`. That does not report a failure — it reports a fact, and a false one.
+  - `HasTextFrame` is a standard `Shape` property that answers `msoFalse` rather than throwing for a shape that genuinely has none, so the catch could only ever fire on a real failure — and the value it substituted was indistinguishable from that legitimate `msoFalse`. A caller checking `HasTextFrame` before writing text would silently skip a shape it could perfectly well write to, with the enclosing result still carrying `Success = true`.
+  - In `ShapeHelpers` a nested catch also discarded a failing `GetShapeText`, leaving `Text` null on a shape that had just reported `HasTextFrame = true` — a self-contradictory record. Removed with the outer one.
+  - Added `ShapeTextFrameReportingTests`, asserting **both directions**: a shape with text reports `true` plus its text, and a table shape reports `false` plus `HasTable = true`. Either assertion alone would pass against the bug — a catch that always answers `false` satisfies the negative case, and unconditional `true` satisfies the positive one.
+  - `scripts/swallowed-catches-baseline.txt` lowered from 9 to 7.
+
 - **`docprops set` wrote two properties to the wrong place, one of them silently** (#126): `DocumentPropertyCommands` addresses built-in properties by raw ordinal into the OLE built-in property set, and two of the seven ordinals were wrong.
   - `Company` should be **21**, not 15. Index 15 is *Number of words* — read-only and numeric — so every `--company` write threw, was swallowed, and `SetAll` still returned `Success = true, "Updated document properties"`. Reading it back gave `"0"`.
   - `Comments` should be **5**, not 6. Index 6 is *Template*. This one round-trips consistently with itself, so it produced no error at all: `--comments` quietly overwrote the presentation's Template property while the real Comments field stayed empty.

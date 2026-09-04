@@ -38,15 +38,16 @@ public class PlaceholderCommands : IPlaceholderCommands
                                 PlaceholderTypeName = GetPlaceholderTypeName(phType),
                             };
 
-                            try
+                            // HasTextFrame answers msoFalse rather than throwing for a
+                            // placeholder without a text frame, so a catch here could
+                            // only ever fire on a genuine failure - and it answered
+                            // "false", indistinguishable from that legitimate msoFalse
+                            // (#126).
+                            info.HasTextFrame = Convert.ToInt32(ph.HasTextFrame) != 0;
+                            if (info.HasTextFrame)
                             {
-                                info.HasTextFrame = Convert.ToInt32(ph.HasTextFrame) != 0;
-                                if (info.HasTextFrame)
-                                {
-                                    info.Text = ComUtilities.GetShapeText(ph);
-                                }
+                                info.Text = ComUtilities.GetShapeText(ph);
                             }
-                            catch { info.HasTextFrame = false; }
 
                             result.Placeholders.Add(info);
                         }
