@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Template. Placeholders are substituted by the "Render package manifests" step in
+  .github/workflows/release.yml. Do not submit this file as-is.
+-->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>pptcli</id>
+    <version>{{VERSION}}</version>
+    <packageSourceUrl>https://github.com/trsdn/mcp-server-ppt/tree/main/packaging/chocolatey</packageSourceUrl>
+    <owners>trsdn</owners>
+
+    <title>PptMcp CLI (pptcli)</title>
+    <authors>trsdn</authors>
+    <projectUrl>https://github.com/trsdn/mcp-server-ppt</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/trsdn/mcp-server-ppt/main/assets/logo-128.png</iconUrl>
+    <copyright>Copyright (c) trsdn</copyright>
+    <licenseUrl>https://github.com/trsdn/mcp-server-ppt/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/trsdn/mcp-server-ppt</projectSourceUrl>
+    <docsUrl>https://github.com/trsdn/mcp-server-ppt/blob/main/README.md</docsUrl>
+    <bugTrackerUrl>https://github.com/trsdn/mcp-server-ppt/issues</bugTrackerUrl>
+    <tags>powerpoint pptx office automation com-interop presentation slides cli mcp windows admin</tags>
+
+    <summary>Windows-only PowerPoint automation CLI - requires Microsoft PowerPoint to be installed.</summary>
+    <description><![CDATA[
+`pptcli` automates Microsoft PowerPoint from the command line through PowerPoint's
+native COM API: create and edit slides, shapes, text, tables, charts, images,
+animations and transitions, apply themes, run VBA macros, and export to PDF, images
+or video.
+
+### Requirements - read before installing
+
+* **Windows only.** The tool drives PowerPoint through COM interop, which does not
+  exist on macOS or Linux. There is no cross-platform build and there cannot be one.
+* **Microsoft PowerPoint 2016 or later must already be installed** on the same
+  machine. This package does not include PowerPoint and cannot work without it.
+* **A desktop session.** `pptcli` controls a real PowerPoint process, so it is not
+  suitable for headless or server-side batch processing.
+* **.NET 9 Desktop Runtime**, installed automatically as a package dependency.
+
+### Notes
+
+This package ships a framework-dependent build, which is why the .NET 9 Desktop
+Runtime is a hard dependency rather than a suggestion.
+
+The same functionality is also available as an MCP server for AI assistants such as
+GitHub Copilot and Claude. See the project page for details.
+    ]]></description>
+
+    <releaseNotes>https://github.com/trsdn/mcp-server-ppt/releases/tag/v{{VERSION}}</releaseNotes>
+
+    <!--
+      Framework-dependent build: the .NET runtime is not bundled. PptMcp.CLI sets
+      UseWindowsForms=true, so the base runtime is not enough - it must be the Desktop
+      Runtime, or pptcli.exe installs cleanly and then fails to start. Load-bearing.
+    -->
+    <dependencies>
+      <dependency id="dotnet-9.0-desktopruntime" version="9.0.0" />
+    </dependencies>
+  </metadata>
+
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

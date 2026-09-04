@@ -180,6 +180,126 @@ jobs:
     - name: Pack CLI NuGet
       run: dotnet pack src/PptMcp.CLI/PptMcp.CLI.csproj --configuration Release --no-build --output ./cli-nupkg -p:Version=${{ env.VERSION }}
 
+    # Standalone CLI archive for winget and Chocolatey (#112). Until now the CLI was
+    # only reachable through NuGet or as a bundled dependency of the MCP server ZIP,
+    # neither of which a package manager can consume.
+    #
+    # Framework-dependent on purpose: the download stays small, at the cost of a hard
+    # .NET 9 *Desktop* Runtime dependency in both manifests (PptMcp.CLI sets
+    # UseWindowsForms=true, so the base runtime is not enough).
+    - name: Create CLI Release Package
+      shell: pwsh
+      run: |
+        $version = $env:VERSION
+        # Published out of tree. Publishing with --runtime writes RID output under
+        # src/PptMcp.CLI/bin/Release/net9.0-windows/win-x64/, which the "Upload CLI Build
+        # Output" step below would then sweep into the cli-build artifact for no reason.
+        dotnet publish src/PptMcp.CLI/PptMcp.CLI.csproj `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained false `
+          -p:Version=$version -p:AssemblyVersion="$version.0" -p:FileVersion="$version.0" `
+          --output "release/cli-$version"
+        Copy-Item "README.md" "release/cli-$version/"
+        Copy-Item "LICENSE" "release/cli-$version/"
+
+        $exe = "release/cli-$version/pptcli.exe"
+        if (-not (Test-Path $exe)) {
+            Write-Output "::error::Expected $exe after publish, but it is not there."
+            Write-Output "The winget manifest shims pptcli.exe by name (NestedInstallerFiles),"
+            Write-Output "so a renamed or missing executable breaks the package silently."
+            exit 1
+        }
+
+        Compress-Archive -Path "release/cli-$version/*" -DestinationPath "PptMcp-CLI-$version-win-x64.zip"
+
+    # winget and Chocolatey both refuse a package without a checksum, and the workflow
+    # produced none anywhere before this. Computed here, next to the archive it
+    # describes, so the manifests can never quote a checksum for a different build.
+    - name: Compute CLI Checksum
+      id: cli-checksum
+      shell: pwsh
+      run: |
+        $version = $env:VERSION
+        $zip = "PptMcp-CLI-$version-win-x64.zip"
+        $hash = (Get-FileHash -Path $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+
+        "$hash  $zip" | Out-File -FilePath "$zip.sha256" -Encoding ascii -NoNewline
+        "cli_sha256=$hash" >> $env:GITHUB_OUTPUT
+
+        Write-Output "SHA256($zip) = $hash"
+
+    - name: Render package manifests
+      shell: pwsh
+      run: |
+        $version = $env:VERSION
+        $sha256 = "${{ steps.cli-checksum.outputs.cli_sha256 }}"
+        $releaseDate = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd')
+
+        if ([string]::IsNullOrWhiteSpace($sha256)) {
+            Write-Output "::error::No checksum was passed to the manifest renderer."
+            Write-Output "Rendering a manifest with an empty InstallerSha256 would produce a"
+            Write-Output "package that fails only on a user's machine, so stop here instead."
+            exit 1
+        }
+
+        $templates = @(Get-ChildItem -Path 'packaging' -Recurse -File -Filter '*.template')
+        if ($templates.Count -eq 0) {
+            Write-Output "::error::Found no *.template files under packaging/."
+            Write-Output "This step would otherwise report success having rendered nothing."
+            exit 1
+        }
+
+        foreach ($template in $templates) {
+            $relative = [System.IO.Path]::GetRelativePath('packaging', $template.FullName)
+            $target = Join-Path 'packaging-rendered' ($relative -replace '\.template$', '')
+
+            New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
+
+            $content = Get-Content -Path $template.FullName -Raw
+            $content = $content.Replace('{{VERSION}}', $version)
+            $content = $content.Replace('{{SHA256}}', $sha256)
+            $content = $content.Replace('{{RELEASE_DATE}}', $releaseDate)
+
+            # A leftover placeholder means a template gained a token that nothing
+            # substitutes. Shipping it would put a literal "{{...}}" into a published
+            # manifest, so fail loudly rather than quietly. The character class must
+            # include digits, or it silently fails to match {{SHA256}} - the one token
+            # where a miss would be most damaging.
+            if ($content -match '\{\{[A-Z0-9_]+\}\}') {
+                Write-Output "::error::Unsubstituted placeholder $($Matches[0]) left in $relative."
+                exit 1
+            }
+
+            Set-Content -Path $target -Value $content -Encoding ascii -NoNewline
+            Write-Output "Rendered: $target"
+        }
+
+        # Zipped as well as uploaded raw. The rendered tree is nested (winget/,
+        # chocolatey/tools/), and `gh release create` takes files, not directories - a
+        # flat glob over the folder would hand it a directory and fail. Attaching the
+        # archive is what makes the manifests survive artifact retention, which is the
+        # difference between "copy-paste from the release assets" being true and being
+        # a documented path that quietly does not exist by the time someone submits.
+        Compress-Archive -Path 'packaging-rendered/*' `
+          -DestinationPath "pptcli-packaging-manifests-$version.zip"
+
+    - name: Upload CLI ZIP Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: cli-zip
+        path: |
+          PptMcp-CLI-*-win-x64.zip
+          PptMcp-CLI-*-win-x64.zip.sha256
+
+    - name: Upload Rendered Package Manifests
+      uses: actions/upload-artifact@v4
+      with:
+        name: packaging-manifests
+        path: |
+          packaging-rendered/
+          pptcli-packaging-manifests-*.zip
+
     - name: Upload CLI Build Output
       uses: actions/upload-artifact@v4
       with:
@@ -863,6 +983,66 @@ jobs:
         }
         Write-Output "Marketplace publisher 'trsdn' exists."
 
+    # Bidirectional package guard (#122). Runs before the push because that step is
+    # irreversible - a version pushed to NuGet.org cannot be withdrawn, only deprecated.
+    #
+    # Checks both directions on purpose. "Every expected package is present" alone would
+    # not have caught the actual incident: PptMcp.Core and PptMcp.ComInterop were pushed
+    # once at 1.0.0 and then silently left behind, so NuGet now carries two packages
+    # bearing the product name that are four versions stale. Both projects set
+    # IsPackable=false today, but nothing stopped a workflow edit from packing the whole
+    # solution and republishing them at a *higher* version - which would make an
+    # unmaintained package look like the current one. So an unexpected package is an
+    # error here, not a curiosity.
+    #
+    # Exits non-zero when it finds nothing at all: a check that can report success
+    # without inspecting evidence is worse than no check, because it is trusted.
+    - name: Verify NuGet package set
+      shell: pwsh
+      run: |
+        $version = $env:VERSION
+        $expected = @(
+            "PptMcp.McpServer.$version.nupkg",
+            "PptMcp.CLI.$version.nupkg"
+        )
+
+        $found = @(
+            Get-ChildItem -Path 'nupkg', 'cli-nupkg' -Recurse -File -ErrorAction SilentlyContinue |
+                Where-Object { $_.Extension -eq '.nupkg' }
+        )
+
+        if ($found.Count -eq 0) {
+            Write-Output "::error::Found no .nupkg files in 'nupkg/' or 'cli-nupkg/'."
+            Write-Output "The build artifacts did not arrive, so this check has no evidence to judge."
+            exit 1
+        }
+
+        foreach ($package in $found) {
+            Write-Output "Found: $($package.Name)"
+        }
+
+        $foundNames = $found | ForEach-Object { $_.Name }
+
+        $missing = @($expected | Where-Object { $foundNames -notcontains $_ })
+        if ($missing.Count -gt 0) {
+            Write-Output "::error::Expected packages are missing: $($missing -join ', ')."
+            Write-Output "Refusing to publish a partial release."
+            exit 1
+        }
+
+        $unexpected = @($foundNames | Where-Object { $expected -notcontains $_ })
+        if ($unexpected.Count -gt 0) {
+            Write-Output "::error::Unexpected packages present: $($unexpected -join ', ')."
+            Write-Output "Only PptMcp.McpServer and PptMcp.CLI are published. PptMcp.Core and"
+            Write-Output "PptMcp.ComInterop are implementation details and set IsPackable=false;"
+            Write-Output "see CONTRIBUTING.md, 'Which projects ship to NuGet'."
+            Write-Output "If a package genuinely became public API, update that decision first -"
+            Write-Output "a NuGet version cannot be withdrawn once pushed."
+            exit 1
+        }
+
+        Write-Output "Package set verified: exactly $($expected.Count) expected packages, nothing extra."
+
     - name: NuGet Login (OIDC)
       uses: NuGet/login@v1
       id: nuget-login
@@ -1146,6 +1326,9 @@ jobs:
         ARTIFACTS=""
         for f in artifacts/mcp-server-zip/*.zip; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
         for f in artifacts/mcp-server-selfcontained-zip/*.zip; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
+        for f in artifacts/cli-zip/*.zip; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
+        for f in artifacts/cli-zip/*.sha256; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
+        for f in artifacts/packaging-manifests/*.zip; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
         for f in artifacts/cli-nupkg/*.nupkg; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
         for f in artifacts/vscode-vsix/*.vsix; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done
         for f in artifacts/mcpb-bundle/*.mcpb; do [ -f "$f" ] && ARTIFACTS="$ARTIFACTS $f"; done

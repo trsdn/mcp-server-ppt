@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+#
+# Template. Placeholders are substituted by the "Render package manifests" step in
+# .github/workflows/release.yml. Do not submit this file as-is.
+
+PackageIdentifier: trsdn.pptcli
+PackageVersion: {{VERSION}}
+
+# Windows only, and not incidentally: pptcli drives Microsoft PowerPoint through COM
+# interop, which exists only on Windows and only when PowerPoint is installed.
+Platform:
+- Windows.Desktop
+MinimumOSVersion: 10.0.0.0
+
+# The release asset is a framework-dependent build, so the .NET runtime is NOT bundled.
+# PptMcp.CLI sets UseWindowsForms=true (src/PptMcp.CLI/PptMcp.CLI.csproj), so the plain
+# Microsoft.DotNet.Runtime.9 package is not sufficient - it must be the Desktop Runtime,
+# otherwise pptcli.exe installs cleanly and then fails to start. This dependency is
+# load-bearing; do not "simplify" it away.
+Dependencies:
+  PackageDependencies:
+  - PackageIdentifier: Microsoft.DotNet.DesktopRuntime.9
+
+# A portable command shimmed out of a ZIP: nothing is installed into Program Files and
+# uninstall is a file deletion, which suits a self-contained console tool.
+InstallerType: zip
+NestedInstallerType: portable
+NestedInstallerFiles:
+- RelativeFilePath: pptcli.exe
+  PortableCommandAlias: pptcli
+
+ReleaseDate: {{RELEASE_DATE}}
+
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/trsdn/mcp-server-ppt/releases/download/v{{VERSION}}/PptMcp-CLI-{{VERSION}}-win-x64.zip
+  InstallerSha256: {{SHA256}}
+
+ManifestType: installer
+ManifestVersion: 1.6.0

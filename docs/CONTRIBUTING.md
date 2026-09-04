@@ -261,6 +261,34 @@ Great feature requests include:
 ## 📦 For Maintainers
 
 - [NuGet Publishing Guide](NUGET-GUIDE.md) - Complete guide for publishing all packages with OIDC trusted publishing
+- [Packaging manifests](../packaging/README.md) - winget and Chocolatey templates for `pptcli`
+
+### Which projects ship to NuGet
+
+Exactly two packages are published: **`PptMcp.McpServer`** and **`PptMcp.CLI`**. They are
+the two entry points, and they are the whole public contract.
+
+`PptMcp.Core` and `PptMcp.ComInterop` are **implementation details, not a published
+API**. Both set `IsPackable=false` deliberately - do not remove it.
+
+The reason is structural rather than stylistic. Core's command interfaces are the input
+to the source generators in `src/PptMcp.Generators*`: every MCP tool and every CLI
+command is generated from them, so those interfaces grow by design with each new tool.
+Published as an API, adding a tool would be a breaking change for consumers - the
+architecture and a stable public surface are in direct conflict.
+
+That conclusion arrived late. Both packages were pushed once at 1.0.0 and never again, so
+NuGet still carries two stale packages under the product name while the tools moved on to
+1.1.0. A NuGet version cannot be withdrawn, only deprecated, which is why this is now a
+guard rather than a matter of care: the **Verify NuGet package set** step in
+`.github/workflows/release.yml` runs before the irreversible push and fails if an expected
+package is missing *and* if any unexpected package appears. Without the second half,
+packing the whole solution would silently republish `Core` at a higher version and make an
+unmaintained package look like the current one.
+
+If one of these genuinely needs to become a consumable library, decide that first and give
+it a deliberately encapsulated surface (`internal` for everything that is not contract).
+Do not arrive there by loosening the guard.
 
 ## 🏷️ Issue Labels
 

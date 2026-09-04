@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+#
+# Template. Placeholders are substituted by the "Render package manifests" step in
+# .github/workflows/release.yml. Do not submit this file as-is.
+
+PackageIdentifier: trsdn.pptcli
+PackageVersion: {{VERSION}}
+PackageLocale: en-US
+
+Publisher: trsdn
+PublisherUrl: https://github.com/trsdn
+PublisherSupportUrl: https://github.com/trsdn/mcp-server-ppt/issues
+
+PackageName: PptMcp CLI
+PackageUrl: https://github.com/trsdn/mcp-server-ppt
+Moniker: pptcli
+
+License: MIT
+LicenseUrl: https://github.com/trsdn/mcp-server-ppt/blob/main/LICENSE
+Copyright: Copyright (c) trsdn
+
+# ShortDescription is the line shown in `winget search`. The platform constraint goes
+# first, because that is the one fact that decides whether the tool can work at all.
+ShortDescription: Windows-only PowerPoint automation CLI - requires Microsoft PowerPoint to be installed.
+
+Description: |-
+  pptcli automates Microsoft PowerPoint from the command line through PowerPoint's
+  native COM API: create and edit slides, shapes, text, tables, charts, images,
+  animations and transitions, apply themes, run VBA macros, and export to PDF, images
+  or video.
+
+  REQUIREMENTS - read before installing:
+  - Windows only. The tool drives PowerPoint through COM interop, which does not exist
+    on macOS or Linux. There is no cross-platform build and there cannot be one.
+  - Microsoft PowerPoint 2016 or later must be installed on the same machine. This
+    package does not include PowerPoint and cannot work without it.
+  - A desktop session. pptcli controls a real PowerPoint process, so it is not suitable
+    for headless or server-side batch processing.
+  - The .NET 9 Desktop Runtime, installed automatically as a dependency.
+
+  The same functionality is also available as an MCP server for AI assistants; see the
+  project page.
+
+Tags:
+- powerpoint
+- pptx
+- office
+- automation
+- com-interop
+- presentation
+- slides
+- cli
+- mcp
+- windows
+
+ReleaseNotesUrl: https://github.com/trsdn/mcp-server-ppt/releases/tag/v{{VERSION}}
+
+# "Documentations" (array of DocumentLabel/DocumentUrl), NOT "DocumentationUrl" - the
+# latter is not a field in any winget manifest schema. Plain JSON-Schema validation would
+# have let it through, because the 1.6.0 schemas declare no additionalProperties, but
+# winget's own parser and the winget-pkgs PR validation reject unknown fields.
+Documentations:
+- DocumentLabel: README
+  DocumentUrl: https://github.com/trsdn/mcp-server-ppt/blob/main/README.md
+
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

@@ -146,7 +146,23 @@ dotnet tool install --global PptMcp.CLI
 
 **Without .NET installed:** the MCP server is also published to npm as a wrapper that
 downloads a self-contained build on first use. Point any client at `npx -y mcp-server-ppt`
-instead of `mcp-ppt`. Windows x64 only; the CLI (`pptcli`) remains a .NET tool.
+instead of `mcp-ppt`. Windows x64 only.
+
+**Windows package managers (pending first submission):** every release now builds a
+standalone `pptcli` archive with a SHA256 and renders ready-to-submit winget and
+Chocolatey manifests (see [`packaging/`](packaging/)). The listings themselves are not
+live yet, so the commands below will not resolve until the first submission is accepted —
+tracked in [#112](https://github.com/trsdn/mcp-server-ppt/issues/112).
+
+```powershell
+# Not available yet - listed here so the intended install path is documented
+winget install trsdn.pptcli
+choco install pptcli
+```
+
+Both packages will pull the **.NET 9 Desktop Runtime** as a dependency, because the
+archive is a framework-dependent build. Neither can install Microsoft PowerPoint, which
+remains a prerequisite.
 
 
 ## 🤖 Optional: Official Agent Client from Source
@@ -230,6 +246,24 @@ The AI will display the PowerPoint window so you can watch every operation happe
 **Contributing:** See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines
 
 **Built With:** This entire project was developed using GitHub Copilot AI assistance - mainly with Claude but lately with Auto-mode.
+
+## 🔒 Privacy Policy
+
+PptMcp runs entirely on your machine and **collects no data**.
+
+| | |
+|---|---|
+| **Data collection** | None. No telemetry, no analytics, no crash reporting. |
+| **Usage and storage** | Presentations are opened, edited and saved locally by the PowerPoint installation on the same computer. Slide content, speaker notes, embedded data and file paths are never uploaded by this software. |
+| **Third-party sharing** | None by this software. One outbound request is made at startup — a plain `GET` to `api.nuget.org` to check for a newer release. It sends no data about you, your files or your usage. Disable it with `PPTMCP_NO_UPDATE_CHECK=1`. |
+| **Data retention** | Nothing is retained, because nothing is collected. |
+| **Contact** | [Open an issue](https://github.com/trsdn/mcp-server-ppt/issues) |
+
+One caveat worth stating plainly: PptMcp is normally driven by an AI assistant. Whatever
+that assistant sends to its own model provider is governed by **that assistant's** privacy
+policy, not this one.
+
+📄 **[Full Privacy Policy →](docs/PRIVACY.md)**
 
 **Acknowledgments:**
 - Microsoft PowerPoint Team — For comprehensive COM automation APIs

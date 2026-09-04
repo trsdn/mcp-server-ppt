@@ -8,7 +8,7 @@ namespace PptMcp.Core.Commands.Master;
 /// Slide master and layout operations: list masters, list layouts, get placeholders.
 /// </summary>
 [ServiceCategory("master")]
-[McpTool("master", Title = "Master & Layout Operations", Destructive = false, Category = "design",
+[McpTool("master", Title = "Master & Layout Operations", Destructive = true, Category = "design",
     Description = "Inspect and edit slide masters and layouts. Use 'list' to see all masters with their layouts. "
     + "'list-layouts' for layouts of a specific master. 'list-shapes' to see shapes on a master. "
     + "'edit-shape-text' to change text on master shapes (e.g. company name in footer). "
