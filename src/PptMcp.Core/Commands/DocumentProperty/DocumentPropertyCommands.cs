@@ -6,13 +6,17 @@ namespace PptMcp.Core.Commands.DocumentProperty;
 
 public class DocumentPropertyCommands : IDocumentPropertyCommands
 {
-    // Built-in property indices for BuiltinDocumentProperties
+    // Built-in property indices for BuiltinDocumentProperties.
+    // These are raw ordinals into the OLE built-in property set, and a wrong one is
+    // silent: writing and reading the same wrong index agrees with itself. The mapping
+    // is pinned by DocumentPropertyRoundTripTests.BuiltInPropertyIndices_MapToTheExpectedNames,
+    // which asserts each index's own Name against real PowerPoint.
     private const int PropTitle = 1;
     private const int PropSubject = 2;
     private const int PropAuthor = 3;
     private const int PropKeywords = 4;
-    private const int PropComments = 6;
-    private const int PropCompany = 15;
+    private const int PropComments = 5;
+    private const int PropCompany = 21;
     private const int PropCategory = 18;
 
     public DocumentPropertyResult GetAll(IPptBatch batch)
@@ -84,10 +88,6 @@ public class DocumentPropertyCommands : IDocumentPropertyCommands
             prop = props.Item(index);
             return prop.Value?.ToString() ?? "";
         }
-        catch
-        {
-            return "";
-        }
         finally
         {
             if (prop != null) ComUtilities.Release(ref prop!);
@@ -102,7 +102,6 @@ public class DocumentPropertyCommands : IDocumentPropertyCommands
             prop = props.Item(index);
             prop.Value = value;
         }
-        catch { /* Some props may be read-only */ }
         finally
         {
             if (prop != null) ComUtilities.Release(ref prop!);
@@ -117,11 +116,11 @@ public class DocumentPropertyCommands : IDocumentPropertyCommands
         {
             dynamic pres = ctx.Presentation;
             dynamic customProps = pres.CustomDocumentProperties;
+            dynamic? prop = null;
             try
             {
-                dynamic prop = customProps.Item(propertyName);
+                prop = customProps.Item(propertyName);
                 string value = prop.Value?.ToString() ?? "";
-                ComUtilities.Release(ref prop!);
 
                 return new OperationResult
                 {
@@ -133,6 +132,7 @@ public class DocumentPropertyCommands : IDocumentPropertyCommands
             }
             finally
             {
+                if (prop != null) ComUtilities.Release(ref prop!);
                 ComUtilities.Release(ref customProps!);
             }
         });
@@ -148,21 +148,34 @@ public class DocumentPropertyCommands : IDocumentPropertyCommands
             dynamic customProps = pres.CustomDocumentProperties;
             try
             {
-                // Try to update existing property first
+                // COM has no TryGetItem: probing for an existing property means calling
+                // Item and letting it throw. This catch is deliberate and stays - it is
+                // the existence test itself, not error suppression. It is narrowed to the
+                // probe alone so a failing *write* to an existing property still surfaces.
                 bool exists = false;
+                dynamic? existing = null;
                 try
                 {
-                    dynamic existing = customProps.Item(propertyName);
-                    existing.Value = propertyValue;
-                    ComUtilities.Release(ref existing!);
+                    existing = customProps.Item(propertyName);
                     exists = true;
                 }
                 catch { /* Property doesn't exist yet */ }
 
-                if (!exists)
+                try
                 {
-                    // Add new custom property (Type 4 = msoPropertyTypeString)
-                    customProps.Add(propertyName, false, 4, propertyValue);
+                    if (exists)
+                    {
+                        existing!.Value = propertyValue;
+                    }
+                    else
+                    {
+                        // Add new custom property (Type 4 = msoPropertyTypeString)
+                        customProps.Add(propertyName, false, 4, propertyValue);
+                    }
+                }
+                finally
+                {
+                    if (existing != null) ComUtilities.Release(ref existing!);
                 }
 
                 return new OperationResult

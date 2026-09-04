@@ -22,6 +22,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **`docprops set` wrote two properties to the wrong place, one of them silently** (#126): `DocumentPropertyCommands` addresses built-in properties by raw ordinal into the OLE built-in property set, and two of the seven ordinals were wrong.
+  - `Company` should be **21**, not 15. Index 15 is *Number of words* — read-only and numeric — so every `--company` write threw, was swallowed, and `SetAll` still returned `Success = true, "Updated document properties"`. Reading it back gave `"0"`.
+  - `Comments` should be **5**, not 6. Index 6 is *Template*. This one round-trips consistently with itself, so it produced no error at all: `--comments` quietly overwrote the presentation's Template property while the real Comments field stayed empty.
+  - The catch in `SetProp` — justified in a comment as "some props may be read-only" — was what made the first bug invisible. All seven properties `SetAll` writes are writable built-ins, so the tolerance protected nothing and hid a genuine defect. Removed, along with the catch in `GetProp` that returned `""` for a failed read, making a failure indistinguishable from a genuinely empty property.
+  - The existence probe in `SetCustom` **stays** — COM offers no `TryGetItem`, so calling `Item` and letting it throw *is* the existence test. It has been narrowed to the probe alone, so a failing write to an already-existing property now surfaces instead of being absorbed.
+  - Fixed two **COM leaks** of the recurring shape: `ComUtilities.Release(...)` sitting as the last statement *inside* a guarded block, skipped on any failure. `check-com-leaks.ps1` cannot see these — it only verifies that a release exists.
+  - Added `DocumentPropertyRoundTripTests`; this feature previously had **no integration coverage at all**. Two of the five tests failed against the unmodified code and pass after the fix. The suite includes a test that asserts each ordinal's own `Name`, because a wrong index is invisible to a round trip — writing and reading the *same* wrong index agrees with itself.
+  - `scripts/swallowed-catches-baseline.txt` lowered from 11 to 9.
+
 - **Theme colour reads could return a silently incomplete palette** (#126): `DesignCommands.GetColors` builds its twelve-entry colour map one read at a time, each wrapped in a catch-all. A failed read simply **omitted its key**, so the caller got a shorter map rather than an error — and the result still carried `Success = true`. Callers index this map by name, so a missing `Accent3` reads as a theme that has no `Accent3`.
   - The same catch hid a **COM leak**: `ComUtilities.Release(ref colorItem!)` was the last statement *inside* the `try`, so any failing read skipped it. Restructured to acquire before the `try` and release in a `finally`.
   - Added `DesignColorRoundTripTests`, which pins the **exact twelve-key set** rather than a count — a walk that dropped one role would still satisfy "at least eight colours" — and validates every value as `#RRGGBB`. Confirmed passing against the unmodified code before the catch was removed.
