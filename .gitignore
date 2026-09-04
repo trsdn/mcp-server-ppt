@@ -259,3 +259,7 @@ packages/*/skills/*/references/
 # Local integration gate evidence (scripts/Invoke-LocalIntegrationGate.ps1)
 # Evidence is a local artifact bound to a commit SHA, never a committed claim.
 .integration-evidence/
+
+# Rendered package manifests (produced by the release workflow from packaging/*.template)
+packaging-rendered/
+pptcli-packaging-manifests-*.zip

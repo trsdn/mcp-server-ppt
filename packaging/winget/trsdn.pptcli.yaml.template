@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.version.1.6.0.schema.json
+#
+# Template. Placeholders are substituted by the "Render package manifests" step in
+# .github/workflows/release.yml. Do not submit this file as-is.
+
+PackageIdentifier: trsdn.pptcli
+PackageVersion: {{VERSION}}
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.6.0

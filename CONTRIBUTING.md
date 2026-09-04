@@ -12,5 +12,8 @@ Thanks for contributing.
 Do not include secrets, credentials, or personal data in issues, code, or pull
 requests. Security reports belong in `SECURITY.md`.
 
+Project-specific engineering guidance, including which projects ship to NuGet, lives in
+[`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md).
+
 Quality expectations for this project follow the
 [Repository Quality Standard](https://github.com/trsdn/.github/blob/main/docs/repository-quality-standard.md).

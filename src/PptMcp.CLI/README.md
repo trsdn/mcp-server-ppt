@@ -38,6 +38,25 @@ pptcli --help
 
 > 🔁 **Session Workflow:** Always start with `pptcli session open <file>` (captures the session id), pass `--session <id>` to other commands, then `pptcli session close <id> --save` when finished. The CLI reuses the same PowerPoint instance through that lifecycle.
 
+### Installation (winget / Chocolatey - pending first submission)
+
+Every release builds a standalone `pptcli` archive with a SHA256 and renders
+ready-to-submit manifests for both Windows package managers (see
+[`packaging/`](../../packaging/)). **The listings are not live yet**, so these commands
+will not resolve until the first submission is accepted — tracked in
+[#112](https://github.com/trsdn/mcp-server-ppt/issues/112).
+
+```powershell
+# Not available yet - documented so the intended install path is discoverable
+winget install trsdn.pptcli
+choco install pptcli
+```
+
+Both will pull the **.NET 9 Desktop Runtime** as a dependency: the archive is a
+framework-dependent build, and `pptcli` needs the Desktop runtime specifically rather
+than the base one. Neither package can install Microsoft PowerPoint, which remains a
+prerequisite.
+
 ### Check for Updates
 
 ```powershell

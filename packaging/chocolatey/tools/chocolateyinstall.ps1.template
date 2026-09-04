@@ -1,0 +1,32 @@
+# Template. Placeholders are substituted by the "Render package manifests" step in
+# .github/workflows/release.yml. Do not submit this file as-is.
+#
+# ASCII only, deliberately. Chocolatey runs this under Windows PowerShell, which reads
+# the file as cp1252 - a stray typographic dash or quote is silently mangled and can
+# turn the whole script into a parse error.
+
+$ErrorActionPreference = 'Stop'
+
+$packageName = 'pptcli'
+$toolsDir    = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$url64       = 'https://github.com/trsdn/mcp-server-ppt/releases/download/v{{VERSION}}/PptMcp-CLI-{{VERSION}}-win-x64.zip'
+$checksum64  = '{{SHA256}}'
+
+# PowerPoint cannot be installed by this package, and a pptcli that cannot reach
+# PowerPoint fails at the first command with an error that reads like a bug in the tool.
+# Warn here so the cause is visible at install time rather than at first use.
+$pptInstalled = $null -ne (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Classes\PowerPoint.Application' -ErrorAction SilentlyContinue)
+if (-not $pptInstalled) {
+    Write-Warning "Microsoft PowerPoint was not detected on this machine."
+    Write-Warning "pptcli automates PowerPoint through COM and cannot do anything without it."
+    Write-Warning "Install Microsoft PowerPoint 2016 or later, then re-run your command."
+}
+
+# Install-ChocolateyZipPackage verifies the checksum before extracting, so a tampered or
+# truncated download fails here rather than producing a broken shim.
+Install-ChocolateyZipPackage `
+    -PackageName   $packageName `
+    -Url64bit      $url64 `
+    -UnzipLocation $toolsDir `
+    -Checksum64    $checksum64 `
+    -ChecksumType64 'sha256'
