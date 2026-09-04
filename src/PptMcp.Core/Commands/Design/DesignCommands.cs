@@ -74,6 +74,58 @@ public partial class DesignCommands : IDesignCommands
         });
     }
 
+    /// <summary>
+    /// The twelve MsoThemeColorSchemeIndex roles, in index order.
+    /// </summary>
+    private static readonly string[] ThemeColorRoles =
+    [
+        "Dark1", "Light1", "Dark2", "Light2",
+        "Accent1", "Accent2", "Accent3", "Accent4",
+        "Accent5", "Accent6", "Hyperlink", "FollowedHyperlink"
+    ];
+
+    /// <summary>
+    /// Reads one design's theme colour palette. Shared by <c>get-colors</c> and
+    /// <c>list-color-schemes</c> so the two cannot report different palettes for the same design.
+    /// </summary>
+    /// <param name="design">A live Designs.Item(i) proxy. Ownership stays with the caller.</param>
+    private static Dictionary<string, string> ReadThemeColors(dynamic design)
+    {
+        dynamic? slideMaster = null;
+        dynamic? theme = null;
+        dynamic? colorScheme = null;
+        try
+        {
+            slideMaster = design.SlideMaster;
+            theme = slideMaster.Theme;
+            colorScheme = theme.ThemeColorScheme;
+
+            var colors = new Dictionary<string, string>();
+
+            for (int i = 1; i <= ThemeColorRoles.Length; i++)
+            {
+                dynamic colorItem = colorScheme.Colors(i);
+                try
+                {
+                    // PowerPoint stores colours as 0x00BBGGRR, not #RRGGBB.
+                    colors[ThemeColorRoles[i - 1]] = ComUtilities.FormatOleColorAsHex((int)colorItem.RGB);
+                }
+                finally
+                {
+                    ComUtilities.Release(ref colorItem!);
+                }
+            }
+
+            return colors;
+        }
+        finally
+        {
+            if (colorScheme != null) ComUtilities.Release(ref colorScheme!);
+            if (theme != null) ComUtilities.Release(ref theme!);
+            if (slideMaster != null) ComUtilities.Release(ref slideMaster!);
+        }
+    }
+
     public ThemeColorResult GetColors(IPptBatch batch, int designIndex)
     {
         return batch.Execute((ctx, ct) =>
@@ -81,51 +133,18 @@ public partial class DesignCommands : IDesignCommands
             dynamic designs = ((dynamic)ctx.Presentation).Designs;
             int idx = designIndex <= 0 ? 1 : designIndex;
             dynamic design = designs.Item(idx);
-            dynamic? slideMaster = null;
-            dynamic? theme = null;
-            dynamic? colorScheme = null;
             try
             {
-                slideMaster = design.SlideMaster;
-                theme = slideMaster.Theme;
-                colorScheme = theme.ThemeColorScheme;
-
-                var colors = new Dictionary<string, string>();
-                // MsoThemeColorSchemeIndex: 1-12
-                string[] colorNames = [
-                    "Dark1", "Light1", "Dark2", "Light2",
-                    "Accent1", "Accent2", "Accent3", "Accent4",
-                    "Accent5", "Accent6", "Hyperlink", "FollowedHyperlink"
-                ];
-
-                for (int i = 1; i <= Math.Min(12, colorNames.Length); i++)
-                {
-                    dynamic colorItem = colorScheme.Colors(i);
-                    try
-                    {
-                        int rgb = (int)colorItem.RGB;
-                        // COM returns BGR, convert to #RRGGBB
-                        colors[colorNames[i - 1]] = ComUtilities.FormatOleColorAsHex(rgb);
-                    }
-                    finally
-                    {
-                        ComUtilities.Release(ref colorItem!);
-                    }
-                }
-
                 return new ThemeColorResult
                 {
                     Success = true,
                     FilePath = ctx.PresentationPath,
                     DesignName = design.Name?.ToString() ?? "",
-                    Colors = colors
+                    Colors = ReadThemeColors(design)
                 };
             }
             finally
             {
-                if (colorScheme != null) ComUtilities.Release(ref colorScheme!);
-                if (theme != null) ComUtilities.Release(ref theme!);
-                if (slideMaster != null) ComUtilities.Release(ref slideMaster!);
                 ComUtilities.Release(ref design!);
                 ComUtilities.Release(ref designs!);
             }
@@ -136,40 +155,44 @@ public partial class DesignCommands : IDesignCommands
     {
         return batch.Execute((ctx, ct) =>
         {
-            dynamic colorSchemes = ((dynamic)ctx.Presentation).ColorSchemes;
+            // Reads the theme colour scheme of every design, not Presentation.ColorSchemes.
+            //
+            // ColorSchemes is the pre-2007 API that Office themes replaced. It is empty for every
+            // OOXML presentation, so this action used to return Success with an empty list on any
+            // modern .pptx - indistinguishable from a genuine "this deck has no colour schemes",
+            // while get-colors returned a full twelve-role palette for the same file (issue #174).
+            //
+            // A design is the modern unit that owns a palette, so one entry per design is the
+            // faithful answer. Index addresses the same design get-colors takes.
+            dynamic designs = ((dynamic)ctx.Presentation).Designs;
             try
             {
                 var result = new ColorSchemeListResult { Success = true, FilePath = ctx.PresentationPath };
-                int count = (int)colorSchemes.Count;
+                int count = (int)designs.Count;
+
                 for (int i = 1; i <= count; i++)
                 {
-                    dynamic cs = colorSchemes.Item(i);
+                    dynamic design = designs.Item(i);
                     try
                     {
-                        var info = new ColorSchemeInfo { Index = i };
-                        // RGBColor indices: 1-8 map to standard PowerPoint color roles
-                        string[] roleNames = ["Background", "Text", "Shadow", "Title", "Fill", "Accent1", "Accent2", "Accent3"];
-                        for (int c = 1; c <= Math.Min(8, roleNames.Length); c++)
+                        result.ColorSchemes.Add(new ColorSchemeInfo
                         {
-                            try
-                            {
-                                int rgb = (int)cs.Colors(c).RGB;
-                                info.Colors[roleNames[c - 1]] = ComUtilities.FormatOleColorAsHex(rgb);
-                            }
-                            catch { }
-                        }
-                        result.ColorSchemes.Add(info);
+                            Index = i,
+                            DesignName = design.Name?.ToString() ?? "",
+                            Colors = ReadThemeColors(design)
+                        });
                     }
                     finally
                     {
-                        ComUtilities.Release(ref cs!);
+                        ComUtilities.Release(ref design!);
                     }
                 }
+
                 return result;
             }
             finally
             {
-                ComUtilities.Release(ref colorSchemes!);
+                ComUtilities.Release(ref designs!);
             }
         });
     }

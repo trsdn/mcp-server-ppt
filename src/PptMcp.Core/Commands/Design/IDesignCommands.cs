@@ -63,7 +63,9 @@ public interface IDesignCommands
     ThemeColorResult GetColors(IPptBatch batch, int designIndex);
 
     /// <summary>
-    /// List all color schemes in the presentation.
+    /// List the theme color scheme of every design in the presentation.
+    /// One entry per design, each carrying the same twelve theme roles get-colors returns,
+    /// with Index addressing the design that get-colors takes.
     /// </summary>
     [ServiceAction("list-color-schemes")]
     ColorSchemeListResult ListColorSchemes(IPptBatch batch);

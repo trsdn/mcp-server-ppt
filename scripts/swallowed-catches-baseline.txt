@@ -1,2 +1,1 @@
-src/PptMcp.Core/Commands/Design/DesignCommands.cs:159
 src/PptMcp.Core/Commands/DocumentProperty/DocumentPropertyCommands.cs:162
