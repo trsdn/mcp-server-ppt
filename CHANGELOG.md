@@ -22,11 +22,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Two colour read paths returned the colour byte-reversed** (#126): PowerPoint stores colours as `0x00BBGGRR`, so formatting the raw value with `:X6` yields `#BBGGRR`. `background get-info` and the run colours in `text get` both did exactly that, while five neighbouring reads open-coded the shift-and-mask correctly. The failure is quiet by construction — the output is a well-formed hex colour, just not the one that was set. Setting `#0B3D91` read back as `#913D0B`.
+  - Added `ComUtilities.FormatOleColorAsHex` and routed all seven sites through it, so the two spellings cannot diverge again.
+  - Found by writing the coverage #126 required, not by inspection.
+
+- **`background get-info` reported `FillType = "Unknown"` instead of failing** (#126): a catch-all around the fill read substituted a plausible-looking value under `Success = true`. Removed.
+
+- **`media get-info` answered questions about shapes that are not media** (#126): `Shape.MediaType` is only valid on a media shape and throws otherwise; the catch turned that into `MediaType = "Unknown"` with `Success = true`, so asking for media details about a rectangle produced a confident wrong answer. It now raises `InvalidOperationException` naming the shape, preserving the COM failure as the inner exception.
+
+- **Two slideshow existence probes were wider than the question they asked** (#126): `Presentation.SlideShowWindow` throws when no show is running and COM offers no `IsSlideShowRunning`, so the throw *is* the query — those catches are legitimate and are kept. But each spanned the work that followed it, so a genuine failure during `View.Exit()` or while reading `CurrentShowPosition` was reported back as "no slideshow was running" / "stopped at slide 0". Both are now narrowed to the acquisition alone.
+
 - **A failed `HasTextFrame` read was reported as "this shape has no text frame"** (#126): `ShapeHelpers.ReadShapeInfo` and `PlaceholderCommands.List` both guarded that read with `catch { info.HasTextFrame = false; }`. That does not report a failure — it reports a fact, and a false one.
   - `HasTextFrame` is a standard `Shape` property that answers `msoFalse` rather than throwing for a shape that genuinely has none, so the catch could only ever fire on a real failure — and the value it substituted was indistinguishable from that legitimate `msoFalse`. A caller checking `HasTextFrame` before writing text would silently skip a shape it could perfectly well write to, with the enclosing result still carrying `Success = true`.
   - In `ShapeHelpers` a nested catch also discarded a failing `GetShapeText`, leaving `Text` null on a shape that had just reported `HasTextFrame = true` — a self-contradictory record. Removed with the outer one.
   - Added `ShapeTextFrameReportingTests`, asserting **both directions**: a shape with text reports `true` plus its text, and a table shape reports `false` plus `HasTable = true`. Either assertion alone would pass against the bug — a catch that always answers `false` satisfies the negative case, and unconditional `true` satisfies the positive one.
-  - `scripts/swallowed-catches-baseline.txt` lowered from 9 to 7.
+  - `scripts/swallowed-catches-baseline.txt` lowered from 9 to 7, and then to **2** — the two that remain are deliberate: the `SetCustom` existence probe, and the unreachable `ListColorSchemes` catch (#174). Added `SwallowedCatchBehaviourTests`, the first behavioural coverage for background, slideshow and media; these features previously had only reflection tests asserting that their action enums were wide enough.
 
 - **`docprops set` wrote two properties to the wrong place, one of them silently** (#126): `DocumentPropertyCommands` addresses built-in properties by raw ordinal into the OLE built-in property set, and two of the seven ordinals were wrong.
   - `Company` should be **21**, not 15. Index 15 is *Number of words* — read-only and numeric — so every `--company` write threw, was swallowed, and `SetAll` still returned `Success = true, "Updated document properties"`. Reading it back gave `"0"`.

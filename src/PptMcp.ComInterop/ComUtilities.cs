@@ -349,6 +349,28 @@ public static class ComUtilities
     }
 
     /// <summary>
+    /// Formats an OLE colour value as <c>#RRGGBB</c>.
+    /// </summary>
+    /// <remarks>
+    /// PowerPoint stores colours as <c>0x00BBGGRR</c> - byte-reversed relative to the
+    /// familiar hex notation - so formatting the raw integer with <c>:X6</c> silently
+    /// produces <c>#BBGGRR</c>. That is not a crash and not an obviously wrong value:
+    /// it is a well-formed hex colour that simply is not the one the caller set.
+    /// Two read paths shipped that bug (GitHub #126) while five neighbouring ones
+    /// open-coded the same shift-and-mask correctly. This helper exists so the two
+    /// spellings cannot diverge again.
+    /// </remarks>
+    /// <param name="oleColor">An OLE colour value in PowerPoint's 0x00BBGGRR order.</param>
+    /// <returns>The colour as <c>#RRGGBB</c>.</returns>
+    public static string FormatOleColorAsHex(int oleColor)
+    {
+        int r = oleColor & 0xFF;
+        int g = (oleColor >> 8) & 0xFF;
+        int b = (oleColor >> 16) & 0xFF;
+        return $"#{r:X2}{g:X2}{b:X2}";
+    }
+
+    /// <summary>
     /// Reads a chart's title text without abandoning the intermediate
     /// <c>ChartTitle</c> proxy. See <see cref="GetSlide"/>.
     /// </summary>

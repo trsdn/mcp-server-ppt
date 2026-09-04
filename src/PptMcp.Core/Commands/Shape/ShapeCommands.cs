@@ -833,10 +833,7 @@ public class ShapeCommands : IShapeCommands
                 if (fillType == 1)
                 {
                     int rgb = ComUtilities.GetForeColorRgb(fill);
-                    int r = rgb & 0xFF;
-                    int g = (rgb >> 8) & 0xFF;
-                    int b = (rgb >> 16) & 0xFF;
-                    colorHex = $"#{r:X2}{g:X2}{b:X2}";
+                    colorHex = ComUtilities.FormatOleColorAsHex(rgb);
                 }
 
                 float transparency = Convert.ToSingle(fill.Transparency);
@@ -882,10 +879,7 @@ public class ShapeCommands : IShapeCommands
                 if (visible)
                 {
                     int rgb = ComUtilities.GetForeColorRgb(line);
-                    int r = rgb & 0xFF;
-                    int g = (rgb >> 8) & 0xFF;
-                    int b = (rgb >> 16) & 0xFF;
-                    colorHex = $"#{r:X2}{g:X2}{b:X2}";
+                    colorHex = ComUtilities.FormatOleColorAsHex(rgb);
                     weight = Convert.ToSingle(line.Weight);
                 }
 
@@ -1355,10 +1349,7 @@ public class ShapeCommands : IShapeCommands
                     float offsetY = Convert.ToSingle(shadow.OffsetY);
                     float blur = Convert.ToSingle(shadow.Blur);
                     int rgb = Convert.ToInt32(shadow.ForeColor.RGB);
-                    int r = rgb & 0xFF;
-                    int g = (rgb >> 8) & 0xFF;
-                    int b = (rgb >> 16) & 0xFF;
-                    string colorHex = $"#{r:X2}{g:X2}{b:X2}";
+                    string colorHex = ComUtilities.FormatOleColorAsHex(rgb);
                     message = $"Visible: true, OffsetX: {offsetX:F2}, OffsetY: {offsetY:F2}, Blur: {blur:F2}, Color: {colorHex}";
                 }
                 else

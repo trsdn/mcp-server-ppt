@@ -50,7 +50,26 @@ public class SlideshowCommands : ISlideshowCommands
             dynamic? window = null;
             try
             {
-                window = pres.SlideShowWindow;
+                // COM offers no IsSlideShowRunning, so acquiring SlideShowWindow and
+                // letting it throw *is* the query. The probe is deliberately narrowed to
+                // that one statement: the old catch spanned View.Exit() as well, so a
+                // genuine failure while stopping a running show was reported back as
+                // "No slideshow was running" (#126).
+                try
+                {
+                    window = pres.SlideShowWindow;
+                }
+                catch
+                {
+                    return new OperationResult
+                    {
+                        Success = true,
+                        Action = "stop",
+                        Message = "No slideshow was running",
+                        FilePath = ctx.PresentationPath
+                    };
+                }
+
                 dynamic? view = null;
                 try
                 {
@@ -67,17 +86,6 @@ public class SlideshowCommands : ISlideshowCommands
                     Success = true,
                     Action = "stop",
                     Message = "Stopped slideshow",
-                    FilePath = ctx.PresentationPath
-                };
-            }
-            catch
-            {
-                // No slideshow running
-                return new OperationResult
-                {
-                    Success = true,
-                    Action = "stop",
-                    Message = "No slideshow was running",
                     FilePath = ctx.PresentationPath
                 };
             }
@@ -123,9 +131,22 @@ public class SlideshowCommands : ISlideshowCommands
 
             bool isRunning = false;
             int currentSlide = 0;
+
+            // Same narrowed existence probe as EndShow: only the acquisition may throw
+            // to mean "not running". The old catch also spanned the CurrentShowPosition
+            // read, so a failure there reported a stopped show at slide 0 (#126).
+            dynamic? window = null;
             try
             {
-                dynamic window = pres.SlideShowWindow;
+                window = pres.SlideShowWindow;
+            }
+            catch
+            {
+                window = null;
+            }
+
+            if (window != null)
+            {
                 dynamic? view = null;
                 try
                 {
@@ -138,10 +159,6 @@ public class SlideshowCommands : ISlideshowCommands
                     if (view != null) ComUtilities.Release(ref view!);
                     ComUtilities.Release(ref window!);
                 }
-            }
-            catch
-            {
-                // No slideshow running
             }
 
             return new SlideshowInfoResult
