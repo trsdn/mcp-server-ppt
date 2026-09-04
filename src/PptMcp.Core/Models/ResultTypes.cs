@@ -578,7 +578,12 @@ public class ColorSchemeListResult : ResultBase
 
 public class ColorSchemeInfo
 {
+    /// <summary>1-based design index this scheme belongs to. Pass it to <c>get-colors</c>.</summary>
     public int Index { get; set; }
+
+    /// <summary>Name of the design carrying this theme colour scheme.</summary>
+    public string DesignName { get; set; } = string.Empty;
+
     public Dictionary<string, string> Colors { get; set; } = [];
 }
 
