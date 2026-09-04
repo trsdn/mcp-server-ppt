@@ -104,7 +104,15 @@ public class MediaCommands : IMediaCommands
                         _ => $"Unknown({mediaType})"
                     };
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    // shape.MediaType is only valid on a media shape. Absorbing the
+                    // failure produced MediaType = "Unknown" under Success = true, so
+                    // asking for media details about a rectangle returned a confident
+                    // wrong answer instead of an error (#126).
+                    throw new InvalidOperationException(
+                        $"Shape '{shapeName}' on slide {slideIndex} is not a media shape.", ex);
+                }
 
                 try { sourceFile = shape.LinkFormat?.SourceFullName?.ToString() ?? ""; } catch { }
 

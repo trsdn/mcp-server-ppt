@@ -33,10 +33,10 @@ public class BackgroundCommands : IBackgroundCommands
 
                         if (fillType == 1) // msoFillSolid
                         {
-                            result.Color = $"#{ComUtilities.GetForeColorRgb(fill):X6}";
+                            result.Color = ComUtilities.FormatOleColorAsHex(
+                                ComUtilities.GetForeColorRgb(fill));
                         }
                     }
-                    catch { result.FillType = "Unknown"; }
                     finally
                     {
                         ComUtilities.Release(ref fill!);

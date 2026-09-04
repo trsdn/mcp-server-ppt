@@ -919,10 +919,9 @@ public class TextCommands : ITextCommands
                                     try
                                     {
                                         runColor = runFont.Color;
-                                        int rgb = Convert.ToInt32(runColor.RGB);
-                                        runInfo.Color = $"#{rgb:X6}";
+                                        runInfo.Color = ComUtilities.FormatOleColorAsHex(
+                                            Convert.ToInt32(runColor.RGB));
                                     }
-                                    catch { }
                                     finally
                                     {
                                         ComUtilities.Release(ref runColor!);

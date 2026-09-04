@@ -105,10 +105,7 @@ public partial class DesignCommands : IDesignCommands
                     {
                         int rgb = (int)colorItem.RGB;
                         // COM returns BGR, convert to #RRGGBB
-                        int r = rgb & 0xFF;
-                        int g = (rgb >> 8) & 0xFF;
-                        int b = (rgb >> 16) & 0xFF;
-                        colors[colorNames[i - 1]] = $"#{r:X2}{g:X2}{b:X2}";
+                        colors[colorNames[i - 1]] = ComUtilities.FormatOleColorAsHex(rgb);
                     }
                     finally
                     {
@@ -157,10 +154,7 @@ public partial class DesignCommands : IDesignCommands
                             try
                             {
                                 int rgb = (int)cs.Colors(c).RGB;
-                                int r = rgb & 0xFF;
-                                int g = (rgb >> 8) & 0xFF;
-                                int b = (rgb >> 16) & 0xFF;
-                                info.Colors[roleNames[c - 1]] = $"#{r:X2}{g:X2}{b:X2}";
+                                info.Colors[roleNames[c - 1]] = ComUtilities.FormatOleColorAsHex(rgb);
                             }
                             catch { }
                         }
