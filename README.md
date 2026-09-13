@@ -1,3 +1,5 @@
+> **Project direction:** I am working to contribute the features and improvements from this project to [Stefan Broenner's PowerPoint MCP server](https://github.com/sbroenne/mcp-server-powerpoint). This project was originally based on his Excel MCP server, and I am now focusing on contributing that work back to his PowerPoint project.
+
 # PptMcp - MCP Server for Microsoft PowerPoint
 
 [![Release](https://img.shields.io/github/v/release/trsdn/mcp-server-ppt?display_name=tag)](https://github.com/trsdn/mcp-server-ppt/releases)
